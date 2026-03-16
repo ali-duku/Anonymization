@@ -166,7 +166,7 @@ describe("BrowserAnnotationService", () => {
     expect(result.document?.pages[1].regions[0].metadata.pageNumber).toBe(1);
   });
 
-  it("patches edited bbox values into layout and matched content on generate", () => {
+  it("patches edited bbox, label, and text into layout and matched content on generate", () => {
     const raw = JSON.stringify({
       pipeline_steps: {
         layout_detection: [
@@ -204,6 +204,8 @@ describe("BrowserAnnotationService", () => {
       x2: 0.923456789,
       y2: 0.934567891
     };
+    document.pages[0].regions[0].label = "Table";
+    document.pages[0].regions[0].text = "updated text";
 
     const generated = service.generateWithOverlayEdits(parsed.sourceRoot!, document);
     expect(generated.success).toBe(true);
@@ -216,19 +218,22 @@ describe("BrowserAnnotationService", () => {
       x2: 0.923457,
       y2: 0.934568
     });
+    expect(root.pipeline_steps.layout_detection[0].regions[0].label).toBe("Table");
     expect(root.pipeline_steps.content_extraction[0][0].bbox).toEqual({
       x1: 0.123457,
       y1: 0.234568,
       x2: 0.923457,
       y2: 0.934568
     });
+    expect(root.pipeline_steps.content_extraction[0][0].region_label).toBe("Table");
+    expect(root.pipeline_steps.content_extraction[0][0].text).toBe("updated text");
     expect(root.pipeline_steps.content_extraction[0][0].metadata).toEqual({
       page_number: 0,
       region_id: 11
     });
   });
 
-  it("patches only layout when no content match exists", () => {
+  it("creates content output entry when no content match exists", () => {
     const raw = JSON.stringify({
       pipeline_steps: {
         layout_detection: [
@@ -257,6 +262,8 @@ describe("BrowserAnnotationService", () => {
       x2: 2.3,
       y2: 0.5000000001
     };
+    document.pages[0].regions[0].label = "Section-header";
+    document.pages[0].regions[0].text = "new content text";
 
     const generated = service.generateWithOverlayEdits(parsed.sourceRoot!, document);
     expect(generated.success).toBe(true);
@@ -268,7 +275,22 @@ describe("BrowserAnnotationService", () => {
       x2: 1,
       y2: 0.5
     });
-    expect(root.pipeline_steps.content_extraction[0]).toEqual([]);
+    expect(root.pipeline_steps.layout_detection[0].regions[0].label).toBe("Section-header");
+    expect(root.pipeline_steps.content_extraction[0]).toHaveLength(1);
+    expect(root.pipeline_steps.content_extraction[0][0]).toEqual({
+      bbox: {
+        x1: 0,
+        y1: 0.05,
+        x2: 1,
+        y2: 0.5
+      },
+      text: "new content text",
+      region_label: "Section-header",
+      metadata: {
+        page_number: 0,
+        region_id: 1
+      }
+    });
   });
 
   it("normalizes content metadata page_number to 0-index and assigns fallback region_id in output", () => {

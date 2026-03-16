@@ -191,18 +191,36 @@ export class BrowserAnnotationService implements AnnotationService {
       }
 
       const contentSequenceMap = buildContentSequenceMap(contentExtraction);
+      let nextSequenceId = contentSequenceMap.size + 1;
 
       for (const page of document.pages) {
         for (const region of page.regions) {
           const nextBbox = sanitizeBboxForPatch(region.bbox);
-          this.patchLayoutRegion(layoutDetection, region.layoutSource, nextBbox);
+          this.patchLayoutRegion(layoutDetection, region.layoutSource, nextBbox, region.label);
 
           if (region.contentSource) {
             const sequenceId =
               contentSequenceMap.get(
                 buildSourceKey(region.contentSource.pageIndex, region.contentSource.regionIndex)
               ) ?? null;
-            this.patchContentRegion(contentExtraction, region.contentSource, nextBbox, sequenceId);
+            this.patchContentRegion(
+              contentExtraction,
+              region.contentSource,
+              nextBbox,
+              sequenceId,
+              region.label,
+              region.text
+            );
+          } else {
+            this.appendContentRegion(
+              contentExtraction,
+              region.layoutSource.pageIndex,
+              nextBbox,
+              region.label,
+              region.text,
+              nextSequenceId
+            );
+            nextSequenceId += 1;
           }
         }
       }
@@ -225,7 +243,8 @@ export class BrowserAnnotationService implements AnnotationService {
   private patchLayoutRegion(
     layoutDetection: unknown[],
     source: OverlaySourceRef,
-    nextBbox: NormalizedBbox
+    nextBbox: NormalizedBbox,
+    nextLabel: string
   ): void {
     const page = asObject(layoutDetection[source.pageIndex]);
     if (!page) {
@@ -245,13 +264,16 @@ export class BrowserAnnotationService implements AnnotationService {
     }
 
     region.bbox = { ...nextBbox };
+    region.label = nextLabel;
   }
 
   private patchContentRegion(
     contentExtraction: unknown[],
     source: OverlaySourceRef,
     nextBbox: NormalizedBbox,
-    sequenceId: number | null
+    sequenceId: number | null,
+    nextLabel: string,
+    nextText: string
   ): void {
     const page = contentExtraction[source.pageIndex];
     if (!Array.isArray(page)) {
@@ -266,6 +288,8 @@ export class BrowserAnnotationService implements AnnotationService {
     }
 
     region.bbox = { ...nextBbox };
+    region.region_label = nextLabel;
+    region.text = nextText;
 
     const existingMetadata = asObject(region.metadata);
     const metadata = existingMetadata ?? {};
@@ -276,6 +300,38 @@ export class BrowserAnnotationService implements AnnotationService {
     metadata.page_number = source.pageIndex;
     const existingRegionId = toNumericOrNull(metadata.region_id);
     metadata.region_id = existingRegionId ?? sequenceId;
+  }
+
+  private appendContentRegion(
+    contentExtraction: unknown[],
+    pageIndex: number,
+    nextBbox: NormalizedBbox,
+    nextLabel: string,
+    nextText: string,
+    sequenceId: number
+  ): void {
+    while (contentExtraction.length <= pageIndex) {
+      contentExtraction.push([]);
+    }
+
+    if (contentExtraction[pageIndex] === null || contentExtraction[pageIndex] === undefined) {
+      contentExtraction[pageIndex] = [];
+    }
+
+    const page = contentExtraction[pageIndex];
+    if (!Array.isArray(page)) {
+      throw new Error(`Content page index ${pageIndex} is not available in loaded snapshot.`);
+    }
+
+    page.push({
+      bbox: { ...nextBbox },
+      text: nextText,
+      region_label: nextLabel,
+      metadata: {
+        page_number: pageIndex,
+        region_id: sequenceId
+      }
+    });
   }
 
   private parseJson(rawJson: string):

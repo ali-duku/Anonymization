@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -25,6 +26,7 @@ import {
   type NormalizedPoint,
   type ResizeHandle
 } from "../overlayGeometry";
+import { REGION_LABEL_OPTIONS } from "../regionLabelOptions";
 
 GlobalWorkerOptions.workerSrc = pdfWorker;
 
@@ -51,6 +53,7 @@ interface OverlayDraftState {
 }
 
 type OverlayInteractionMode = "drag" | ResizeHandle;
+type TextDirection = "rtl" | "ltr";
 
 interface OverlayInteractionState {
   pointerId: number;
@@ -66,6 +69,7 @@ const MIN_ZOOM = 0.4;
 const MAX_ZOOM = 3;
 const ZOOM_STEP = 0.1;
 const RESIZE_HANDLES: ResizeHandle[] = ["nw", "ne", "sw", "se"];
+const BBOX_CHANGE_EPSILON = 0.0005;
 
 const LABEL_HUES: Record<string, number> = {
   text: 196,
@@ -84,6 +88,15 @@ function clampZoom(value: number): number {
 
 function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value));
+}
+
+function hasBboxChanged(previous: NormalizedBbox, next: NormalizedBbox): boolean {
+  return (
+    Math.abs(previous.x1 - next.x1) > BBOX_CHANGE_EPSILON ||
+    Math.abs(previous.y1 - next.y1) > BBOX_CHANGE_EPSILON ||
+    Math.abs(previous.x2 - next.x2) > BBOX_CHANGE_EPSILON ||
+    Math.abs(previous.y2 - next.y2) > BBOX_CHANGE_EPSILON
+  );
 }
 
 function buildStatusText(loadStatus: PdfLoadStatus, message?: string): string {
@@ -199,6 +212,48 @@ function applyRegionBbox(
     : document;
 }
 
+function applyRegionEdits(
+  document: OverlayDocument,
+  pageNumber: number,
+  regionId: string,
+  edits: { bbox?: NormalizedBbox; label?: string; text?: string }
+): OverlayDocument {
+  let regionChanged = false;
+
+  const nextPages = document.pages.map((page) => {
+    if (page.pageNumber !== pageNumber) {
+      return page;
+    }
+
+    const nextRegions = page.regions.map((region) => {
+      if (region.id !== regionId) {
+        return region;
+      }
+
+      regionChanged = true;
+      return {
+        ...region,
+        ...(edits.bbox ? { bbox: edits.bbox } : {}),
+        ...(typeof edits.label === "string" ? { label: edits.label } : {}),
+        ...(typeof edits.text === "string" ? { text: edits.text } : {})
+      };
+    });
+
+    return regionChanged
+      ? {
+          ...page,
+          regions: nextRegions
+        }
+      : page;
+  });
+
+  return regionChanged
+    ? {
+        pages: nextPages
+      }
+    : document;
+}
+
 export function PdfViewerTab({
   storageService,
   overlayDocument = null,
@@ -222,6 +277,9 @@ export function PdfViewerTab({
   const [pageWidth, setPageWidth] = useState(0);
   const [pageHeight, setPageHeight] = useState(0);
   const [activeRegionId, setActiveRegionId] = useState<string | null>(null);
+  const [dialogDraftLabel, setDialogDraftLabel] = useState("");
+  const [dialogDraftText, setDialogDraftText] = useState("");
+  const [dialogTextDirection, setDialogTextDirection] = useState<TextDirection>("rtl");
   const [interaction, setInteraction] = useState<OverlayInteractionState | null>(null);
   const [draft, setDraft] = useState<OverlayDraftState | null>(null);
 
@@ -332,6 +390,9 @@ export function PdfViewerTab({
 
   useEffect(() => {
     setActiveRegionId(null);
+    setDialogDraftLabel("");
+    setDialogDraftText("");
+    setDialogTextDirection("rtl");
     setInteraction(null);
     setDraft(null);
     draftRef.current = null;
@@ -487,7 +548,6 @@ export function PdfViewerTab({
       pageNumber: region.pageNumber,
       bbox: region.bbox
     });
-    onOverlayEditStarted?.();
   };
 
   useEffect(() => {
@@ -522,8 +582,10 @@ export function PdfViewerTab({
         draftRef.current?.regionId === interaction.regionId
           ? draftRef.current.bbox
           : interaction.startBbox;
+      const bboxChanged = hasBboxChanged(interaction.startBbox, nextBbox);
 
-      if (overlayDocument && onOverlayDocumentSaved) {
+      if (bboxChanged && overlayDocument && onOverlayDocumentSaved) {
+        onOverlayEditStarted?.();
         const nextDocument = applyRegionBbox(
           overlayDocument,
           interaction.pageNumber,
@@ -547,7 +609,7 @@ export function PdfViewerTab({
       window.removeEventListener("pointerup", handleInteractionEnd);
       window.removeEventListener("pointercancel", handleInteractionEnd);
     };
-  }, [interaction, overlayDocument, onOverlayDocumentSaved]);
+  }, [interaction, onOverlayEditStarted, overlayDocument, onOverlayDocumentSaved]);
 
   const statusText = buildStatusText(loadStatus, errorMessage);
   const hasPdf = Boolean(pdfDoc);
@@ -583,6 +645,98 @@ export function PdfViewerTab({
 
     return null;
   }, [activeRegionId, overlayDocument]);
+  const hasDialogChanges = useMemo(() => {
+    if (!activeRegion) {
+      return false;
+    }
+
+    return (
+      dialogDraftLabel !== activeRegion.label ||
+      dialogDraftText !== (activeRegion.text || "")
+    );
+  }, [activeRegion, dialogDraftLabel, dialogDraftText]);
+  const dialogLabelOptions = useMemo(() => {
+    const known = REGION_LABEL_OPTIONS.includes(dialogDraftLabel as (typeof REGION_LABEL_OPTIONS)[number]);
+    if (!dialogDraftLabel || known) {
+      return REGION_LABEL_OPTIONS;
+    }
+    return [dialogDraftLabel, ...REGION_LABEL_OPTIONS];
+  }, [dialogDraftLabel]);
+  const openRegionEditor = useCallback((region: OverlayRegion) => {
+    setActiveRegionId(region.id);
+    setDialogDraftLabel(region.label);
+    setDialogDraftText(region.text || "");
+    setDialogTextDirection("rtl");
+  }, []);
+  const closeRegionEditor = useCallback(() => {
+    if (hasDialogChanges) {
+      const shouldDiscard = window.confirm(
+        "You have unsaved changes in this region. Discard them?"
+      );
+      if (!shouldDiscard) {
+        return;
+      }
+    }
+
+    setActiveRegionId(null);
+    setDialogDraftLabel("");
+    setDialogDraftText("");
+    setDialogTextDirection("rtl");
+  }, [hasDialogChanges]);
+  const handleResetRegionEditor = useCallback(() => {
+    if (!activeRegion) {
+      return;
+    }
+    setDialogDraftLabel(activeRegion.label);
+    setDialogDraftText(activeRegion.text || "");
+  }, [activeRegion]);
+  const handleSaveRegionEditor = useCallback(() => {
+    if (!activeRegion) {
+      return;
+    }
+
+    const nextLabel = dialogDraftLabel.trim() || activeRegion.label;
+    const nextText = dialogDraftText;
+
+    if (overlayDocument && onOverlayDocumentSaved) {
+      onOverlayEditStarted?.();
+      const nextDocument = applyRegionEdits(overlayDocument, activeRegion.pageNumber, activeRegion.id, {
+        label: nextLabel,
+        text: nextText
+      });
+      onOverlayDocumentSaved(nextDocument);
+    }
+
+    setActiveRegionId(null);
+    setDialogDraftLabel("");
+    setDialogDraftText("");
+    setDialogTextDirection("rtl");
+  }, [
+    activeRegion,
+    dialogDraftLabel,
+    dialogDraftText,
+    onOverlayDocumentSaved,
+    onOverlayEditStarted,
+    overlayDocument
+  ]);
+  useEffect(() => {
+    if (!activeRegionId) {
+      return;
+    }
+
+    const onWindowKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") {
+        return;
+      }
+      event.preventDefault();
+      closeRegionEditor();
+    };
+
+    window.addEventListener("keydown", onWindowKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onWindowKeyDown);
+    };
+  }, [activeRegionId, closeRegionEditor]);
   const saveIndicatorText = useMemo(() => {
     if (!overlayDocument || !overlaySaveState) {
       return "";
@@ -729,6 +883,7 @@ export function PdfViewerTab({
                     <div
                       className="overlay-drag-surface"
                       onPointerDown={(event) => beginInteraction(event, region, "drag")}
+                      onDoubleClick={() => openRegionEditor(region)}
                       aria-hidden="true"
                     />
                     {RESIZE_HANDLES.map((handle) => (
@@ -750,7 +905,7 @@ export function PdfViewerTab({
                         color: palette.buttonText
                       }}
                       onPointerDown={(event) => event.stopPropagation()}
-                      onClick={() => setActiveRegionId(region.id)}
+                      onClick={() => openRegionEditor(region)}
                       aria-label={`Edit ${region.label} region`}
                     >
                       Edit
@@ -768,24 +923,53 @@ export function PdfViewerTab({
           <div className="modal-card overlay-dialog-card">
             <header className="modal-header">
               <h2 id="region-editor-title">Edit Region</h2>
-              <button type="button" className="ghost-button" onClick={() => setActiveRegionId(null)}>
-                Cancel
+              <button
+                type="button"
+                className="ghost-button dialog-close-button"
+                onClick={closeRegionEditor}
+                aria-label="Close region editor"
+              >
+                <span className="dialog-close-glyph" aria-hidden="true" />
               </button>
             </header>
 
             <div className="overlay-dialog-body">
-              <p className="overlay-dialog-label">
-                <strong>Label:</strong> {activeRegion.label}
-              </p>
-
-              <label className="overlay-dialog-text-label" htmlFor="overlay-text-content">
-                Text
+              <label className="overlay-dialog-text-label" htmlFor="overlay-label-select">
+                Label
               </label>
+              <select
+                id="overlay-label-select"
+                className="overlay-dialog-select"
+                value={dialogDraftLabel}
+                onChange={(event) => setDialogDraftLabel(event.currentTarget.value)}
+              >
+                {dialogLabelOptions.map((label) => (
+                  <option key={label} value={label}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+
+              <div className="overlay-dialog-text-header">
+                <label className="overlay-dialog-text-label" htmlFor="overlay-text-content">
+                  Text
+                </label>
+                <button
+                  type="button"
+                  className="ghost-button overlay-dialog-direction-toggle"
+                  onClick={() =>
+                    setDialogTextDirection((prev) => (prev === "rtl" ? "ltr" : "rtl"))
+                  }
+                >
+                  {dialogTextDirection === "rtl" ? "Switch to LTR" : "Switch to RTL"}
+                </button>
+              </div>
               <textarea
                 id="overlay-text-content"
                 className="overlay-dialog-text"
-                readOnly
-                value={activeRegion.text || ""}
+                dir={dialogTextDirection}
+                value={dialogDraftText}
+                onChange={(event) => setDialogDraftText(event.currentTarget.value)}
               />
 
               <details className="overlay-metadata">
@@ -804,16 +988,16 @@ export function PdfViewerTab({
             </div>
 
             <div className="overlay-dialog-actions">
-              <button type="button" className="action-button secondary" onClick={() => undefined}>
+              <button type="button" className="action-button secondary" onClick={handleSaveRegionEditor}>
                 Save
               </button>
-              <button type="button" className="action-button secondary" onClick={() => undefined}>
+              <button type="button" className="action-button secondary" onClick={handleResetRegionEditor}>
                 Reset
               </button>
               <button type="button" className="action-button secondary" onClick={() => undefined}>
                 Delete
               </button>
-              <button type="button" className="action-button" onClick={() => setActiveRegionId(null)}>
+              <button type="button" className="action-button" onClick={closeRegionEditor}>
                 Cancel
               </button>
             </div>

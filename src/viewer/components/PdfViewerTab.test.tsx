@@ -172,7 +172,7 @@ describe("PdfViewerTab", () => {
     });
   });
 
-  it("renders overlays and opens the edit dialog", async () => {
+  it("renders overlays and opens the edit dialog from button and double click", async () => {
     const user = userEvent.setup();
     const file = new File(["%PDF-test"], "uploaded.pdf", { type: "application/pdf" });
     const doc = createMockPdfDocument();
@@ -192,19 +192,163 @@ describe("PdfViewerTab", () => {
     await user.click(screen.getByRole("button", { name: "Edit Text region" }));
 
     expect(screen.getByRole("heading", { name: "Edit Region" })).toBeInTheDocument();
-    expect(screen.getByText("Label:")).toBeInTheDocument();
+    expect(screen.getByLabelText("Label")).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Text" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Table" })).toBeInTheDocument();
     expect(screen.getByDisplayValue("Region body text")).toBeInTheDocument();
+    expect(screen.getByLabelText("Text")).toHaveAttribute("dir", "rtl");
+    await user.click(screen.getByRole("button", { name: "Switch to LTR" }));
+    expect(screen.getByLabelText("Text")).toHaveAttribute("dir", "ltr");
 
-    await user.click(screen.getByText("Metadata"));
-    expect(screen.getByText("Region ID")).toBeInTheDocument();
-    expect(screen.getByText("9")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Close region editor" }));
+    expect(screen.queryByRole("heading", { name: "Edit Region" })).not.toBeInTheDocument();
+
+    const dragSurface = container.querySelector(".overlay-drag-surface") as HTMLElement;
+    fireEvent.doubleClick(dragSurface);
+    expect(screen.getByRole("heading", { name: "Edit Region" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Text")).toHaveAttribute("dir", "rtl");
+  });
+
+  it("saves label/text dialog edits, triggers autosave callbacks, and closes", async () => {
+    const user = userEvent.setup();
+    const file = new File(["%PDF-test"], "uploaded.pdf", { type: "application/pdf" });
+    const doc = createMockPdfDocument();
+
+    mockGetDocument.mockReturnValue({
+      promise: Promise.resolve(doc)
+    });
+
+    const overlays = createOverlayDocument();
+    const replacePdf = vi.fn().mockResolvedValue(createStoredRecord(file));
+    const storage = createStorageMock({ replacePdf });
+    const onOverlayEditStarted = vi.fn();
+    const onOverlayDocumentSaved = vi.fn();
+
+    const { container } = render(
+      <PdfViewerTab
+        storageService={storage}
+        overlayDocument={overlays}
+        onOverlayEditStarted={onOverlayEditStarted}
+        onOverlayDocumentSaved={onOverlayDocumentSaved}
+      />
+    );
+    await uploadPdf(container, file);
+    expect(await screen.findByText(/overlays/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Edit Text region" }));
+    await user.selectOptions(screen.getByLabelText("Label"), "Table");
+    await user.clear(screen.getByLabelText("Text"));
+    await user.type(screen.getByLabelText("Text"), "Edited body text");
 
     await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(onOverlayEditStarted).toHaveBeenCalledTimes(1);
+    expect(onOverlayDocumentSaved).toHaveBeenCalledTimes(1);
+    const savedDocument = onOverlayDocumentSaved.mock.calls[0][0] as OverlayDocument;
+    expect(savedDocument.pages[0].regions[0].label).toBe("Table");
+    expect(savedDocument.pages[0].regions[0].text).toBe("Edited body text");
+    expect(screen.queryByRole("heading", { name: "Edit Region" })).not.toBeInTheDocument();
+  });
+
+  it("resets in-dialog draft changes without closing", async () => {
+    const user = userEvent.setup();
+    const file = new File(["%PDF-test"], "uploaded.pdf", { type: "application/pdf" });
+    const doc = createMockPdfDocument();
+
+    mockGetDocument.mockReturnValue({
+      promise: Promise.resolve(doc)
+    });
+
+    const overlays = createOverlayDocument();
+    const replacePdf = vi.fn().mockResolvedValue(createStoredRecord(file));
+    const storage = createStorageMock({ replacePdf });
+
+    const { container } = render(<PdfViewerTab storageService={storage} overlayDocument={overlays} />);
+    await uploadPdf(container, file);
+    expect(await screen.findByText(/overlays/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Edit Text region" }));
+    await user.selectOptions(screen.getByLabelText("Label"), "Picture");
+    await user.clear(screen.getByLabelText("Text"));
+    await user.type(screen.getByLabelText("Text"), "dirty text");
+
+    await user.click(screen.getByRole("button", { name: "Reset" }));
+
+    expect(screen.getByLabelText("Label")).toHaveValue("Text");
+    expect(screen.getByLabelText("Text")).toHaveValue("Region body text");
+    expect(screen.getByRole("heading", { name: "Edit Region" })).toBeInTheDocument();
+  });
+
+  it("prompts on Esc/X/Cancel when dialog has pending changes", async () => {
+    const user = userEvent.setup();
+    const file = new File(["%PDF-test"], "uploaded.pdf", { type: "application/pdf" });
+    const doc = createMockPdfDocument();
+
+    mockGetDocument.mockReturnValue({
+      promise: Promise.resolve(doc)
+    });
+
+    const overlays = createOverlayDocument();
+    const replacePdf = vi.fn().mockResolvedValue(createStoredRecord(file));
+    const storage = createStorageMock({ replacePdf });
+    const confirmSpy = vi.spyOn(window, "confirm");
+
+    const { container } = render(<PdfViewerTab storageService={storage} overlayDocument={overlays} />);
+    await uploadPdf(container, file);
+    expect(await screen.findByText(/overlays/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Edit Text region" }));
+    await user.clear(screen.getByLabelText("Text"));
+    await user.type(screen.getByLabelText("Text"), "dirty");
+
+    confirmSpy.mockReturnValueOnce(false);
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(confirmSpy).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("heading", { name: "Edit Region" })).toBeInTheDocument();
 
-    const cancelButtons = screen.getAllByRole("button", { name: "Cancel" });
-    await user.click(cancelButtons[cancelButtons.length - 1]);
+    confirmSpy.mockReturnValueOnce(false);
+    await user.click(screen.getByRole("button", { name: "Close region editor" }));
+    expect(confirmSpy).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole("heading", { name: "Edit Region" })).toBeInTheDocument();
+
+    confirmSpy.mockReturnValueOnce(true);
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(confirmSpy).toHaveBeenCalledTimes(3);
     expect(screen.queryByRole("heading", { name: "Edit Region" })).not.toBeInTheDocument();
+  });
+
+  it("does not auto-save when a bbox is only clicked without movement", async () => {
+    const file = new File(["%PDF-test"], "uploaded.pdf", { type: "application/pdf" });
+    const doc = createMockPdfDocument();
+
+    mockGetDocument.mockReturnValue({ promise: Promise.resolve(doc) });
+
+    const replacePdf = vi.fn().mockResolvedValue(createStoredRecord(file));
+    const storage = createStorageMock({ replacePdf });
+    const overlayDocument = createOverlayDocument();
+    const onOverlayEditStarted = vi.fn();
+    const onOverlayDocumentSaved = vi.fn();
+
+    const { container } = render(
+      <PdfViewerTab
+        storageService={storage}
+        overlayDocument={overlayDocument}
+        onOverlayEditStarted={onOverlayEditStarted}
+        onOverlayDocumentSaved={onOverlayDocumentSaved}
+      />
+    );
+    await uploadPdf(container, file);
+
+    await screen.findByText(/overlays/i);
+    await waitForPageRender();
+    setStageRect();
+
+    const dragSurface = container.querySelector(".overlay-drag-surface") as HTMLElement;
+    fireEvent.pointerDown(dragSurface, { pointerId: 9, clientX: 120, clientY: 140 });
+    fireEvent.pointerUp(window, { pointerId: 9, clientX: 120, clientY: 140 });
+
+    expect(onOverlayEditStarted).not.toHaveBeenCalled();
+    expect(onOverlayDocumentSaved).not.toHaveBeenCalled();
   });
 
   it("drags bbox and commits bounded geometry", async () => {
@@ -329,4 +473,5 @@ describe("PdfViewerTab", () => {
 
     expect(await screen.findByText(/Saved/)).toBeInTheDocument();
   });
+
 });

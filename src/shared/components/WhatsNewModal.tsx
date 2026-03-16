@@ -22,8 +22,13 @@ export function WhatsNewModal({ isOpen, appMeta, onClose }: WhatsNewModalProps) 
       >
         <div className="modal-header">
           <h2 id="whats-new-title">What&apos;s New</h2>
-          <button className="ghost-button" type="button" onClick={onClose} aria-label="Close">
-            Close
+          <button
+            type="button"
+            className="ghost-button dialog-close-button"
+            onClick={onClose}
+            aria-label="Close what's new dialog"
+          >
+            <span className="dialog-close-glyph" aria-hidden="true" />
           </button>
         </div>
 

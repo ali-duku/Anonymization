@@ -11,10 +11,9 @@ Every functional/UI update must include both:
 
 ## Latest Update
 
-- **v1.2.3 (2026-03-16)**
-  - Switched Generate JSON output to pretty-printed serialization (2-space indentation).
-  - Ensured both standard generation and overlay-session patched generation use the same multi-line format.
-  - Kept Setup textareas no-wrap so displayed lines do not soft-wrap.
+- **v0.4.11 (2026-03-16)**
+  - Added a manual `Save` button in the top header bar for active overlay sessions.
+  - Undo/Redo now auto-save restored overlay state and no longer remain stuck in `Saving...`.
 
 ## Core Features
 
@@ -29,7 +28,8 @@ Every functional/UI update must include both:
   - Copy generated output to clipboard.
   - Load overlays into Viewer directly from `Input JSON` using `Load to Viewer`.
   - If overlays are loaded, editing `Input JSON` asks for confirmation and clears active overlay edits on confirm.
-  - When overlays are loaded, `Generate JSON` outputs OCR JSON with edited bbox values patched in-place (input textarea remains unchanged).
+  - When overlays are loaded, `Generate JSON` outputs OCR JSON with edited bbox/label/text patched in-place (input textarea remains unchanged).
+  - Generate also creates `content_extraction` entries for unmatched edited regions so text edits are preserved in output.
   - Uses optimized no-wrap textarea handling for smoother large-payload paste and tab switch performance.
 - Viewer overlay behavior:
   - Draws all regions from `pipeline_steps.layout_detection` on the active PDF page.
@@ -39,10 +39,17 @@ Every functional/UI update must include both:
   - Uses translucent, label-based color coding with high-visibility per-region edit controls.
   - Supports dragging whole bboxes and resizing from `NW/NE/SW/SE` corners.
   - Enforces normalized bounds, minimum logical size (`10px` converted to normalized dimensions), and strict ordering (`x1 < x2`, `y1 < y2`).
-  - Auto-saves bbox geometry edits and shows `Saving...` / `Saved` status in the Viewer toolbar.
-  - Region dialog actions `Save`, `Reset`, and `Delete` remain placeholders; `Cancel` closes the dialog.
+  - Auto-saves bbox geometry edits only when geometry changes, and shows `Saving...` / `Saved` status in the Viewer toolbar.
+  - Region dialog supports editable text, fixed-label dropdown selection, Save, and Reset.
+  - Region dialog text input defaults to RTL and includes a toggle button for LTR/RTL direction switching.
+  - Dialog opens from Edit button or bbox double-click.
+  - Esc / top-right red `X` / Cancel close the dialog and prompt if there are unsaved edits.
+  - App-level `Save` / Undo / Redo controls are available in the top header bar.
+  - Undo scope: overlay edits + Setup overlay-session `Load to Viewer`/clear transitions.
+  - Undo/redo transitions auto-save the restored session state and mark it as `Saved`.
+  - Setup Generate/Copy status and textbox typing are not app-history tracked.
   - Keeps Viewer controls on one horizontal line beside the `Viewer` title.
-- Header includes version and a `What's New` modal.
+- Header includes version and a `What's New` modal that uses the same red `X` close control as the region editor dialog.
 
 ## Stack
 

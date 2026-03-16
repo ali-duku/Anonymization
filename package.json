@@ -1,6 +1,6 @@
 {
   "name": "anonymizer",
-  "version": "1.2.3",
+  "version": "0.4.11",
   "private": true,
   "type": "module",
   "scripts": {
@@ -30,3 +30,4 @@
     "vitest": "^3.0.8"
   }
 }
+

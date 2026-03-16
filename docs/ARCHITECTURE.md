@@ -12,10 +12,15 @@
 
 - `App.tsx` composes:
   - `Header` (name, embedded `TabNav`, version, What's New).
+  - Top-header Save/undo/redo controls bound to App-owned overlay session actions.
   - `PdfViewerTab` and `SetupTab`.
   - In-memory overlay edit session state (loaded snapshot + editable overlays + save-state metadata) shared between Setup and Viewer.
+  - App-level undo/redo history ownership for overlay session state (`past/present/future`) with bounded size and state dedupe.
   - Memoized overlay/session callbacks (`useCallback`) to reduce avoidable child rerenders.
   - Setup receives overlay-session payload only while the Setup tab is active to avoid hidden heavy-tab rerender cost during Viewer edits.
+  - `What's New` modal close control reuses the same red Windows-style `X` button style used in Viewer region editing.
+  - Global keyboard undo/redo orchestration (`Ctrl/Cmd+Z`, `Ctrl+Y`, `Ctrl/Cmd+Shift+Z`) with editable-target guards so native textbox undo/redo is not intercepted.
+  - Undo/redo restores are immediately normalized to a saved overlay state (preventing stale `Saving...` states from history snapshots).
 
 Layout behavior:
 
@@ -37,9 +42,14 @@ Layout behavior:
   - Showing high-contrast overlay edit controls that remain visible at rest.
   - Pointer-driven bbox drag + `NW/NE/SW/SE` resize handles.
   - Geometry enforcement during interaction: page bounds, min logical size (`10px` converted to normalized values), no axis flip, strict `x1 < x2` and `y1 < y2`.
-  - Emitting overlay edit lifecycle callbacks to App shell (`onOverlayEditStarted`, `onOverlayDocumentSaved`) for autosave state + persistence.
+  - Region editor open via Edit button or bbox double-click.
+  - Region dialog draft editing for label + text with Save/Reset semantics.
+  - Region dialog text area defaults to RTL and offers an in-dialog LTR/RTL toggle button.
+  - Dirty-change confirmation on close (Esc, top-right red Windows-style `X`, or Cancel).
+  - Emitting overlay edit lifecycle callbacks to App shell (`onOverlayEditStarted`, `onOverlayDocumentSaved`) only when bbox geometry actually changes, preventing click-only autosave noise.
+  - Viewer no longer owns Undo/Redo buttons; it only emits edit callbacks.
   - Showing save indicator state (`Saving...` / `Saved`) from App session metadata.
-  - Region edit dialog UI (read-only text and metadata for now).
+  - Fixed developer-maintained label catalog for dialog dropdown options.
 
 ### Setup Domain
 
@@ -51,7 +61,9 @@ Layout behavior:
   - Output viewer and copy action.
   - `Load to Viewer` action that parses input JSON into overlay data and switches to Viewer on success.
   - Input-change confirmation when an overlay session exists; confirm clears active overlay edits/session.
+  - Setup overlay-session transitions (`Load to Viewer` and clear-on-input-change confirmation) are undoable through App history.
   - Snapshot-based generate behavior: when a session exists, generate patches edited bbox values into loaded OCR snapshot in output only.
+  - Native textarea undo/redo remains browser-managed and is not tracked in App history.
   - Pretty-printed JSON output serialization (`JSON.stringify(..., null, 2)`) so keys render on separate lines.
   - Stable status feedback region (success/error) with reserved height to avoid visual flicker.
 
@@ -72,7 +84,9 @@ Layout behavior:
     - `pageNumber` fallback uses 0-index source page.
     - `regionId` fallback uses global 1-based flattened `content_extraction` order.
   - Stores deterministic source pointers for each overlay region (layout pointer and optional matched-content pointer).
-  - Supports snapshot patch generation that writes edited bbox values back in-place to `layout_detection` and matched `content_extraction` entries, and normalizes matched output metadata (`page_number`, `region_id`).
+  - Supports snapshot patch generation that writes edited bbox + label values to `layout_detection`.
+  - Patches matched `content_extraction` entries with edited bbox + `region_label` + `text` and normalized metadata (`page_number`, `region_id`).
+  - Appends synthetic `content_extraction` entries for unmatched edited regions so text edits are represented in generated output.
 
 ## Data Contracts
 
@@ -82,6 +96,7 @@ Layout behavior:
 - `JsonGenerationResult`: normalized result for setup workflow.
 - `OverlayDocument`, `OverlayRegion`: normalized overlay model for viewer rendering plus source mapping.
 - `OverlayEditSession`: loaded OCR snapshot + editable overlay document + save-state metadata.
+- `HistoryState`, `HistoryController`, `HistoryMeta`: generic undo/redo model used by App-shell state history.
 - `StorageService`, `JsonService`, `AnnotationService`: stable interfaces for growth and testability.
 
 ## Persistence Model

@@ -73,6 +73,12 @@ body {
   gap: 10px;
 }
 
+.header-history-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .version-badge {
   border: 1px solid rgba(45, 212, 191, 0.45);
   color: var(--accent);
@@ -546,6 +552,28 @@ body {
   color: var(--muted);
 }
 
+.overlay-dialog-text-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.overlay-dialog-direction-toggle {
+  padding: 4px 10px;
+}
+
+.overlay-dialog-select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #08121a;
+  color: var(--text);
+  padding: 9px 10px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.84rem;
+}
+
 .overlay-dialog-text {
   width: 100%;
   min-height: 170px;
@@ -604,6 +632,62 @@ body {
   justify-content: flex-end;
   flex-wrap: wrap;
   margin-top: 12px;
+}
+
+.dialog-close-button {
+  min-width: 34px;
+  width: 34px;
+  min-height: 34px;
+  height: 34px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  flex-shrink: 0;
+  color: #fff6f6;
+  background: linear-gradient(180deg, #d54a4e, #b61f25);
+  border-color: #7f181d;
+  border-radius: 8px;
+}
+
+.dialog-close-button:hover {
+  background: linear-gradient(180deg, #e66b72, #c22f36);
+  border-color: #9d252b;
+  filter: none;
+}
+
+.dialog-close-button:active {
+  background: linear-gradient(180deg, #ad171f, #8e1017);
+  transform: none;
+}
+
+.dialog-close-glyph {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+}
+
+.dialog-close-glyph::before,
+.dialog-close-glyph::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  transform-origin: center;
+}
+
+.dialog-close-glyph::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.dialog-close-glyph::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
 }
 
 .release-list {

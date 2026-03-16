@@ -7,9 +7,25 @@ interface HeaderProps {
   appMeta: AppMeta;
   activeTab: AppTab;
   onTabChange: (tab: AppTab) => void;
+  onManualSave?: () => void;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  canManualSave?: boolean;
+  canUndo?: boolean;
+  canRedo?: boolean;
 }
 
-export function Header({ appMeta, activeTab, onTabChange }: HeaderProps) {
+export function Header({
+  appMeta,
+  activeTab,
+  onTabChange,
+  onManualSave,
+  onUndo,
+  onRedo,
+  canManualSave = false,
+  canUndo = false,
+  canRedo = false
+}: HeaderProps) {
   const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(false);
 
   return (
@@ -22,6 +38,32 @@ export function Header({ appMeta, activeTab, onTabChange }: HeaderProps) {
         <TabNav activeTab={activeTab} onChange={onTabChange} />
 
         <div className="header-actions">
+          <div className="header-history-actions">
+            <button
+              className="action-button secondary"
+              type="button"
+              onClick={onManualSave}
+              disabled={!onManualSave || !canManualSave}
+            >
+              Save
+            </button>
+            <button
+              className="action-button secondary"
+              type="button"
+              onClick={onUndo}
+              disabled={!onUndo || !canUndo}
+            >
+              Undo
+            </button>
+            <button
+              className="action-button secondary"
+              type="button"
+              onClick={onRedo}
+              disabled={!onRedo || !canRedo}
+            >
+              Redo
+            </button>
+          </div>
           <span className="version-badge" aria-label={`Version ${appMeta.version}`}>
             Version {appMeta.version}
           </span>
