@@ -7,7 +7,7 @@ import { Header } from "./Header";
 describe("Header", () => {
   it("shows version and opens What's New modal", async () => {
     const user = userEvent.setup();
-    render(<Header appMeta={APP_META} />);
+    render(<Header appMeta={APP_META} activeTab="viewer" onTabChange={() => undefined} />);
 
     expect(screen.getByLabelText(`Version ${APP_META.version}`)).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

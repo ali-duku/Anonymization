@@ -9,9 +9,9 @@ describe("BrowserJsonService", () => {
     const result = service.generate(input);
 
     expect(result.success).toBe(true);
-    expect(result.formattedJson).toContain('"name": "anonymizer"');
-    expect(result.formattedJson).toContain('"active": true');
-    expect(result.formattedJson).toContain('"items": [');
+    expect(result.formattedJson).toBe(
+      '{\n  "name": "anonymizer",\n  "active": true,\n  "items": [\n    1,\n    2,\n    3\n  ]\n}'
+    );
   });
 
   it("returns actionable details for invalid JSON", () => {

@@ -2,7 +2,7 @@ import type { JsonErrorDetails, JsonGenerationResult } from "../types/json";
 import type { JsonService } from "../types/services";
 
 /**
- * Format a JSON string losslessly after parsing.
+ * Parse and re-serialize JSON losslessly using readable pretty output.
  */
 export class BrowserJsonService implements JsonService {
   generate(rawJson: string): JsonGenerationResult {
