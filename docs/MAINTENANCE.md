@@ -160,7 +160,6 @@ npm run build
 
 ## Notes on PDF Persistence
 
-- App stores only the latest uploaded PDF in IndexedDB.
-- If user clears browser storage, startup will return to empty-state upload mode.
-- No packaged default PDF is used in v1.
+- App no longer stores PDFs in the browser; they are loaded on-demand by secure document ID from a backend/DB (mocked locally via `PdfRepository`).
+- Startup always returns to an empty viewer that prompts for a document ID instead of auto-restoring the last file.
 

@@ -17,15 +17,4 @@ export interface PdfViewerState extends PersistedViewerState {
   errorMessage?: string;
 }
 
-/**
- * IndexedDB record for the latest uploaded PDF.
- */
-export interface StoredPdfRecord {
-  id: "last-uploaded-pdf";
-  fileName: string;
-  fileType: string;
-  fileSize: number;
-  updatedAt: string;
-  pdfBlob: Blob;
-  viewerState: PersistedViewerState;
-}
+// Note: Viewer no longer persists PDFs or viewer state across sessions.

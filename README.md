@@ -11,6 +11,11 @@ Every functional/UI update must include both:
 
 ## Latest Update
 
+- **v0.5.0 (2026-03-17)**
+  - Viewer now loads PDFs by secure document ID via a repository layer (mocked locally), instead of using local file upload and IndexedDB persistence.
+  - The app no longer auto-restores the last-uploaded PDF; startup always prompts for a document ID and does not store PDF content in the browser between sessions.
+  - This aligns the tool with a server-backed model where PDFs live in a secure database or object store and are fetched on demand.
+
 - **v0.4.22 (2026-03-17)**
   - Added Viewer `Add BBox` drag-to-draw creation for loaded overlay sessions (same bbox validation rules as move/resize edits).
   - Newly created bboxes now behave like existing regions and are included in generated JSON output (`layout_detection` + `content_extraction`).
@@ -31,7 +36,7 @@ Every functional/UI update must include both:
 - Dark-mode-only interface.
 - Compact top header that includes app identity, tab toggle, version, and `What's New`.
 - Main `Viewer` tab for a single PDF workflow.
-- Last uploaded PDF is saved in IndexedDB and auto-restored on future visits.
+- PDFs are loaded by secure document ID via a backend/DB lookup (no local browser persistence of PDF files).
 - Separate `Setup` tab for JSON:
   - Paste input JSON.
   - Validate and regenerate as pretty-printed JSON (lossless data, one key per line).
@@ -138,7 +143,7 @@ npm run build
 
 - `src/viewer`: PDF viewer UI and workflow.
 - `src/setup`: JSON setup workflow.
-- `src/services`: IndexedDB and JSON services.
+- `src/services`: JSON, annotation, and PDF repository services.
 - `src/shared`: reusable app shell components.
 - `src/types`: shared interfaces and contracts.
 - `docs/ARCHITECTURE.md`: module boundaries and data flow.

@@ -11,17 +11,15 @@ import {
 } from "./shared/history/history";
 import { annotationService } from "./services/annotationService";
 import { jsonService } from "./services/jsonService";
-import { storageService } from "./services/indexedDbStorageService";
 import { SetupTab } from "./setup/components/SetupTab";
 import { Header } from "./shared/components/Header";
 import type { AppTab } from "./shared/components/TabNav";
 import type { OverlayDocument, OverlayEditSession, OverlayLoadPayload } from "./types/overlay";
-import type { AnnotationService, JsonService, StorageService } from "./types/services";
+import type { AnnotationService, JsonService } from "./types/services";
 import { PdfViewerTab } from "./viewer/components/PdfViewerTab";
 
 interface AppProps {
   services?: {
-    storageService?: StorageService;
     jsonService?: JsonService;
     annotationService?: AnnotationService;
   };
@@ -53,10 +51,6 @@ export default function App({ services }: AppProps) {
     })
   );
 
-  const resolvedStorageService = useMemo(
-    () => services?.storageService ?? storageService,
-    [services?.storageService]
-  );
   const resolvedJsonService = useMemo(
     () => services?.jsonService ?? jsonService,
     [services?.jsonService]
@@ -282,7 +276,6 @@ export default function App({ services }: AppProps) {
           aria-hidden={activeTab !== "viewer"}
         >
           <PdfViewerTab
-            storageService={resolvedStorageService}
             overlayDocument={overlaySession?.document ?? null}
             overlaySaveState={overlaySession?.saveState ?? null}
             onOverlayEditStarted={handleOverlayEditStarted}

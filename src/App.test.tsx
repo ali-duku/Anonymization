@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import type { OverlayDocument, OverlaySaveState } from "./types/overlay";
-import type { AnnotationService, JsonService, StorageService } from "./types/services";
+import type { AnnotationService, JsonService } from "./types/services";
 
 const mockViewerProps = vi.fn();
 
@@ -57,15 +57,6 @@ describe("App tab behavior", () => {
   it("switches to viewer and forwards loaded overlays after setup load action", async () => {
     const user = userEvent.setup();
 
-    const mockStorage: StorageService = {
-      loadPdfRecord: vi.fn().mockResolvedValue(null),
-      savePdfRecord: vi.fn().mockResolvedValue(undefined),
-      replacePdf: vi.fn(),
-      loadViewerState: vi.fn().mockResolvedValue(null),
-      saveViewerState: vi.fn().mockResolvedValue(undefined),
-      clearPdfRecord: vi.fn().mockResolvedValue(undefined)
-    };
-
     const mockJson: JsonService = {
       generate: vi.fn((raw) => ({ success: true, formattedJson: raw })),
       copyToClipboard: vi.fn().mockResolvedValue(true)
@@ -86,15 +77,7 @@ describe("App tab behavior", () => {
       generateWithOverlayEdits: vi.fn().mockReturnValue({ success: true, formattedJson: "{}" })
     };
 
-    render(
-      <App
-        services={{
-          storageService: mockStorage,
-          jsonService: mockJson,
-          annotationService: mockAnnotation
-        }}
-      />
-    );
+    render(<App services={{ jsonService: mockJson, annotationService: mockAnnotation }} />);
 
     await user.click(screen.getByRole("button", { name: "Setup" }));
     fireEvent.change(screen.getByLabelText("Input JSON"), { target: { value: '{"load":true}' } });
@@ -119,15 +102,6 @@ describe("App tab behavior", () => {
   it("switches tabs and preserves setup state", async () => {
     const user = userEvent.setup();
 
-    const mockStorage: StorageService = {
-      loadPdfRecord: vi.fn().mockResolvedValue(null),
-      savePdfRecord: vi.fn().mockResolvedValue(undefined),
-      replacePdf: vi.fn(),
-      loadViewerState: vi.fn().mockResolvedValue(null),
-      saveViewerState: vi.fn().mockResolvedValue(undefined),
-      clearPdfRecord: vi.fn().mockResolvedValue(undefined)
-    };
-
     const mockJson: JsonService = {
       generate: vi.fn((raw) => ({ success: true, formattedJson: raw })),
       copyToClipboard: vi.fn().mockResolvedValue(true)
@@ -147,15 +121,7 @@ describe("App tab behavior", () => {
       generateWithOverlayEdits: vi.fn().mockReturnValue({ success: true, formattedJson: "{}" })
     };
 
-    render(
-      <App
-        services={{
-          storageService: mockStorage,
-          jsonService: mockJson,
-          annotationService: mockAnnotation
-        }}
-      />
-    );
+    render(<App services={{ jsonService: mockJson, annotationService: mockAnnotation }} />);
 
     expect(screen.getByText("Viewer Placeholder")).toBeInTheDocument();
 
@@ -172,15 +138,6 @@ describe("App tab behavior", () => {
   it("runs Generate JSON from top bar in viewer and switches to setup", async () => {
     const user = userEvent.setup();
 
-    const mockStorage: StorageService = {
-      loadPdfRecord: vi.fn().mockResolvedValue(null),
-      savePdfRecord: vi.fn().mockResolvedValue(undefined),
-      replacePdf: vi.fn(),
-      loadViewerState: vi.fn().mockResolvedValue(null),
-      saveViewerState: vi.fn().mockResolvedValue(undefined),
-      clearPdfRecord: vi.fn().mockResolvedValue(undefined)
-    };
-
     const mockJson: JsonService = {
       generate: vi.fn((raw) => ({ success: true, formattedJson: raw })),
       copyToClipboard: vi.fn().mockResolvedValue(true)
@@ -200,15 +157,7 @@ describe("App tab behavior", () => {
       generateWithOverlayEdits: vi.fn().mockReturnValue({ success: true, formattedJson: "{}" })
     };
 
-    render(
-      <App
-        services={{
-          storageService: mockStorage,
-          jsonService: mockJson,
-          annotationService: mockAnnotation
-        }}
-      />
-    );
+    render(<App services={{ jsonService: mockJson, annotationService: mockAnnotation }} />);
 
     await user.click(screen.getByRole("button", { name: "Setup" }));
     fireEvent.change(screen.getByLabelText("Input JSON"), { target: { value: '{"fromHeader":true}' } });
@@ -223,15 +172,6 @@ describe("App tab behavior", () => {
 
   it("tracks viewer/save and setup load-clear transitions in app history", async () => {
     const user = userEvent.setup();
-
-    const mockStorage: StorageService = {
-      loadPdfRecord: vi.fn().mockResolvedValue(null),
-      savePdfRecord: vi.fn().mockResolvedValue(undefined),
-      replacePdf: vi.fn(),
-      loadViewerState: vi.fn().mockResolvedValue(null),
-      saveViewerState: vi.fn().mockResolvedValue(undefined),
-      clearPdfRecord: vi.fn().mockResolvedValue(undefined)
-    };
 
     const mockJson: JsonService = {
       generate: vi.fn((raw) => ({ success: true, formattedJson: raw })),
@@ -269,15 +209,7 @@ describe("App tab behavior", () => {
       generateWithOverlayEdits: vi.fn().mockReturnValue({ success: true, formattedJson: "{}" })
     };
 
-    render(
-      <App
-        services={{
-          storageService: mockStorage,
-          jsonService: mockJson,
-          annotationService: mockAnnotation
-        }}
-      />
-    );
+    render(<App services={{ jsonService: mockJson, annotationService: mockAnnotation }} />);
 
     await user.click(screen.getByRole("button", { name: "Setup" }));
     fireEvent.change(screen.getByLabelText("Input JSON"), { target: { value: '{"load":true}' } });
@@ -350,15 +282,6 @@ describe("App tab behavior", () => {
   it("supports keyboard undo/redo globally and skips editable fields", async () => {
     const user = userEvent.setup();
 
-    const mockStorage: StorageService = {
-      loadPdfRecord: vi.fn().mockResolvedValue(null),
-      savePdfRecord: vi.fn().mockResolvedValue(undefined),
-      replacePdf: vi.fn(),
-      loadViewerState: vi.fn().mockResolvedValue(null),
-      saveViewerState: vi.fn().mockResolvedValue(undefined),
-      clearPdfRecord: vi.fn().mockResolvedValue(undefined)
-    };
-
     const mockJson: JsonService = {
       generate: vi.fn((raw) => ({ success: true, formattedJson: raw })),
       copyToClipboard: vi.fn().mockResolvedValue(true)
@@ -395,15 +318,7 @@ describe("App tab behavior", () => {
       generateWithOverlayEdits: vi.fn().mockReturnValue({ success: true, formattedJson: "{}" })
     };
 
-    render(
-      <App
-        services={{
-          storageService: mockStorage,
-          jsonService: mockJson,
-          annotationService: mockAnnotation
-        }}
-      />
-    );
+    render(<App services={{ jsonService: mockJson, annotationService: mockAnnotation }} />);
 
     await user.click(screen.getByRole("button", { name: "Setup" }));
     fireEvent.change(screen.getByLabelText("Input JSON"), { target: { value: '{"load":true}' } });
@@ -455,15 +370,6 @@ describe("App tab behavior", () => {
   it("manual top-bar save marks active overlay session as saved", async () => {
     const user = userEvent.setup();
 
-    const mockStorage: StorageService = {
-      loadPdfRecord: vi.fn().mockResolvedValue(null),
-      savePdfRecord: vi.fn().mockResolvedValue(undefined),
-      replacePdf: vi.fn(),
-      loadViewerState: vi.fn().mockResolvedValue(null),
-      saveViewerState: vi.fn().mockResolvedValue(undefined),
-      clearPdfRecord: vi.fn().mockResolvedValue(undefined)
-    };
-
     const mockJson: JsonService = {
       generate: vi.fn((raw) => ({ success: true, formattedJson: raw })),
       copyToClipboard: vi.fn().mockResolvedValue(true)
@@ -485,15 +391,7 @@ describe("App tab behavior", () => {
       generateWithOverlayEdits: vi.fn().mockReturnValue({ success: true, formattedJson: "{}" })
     };
 
-    render(
-      <App
-        services={{
-          storageService: mockStorage,
-          jsonService: mockJson,
-          annotationService: mockAnnotation
-        }}
-      />
-    );
+    render(<App services={{ jsonService: mockJson, annotationService: mockAnnotation }} />);
 
     await user.click(screen.getByRole("button", { name: "Setup" }));
     fireEvent.change(screen.getByLabelText("Input JSON"), { target: { value: '{"load":true}' } });

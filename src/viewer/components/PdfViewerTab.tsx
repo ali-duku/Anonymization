@@ -1,4 +1,4 @@
-﻿import {
+import {
   useCallback,
   useEffect,
   useMemo,
@@ -18,8 +18,7 @@ import type {
   OverlayRegion,
   OverlaySaveState
 } from "../../types/overlay";
-import type { PersistedViewerState, PdfLoadStatus, StoredPdfRecord } from "../../types/pdf";
-import type { StorageService } from "../../types/services";
+import type { PersistedViewerState, PdfLoadStatus } from "../../types/pdf";
 import {
   computeNormalizedMinimumSize,
   moveBboxWithinPage,
@@ -38,11 +37,11 @@ import {
   normalizeEntitySpansForText,
   sortEntitySpans
 } from "../../shared/anonymizationEntities";
+import { pdfRepository } from "../../services/pdfRepository";
 
 GlobalWorkerOptions.workerSrc = pdfWorker;
 
 interface PdfViewerTabProps {
-  storageService: StorageService;
   overlayDocument?: OverlayDocument | null;
   overlaySaveState?: OverlaySaveState | null;
   onOverlayEditStarted?: () => void;
@@ -579,7 +578,6 @@ function areEntitySpansEqual(left: OverlayEntitySpan[], right: OverlayEntitySpan
 }
 
 export function PdfViewerTab({
-  storageService,
   overlayDocument = null,
   overlaySaveState = null,
   onOverlayEditStarted,
@@ -588,16 +586,15 @@ export function PdfViewerTab({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const canvasContainerRef = useRef<HTMLDivElement | null>(null);
   const pageStageRef = useRef<HTMLDivElement | null>(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const draftRef = useRef<OverlayDraftState | null>(null);
   const createDraftRef = useRef<CreateDraftState | null>(null);
   const dialogTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const dialogPreviewRef = useRef<HTMLDivElement | null>(null);
 
   const [pdfDoc, setPdfDoc] = useState<PDFDocumentProxy | null>(null);
-  const [recordMeta, setRecordMeta] = useState<StoredPdfRecord | null>(null);
   const [loadStatus, setLoadStatus] = useState<PdfLoadStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string>();
+  const [documentId, setDocumentId] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [zoom, setZoom] = useState(1);
@@ -618,38 +615,6 @@ export function PdfViewerTab({
   const [isCreateMode, setIsCreateMode] = useState(false);
   const [createInteraction, setCreateInteraction] = useState<CreateInteractionState | null>(null);
   const [createDraft, setCreateDraft] = useState<CreateDraftState | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const initialize = async () => {
-      setLoadStatus("loading");
-      const record = await storageService.loadPdfRecord();
-
-      if (cancelled) {
-        return;
-      }
-
-      if (!record) {
-        setLoadStatus("idle");
-        return;
-      }
-
-      setRecordMeta(record);
-      await loadPdfFromBlob(record.pdfBlob, record.viewerState, () => !cancelled);
-    };
-
-    initialize().catch(() => {
-      if (!cancelled) {
-        setLoadStatus("error");
-        setErrorMessage("Failed to restore the last uploaded PDF.");
-      }
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [storageService]);
 
   useEffect(() => {
     if (!pdfDoc) {
@@ -704,25 +669,16 @@ export function PdfViewerTab({
   }, [pdfDoc, currentPage, zoom]);
 
   useEffect(() => {
-    return () => {
-      if (pdfDoc) {
-        pdfDoc.destroy().catch(() => {
-          // Ignore cleanup failures during unmount.
-        });
-      }
-    };
-  }, [pdfDoc]);
-
-  useEffect(() => {
-    if (!recordMeta || !pdfDoc || loadStatus !== "ready") {
+    if (!pdfDoc) {
       return;
     }
 
-    const state: PersistedViewerState = { currentPage, zoom };
-    storageService.saveViewerState(state).catch(() => {
-      // Avoid blocking the viewer if persistence fails.
-    });
-  }, [currentPage, loadStatus, pdfDoc, recordMeta, storageService, zoom]);
+    return () => {
+      pdfDoc.destroy().catch(() => {
+        // Ignore cleanup failures during unmount.
+      });
+    };
+  }, [pdfDoc]);
 
   useEffect(() => {
     setActiveRegionId(null);
@@ -752,23 +708,15 @@ export function PdfViewerTab({
     createDraftRef.current = createDraft;
   }, [createDraft]);
 
-  const loadPdfFromBlob = async (
-    blob: Blob,
-    preferredState?: PersistedViewerState,
-    shouldContinue: () => boolean = () => true
-  ) => {
+  const loadPdfFromBlob = async (blob: Blob, preferredState?: PersistedViewerState) => {
     setLoadStatus("loading");
     setErrorMessage(undefined);
 
     const data = await blob.arrayBuffer();
     const loadingTask = getDocument({ data: new Uint8Array(data) });
     const nextDoc = await loadingTask.promise;
-    if (!shouldContinue()) {
-      nextDoc.destroy();
-      return;
-    }
 
-    const stateFromStorage = preferredState ?? (await storageService.loadViewerState()) ?? {
+    const stateFromStorage = preferredState ?? {
       currentPage: 1,
       zoom: 1
     };
@@ -783,33 +731,27 @@ export function PdfViewerTab({
     setLoadStatus("ready");
   };
 
-  const handleFilePick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange: ChangeEventHandler<HTMLInputElement> = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    if (!file.name.toLowerCase().endsWith(".pdf")) {
+  const handleLoadById = async () => {
+    const trimmed = documentId.trim();
+    if (!trimmed) {
       setLoadStatus("error");
-      setErrorMessage("Only PDF files are supported.");
+      setErrorMessage("Enter a document ID to continue.");
       return;
     }
+
+    setLoadStatus("loading");
+    setErrorMessage(undefined);
 
     try {
-      const record = await storageService.replacePdf(file, { currentPage: 1, zoom: 1 });
-      setRecordMeta(record);
-      await loadPdfFromBlob(record.pdfBlob, record.viewerState);
-    } catch {
+      const record = await pdfRepository.fetchById(trimmed);
+      await loadPdfFromBlob(record.blob, { currentPage: 1, zoom: 1 });
+    } catch (error) {
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : "Unable to load PDF for the provided ID.";
       setLoadStatus("error");
-      setErrorMessage("Could not store and open this PDF.");
-    } finally {
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      setErrorMessage(message);
     }
   };
 
@@ -1444,27 +1386,26 @@ export function PdfViewerTab({
     }
     return "Unsaved";
   }, [overlayDocument, overlaySaveState]);
-  const recordSummary = recordMeta
-    ? `${recordMeta.fileName} | ${(recordMeta.fileSize / 1024 / 1024).toFixed(2)} MB | ${new Date(
-        recordMeta.updatedAt
-      ).toLocaleString()}`
-    : "";
 
   return (
     <section className="panel viewer-panel fade-in" aria-label="Viewer tab">
       <header className="viewer-topline">
         <h2>Viewer</h2>
         <div className="viewer-toolbar">
-          <button type="button" className="action-button" onClick={handleFilePick}>
-            {hasPdf ? "Replace PDF" : "Upload PDF"}
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/pdf,.pdf"
-            onChange={handleFileChange}
-            className="hidden-input"
-          />
+          <div className="toolbar-group">
+            <label className="compact-field">
+              Document ID
+              <input
+                type="text"
+                value={documentId}
+                onChange={(event) => setDocumentId(event.target.value)}
+                placeholder="Enter ID (e.g. DEMO)"
+              />
+            </label>
+            <button type="button" className="action-button" onClick={handleLoadById}>
+              {hasPdf ? "Load Different PDF" : "Load PDF"}
+            </button>
+          </div>
 
           <div className="toolbar-group">
             <button type="button" className="icon-button" onClick={() => movePage(-1)} disabled={!hasPdf}>
@@ -1529,7 +1470,6 @@ export function PdfViewerTab({
             </button>
           </div>
 
-          {recordMeta && <span className="viewer-inline-meta">{recordSummary}</span>}
           {overlayDocument && hasPdf && (
             <span className="viewer-inline-meta">
               Page {currentPage}: {visiblePageOverlays.length} overlays
@@ -1549,11 +1489,22 @@ export function PdfViewerTab({
 
       {!hasPdf && loadStatus !== "loading" && (
         <div className="empty-view">
-          <h3>No PDF uploaded yet</h3>
-          <p>Upload one PDF to start. This tool restores only your most recently uploaded file.</p>
-          <button type="button" className="action-button" onClick={handleFilePick}>
-            Upload PDF
-          </button>
+          <h3>No PDF loaded yet</h3>
+          <p>Enter a document ID to load a PDF from the secure store.</p>
+          <div className="viewer-id-prompt">
+            <label className="compact-field">
+              Document ID
+              <input
+                type="text"
+                value={documentId}
+                onChange={(event) => setDocumentId(event.target.value)}
+                placeholder="Enter ID (e.g. DEMO)"
+              />
+            </label>
+            <button type="button" className="action-button" onClick={handleLoadById}>
+              Load PDF
+            </button>
+          </div>
         </div>
       )}
 

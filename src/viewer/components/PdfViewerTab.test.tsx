@@ -6,8 +6,6 @@ import {
   FALLBACK_ANONYMIZATION_ENTITY_LABEL
 } from "../../shared/anonymizationEntities";
 import type { OverlayDocument, OverlaySaveState } from "../../types/overlay";
-import type { StoredPdfRecord } from "../../types/pdf";
-import type { StorageService } from "../../types/services";
 import { PdfViewerTab } from "./PdfViewerTab";
 
 const mockGetDocument = vi.fn();
@@ -47,18 +45,6 @@ beforeAll(() => {
 beforeEach(() => {
   mockGetDocument.mockReset();
 });
-
-function createStorageMock(overrides?: Partial<StorageService>): StorageService {
-  return {
-    loadPdfRecord: vi.fn().mockResolvedValue(null),
-    savePdfRecord: vi.fn().mockResolvedValue(undefined),
-    replacePdf: vi.fn(),
-    loadViewerState: vi.fn().mockResolvedValue(null),
-    saveViewerState: vi.fn().mockResolvedValue(undefined),
-    clearPdfRecord: vi.fn().mockResolvedValue(undefined),
-    ...overrides
-  };
-}
 
 function createMockPdfDocument() {
   return {
@@ -105,18 +91,6 @@ function createOverlayDocument(): OverlayDocument {
   };
 }
 
-function createStoredRecord(file: File): StoredPdfRecord {
-  return {
-    id: "last-uploaded-pdf",
-    fileName: file.name,
-    fileType: file.type,
-    fileSize: file.size,
-    updatedAt: new Date().toISOString(),
-    pdfBlob: createPdfBlob(),
-    viewerState: { currentPage: 1, zoom: 1 }
-  };
-}
-
 function setStageRect() {
   const stage = document.querySelector(".page-stage") as HTMLDivElement;
   expect(stage).toBeTruthy();
@@ -146,12 +120,6 @@ function setEditorText(editor: HTMLElement, value: string) {
   fireEvent.change(editor, { target: { value } });
 }
 
-async function uploadPdf(container: HTMLElement, file: File) {
-  const user = userEvent.setup();
-  const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
-  await user.upload(fileInput, file);
-}
-
 async function waitForPageRender() {
   await waitFor(() => {
     const stage = document.querySelector(".page-stage") as HTMLDivElement | null;
@@ -162,27 +130,14 @@ async function waitForPageRender() {
 }
 
 describe("PdfViewerTab", () => {
-  it("shows upload empty state when no stored PDF exists", async () => {
-    const storage = createStorageMock();
-    render(<PdfViewerTab storageService={storage} />);
-
-    expect(await screen.findByText("No PDF uploaded yet")).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "Upload PDF" }).length).toBeGreaterThanOrEqual(1);
-  });
-
   it("disables Add BBox when no overlay document is loaded", async () => {
-    const file = new File(["%PDF-test"], "uploaded.pdf", { type: "application/pdf" });
     const doc = createMockPdfDocument();
     mockGetDocument.mockReturnValue({
       promise: Promise.resolve(doc)
     });
 
-    const replacePdf = vi.fn().mockResolvedValue(createStoredRecord(file));
-    const storage = createStorageMock({ replacePdf });
-    const { container } = render(<PdfViewerTab storageService={storage} />);
-    await uploadPdf(container, file);
+    render(<PdfViewerTab />);
 
-    expect(await screen.findByText(/uploaded\.pdf/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Add BBox" })).toBeDisabled();
   });
 

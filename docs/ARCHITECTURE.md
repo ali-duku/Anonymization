@@ -90,9 +90,6 @@ Layout behavior:
 
 ### Services
 
-- `IndexedDbStorageService`:
-  - Persists latest PDF record and viewer state.
-  - Supports replace/load/update/clear operations.
 - `BrowserJsonService`:
   - Parses JSON input.
   - Returns pretty-printed output (2-space indentation) or actionable parse error metadata.
@@ -132,13 +129,8 @@ Layout behavior:
 
 ## Persistence Model
 
-- IndexedDB database: `anonymizer-db`.
-- Object store: `app_state`.
-- Keys:
-  - `last-uploaded-pdf`
-  - `viewer-state`
-
-This enables startup restore without a server.
+- Overlay and JSON workflows remain in-memory in the client.
+- PDFs are provided by a backend/DB layer (mocked locally via `PdfRepository`) and are not persisted in the browser between sessions.
 
 ## Extension Points
 

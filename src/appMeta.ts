@@ -2,8 +2,17 @@ import type { AppMeta } from "./types/appMeta";
 
 export const APP_META: AppMeta = {
   name: "Anonymizer",
-  version: "0.4.22",
+  version: "0.5.0",
   releaseNotes: [
+    {
+      version: "0.5.0",
+      date: "2026-03-17",
+      highlights: [
+        "Replaced local PDF upload and IndexedDB persistence with a secure, ID-based PDF loading flow backed by a repository abstraction.",
+        "Viewer now prompts for a document ID on startup and loads PDFs from a backend/DB-style source (mocked locally for development).",
+        "Removed last-opened PDF auto-restore behavior so no PDF content is stored in the browser between sessions.",
+      ]
+    },
     {
       version: "0.4.22",
       date: "2026-03-17",
