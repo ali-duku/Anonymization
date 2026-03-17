@@ -87,17 +87,41 @@ npm run build
 - Viewer overlays are built from `pipeline_steps.layout_detection` and matched against `content_extraction` by bbox.
 - All layout regions render; matched content regions are filled and expose text, unmatched regions remain geometry-only.
 - Region dialog supports editable `label` (fixed catalog dropdown) and editable `text`.
+- Region dialog anonymization spans are developer-label constrained (no user-defined labels):
+  - span shape: `{ start, end, entity }`
+  - 0-based indexing, `start` inclusive, `end` exclusive
+  - spaces/punctuation/newlines count in indexing
+  - spans must satisfy `start < end`, stay within current text length, and not overlap.
+- Developer entity labels must be stored UTF-8 cleanly (Arabic labels included) to avoid runtime rendering/selection instability.
+- Entity labels must be canonicalized before use; invalid/unknown labels should safely coerce to fallback `آخر`.
+- Keep canonical entity-label catalog/coercion/span-normalization in src/shared/anonymizationEntities.ts; Viewer and annotation service should not maintain divergent copies.
+- New user-added regions must store `layoutSource: null` and `contentSource: null` until generation appends snapshot output records.
+- Canonical label list should remain deduplicated and alphabetically ordered, and must include entities discovered in committed anonymised OCR fixtures.
+- Region dialog `Anonymize` operates on current continuous selection and applies chosen entity label from fixed list.
+- Selection alone should not open entity picker; picker appears only after pressing `Anonymize`.
+- Entity picker should render directly under the anonymize controls in the dialog header area.
+- Highlighted anonymized spans are double-click editable through an anchored floating popover for entity change/remove only (no manual start/end editing).
+- Popover anchoring must use dialog-relative coordinates so it emerges from the clicked span and remains stable within the modal.
+- Span-edit actions must guard against stale span indexes (e.g., spans removed by text remap) and close gracefully instead of throwing.
+- Region text editing uses a canonical textarea input, while highlights render in a synchronized read-only preview.
+- Text input and highlight preview should remain side-by-side in desktop layouts (stacking only in narrow responsive view).
+- Viewer dialog text input and preview surfaces should retain matched spacing and dimensions for visual parity.
+- Keep text-toolbar controls (`Anonymize`, direction toggle) at consistent visual height and preserve matched heading/box spacing between input and preview columns.
+- Text edits perform deterministic remapping for span indices (before-edit spans unchanged, after-edit spans shifted by delta); irreconcilable spans are dropped and surfaced to the user.
+- Region dialog `Delete` must always prompt for confirmation before removing a bbox region.
 - Region dialog text field defaults to RTL and must keep an explicit in-dialog toggle for switching to LTR/RTL.
 - Dialog opens from overlay Edit button and bbox double-click.
 - Esc / top-right red Windows-style `X` / Cancel close behavior prompts when unsaved dialog changes exist.
 - `What's New` modal should use the same red Windows-style `X` close control style as the region editor dialog.
 - Save commits dialog edits into the overlay document and triggers autosave lifecycle callbacks.
+- Confirmed Delete removes the region from the overlay document immediately and is undoable through app-level history.
 - Reset restores draft fields to the currently saved region values.
 - Overlay edit-button visibility is an interaction baseline and should stay high-contrast unless product requirements change.
 - Metadata rules:
   - Fallback `page_number` is 0-indexed (source page index).
   - Fallback `region_id` is synthesized from bbox/source match using global 1-based flattened `content_extraction` order.
 - Viewer supports direct bbox drag and corner resize (`NW/NE/SW/SE`) with strict constraints:
+- Viewer `Add BBox` creation should be available only when a loaded overlay session exists and must use drag-to-draw interaction.
   - Clamp to page bounds (`[0,1]` normalized space).
   - Enforce minimum logical size using `10px` converted from rendered page size.
   - Prevent flipping and preserve strict ordering (`x1 < x2`, `y1 < y2`).
@@ -111,15 +135,21 @@ npm run build
   - Setup Generate/Copy success/error status text.
   - Native textarea/input/contenteditable typing history (browser-managed undo/redo only).
 - If overlays are loaded, editing Setup input prompts for confirmation; confirming clears the overlay edit session.
+- If current overlay session has viewer edits, pressing `Load to Viewer` must prompt for confirmation before replacing overlays from Setup input.
 - Generate behavior with active overlay session patches edited bboxes into loaded OCR snapshot output:
   - Patch `layout_detection` bbox + label entries always.
-  - Patch matched `content_extraction` entries with bbox + `region_label` + `text` when a match source exists.
-  - Append `content_extraction` entries for unmatched edited regions using source page index and next fallback sequence id.
+  - Patch matched `content_extraction` entries with bbox + `region_label` + `text` + `entities` when a match source exists.
+  - Remove deleted regions from `layout_detection` and remove their linked matched `content_extraction` entries.
+  - Append `content_extraction` entries for unmatched edited regions using source page index and next fallback sequence id, including `entities`.
+  - Generate must append user-added regions to both `pipeline_steps.layout_detection[*].regions` and `pipeline_steps.content_extraction[*]`.
+  - Always emit `entities` as an array on generated `content_extraction` entries (`[]` when none).
   - Normalize matched output metadata: `page_number` to 0-index source page; preserve valid `region_id`, otherwise synthesize fallback sequence.
   - Keep input textarea unchanged.
   - Round output bbox coordinates to 6 decimals.
 - Setup JSON editors use uncontrolled refs + no-wrap textarea settings to keep paste and tab-switch performance responsive with large payloads.
 - Setup generation output is pretty-printed JSON (`JSON.stringify` with 2-space indentation) so keys are emitted on separate lines.
+- Setup bottom controls should stay pinned and split into left/right single-line status lanes.
+- Top-header `Generate JSON` should keep primary style parity with `What's New`.
 
 ## Compact Layout Notes
 
@@ -133,3 +163,4 @@ npm run build
 - App stores only the latest uploaded PDF in IndexedDB.
 - If user clears browser storage, startup will return to empty-state upload mode.
 - No packaged default PDF is used in v1.
+

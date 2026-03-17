@@ -2,8 +2,107 @@ import type { AppMeta } from "./types/appMeta";
 
 export const APP_META: AppMeta = {
   name: "Anonymizer",
-  version: "0.4.11",
+  version: "0.4.22",
   releaseNotes: [
+    {
+      version: "0.4.22",
+      date: "2026-03-17",
+      highlights: [
+        "Added Viewer `Add BBox` drag-to-draw creation for loaded overlay sessions, with the same bbox validation rules used by move/resize edits.",
+        "Newly created bboxes now behave like other regions (edit/delete/anonymize) and are included in generated JSON output.",
+        "Extended overlay provenance so user-added regions use nullable snapshot sources and generation appends both layout_detection and content_extraction entries canonically.",
+      ]
+    },
+    {
+      version: "0.4.21",
+      date: "2026-03-17",
+      highlights: [
+        "Expanded the canonical anonymization entity catalog with all labels discovered in the anonymised OCR fixture and standardized ordering in one shared source.",
+        "Aligned region-dialog text input and anonymization preview spacing/sizing so both columns now render with matching surfaces.",
+        "Made top-header `Generate JSON` use the same primary button style as `What's New`, and split Setup bottom controls into pinned left/right single-line lanes for load/output status.",
+      ]
+    },
+    {
+      version: "0.4.20",
+      date: "2026-03-17",
+      highlights: [
+        "Unified anonymization entity canonicalization into a shared module consumed by Viewer and annotation generation/parsing flows.",
+        "Hardened span picker/editor state transitions with canonical entity writes and stricter stale-span render guards to prevent blank-screen paths.",
+        "Added regression tests for span-entity edits, malformed/non-canonical entity payload coercion, and shared normalization behavior.",
+      ]
+    },
+    {
+      version: "0.4.19",
+      date: "2026-03-17",
+      highlights: [
+        "Hardened anonymization entity editing flow to prevent blank-screen crashes from stale/invalid span state.",
+        "Added canonical entity-label coercion and malformed-span normalization so unsupported labels safely fall back to `???`.",
+        "Added stale span-index guards for edit/remove actions and dialog auto-close when edited spans are no longer valid.",
+      ]
+    },
+    {
+      version: "0.4.18",
+      date: "2026-03-17",
+      highlights: [
+        "Fixed anonymized-span editor anchoring so the popover now opens from the actual double-clicked highlighted span.",
+        "Changed span-editor positioning from viewport-fixed to dialog-relative coordinates for stable placement inside the editor modal.",
+      ]
+    },
+    {
+      version: "0.4.17",
+      date: "2026-03-17",
+      highlights: [
+        "Aligned dialog Text controls so `Anonymize` and direction toggle buttons share the same visual height.",
+        "Normalized text-input and anonymization-preview header spacing/sizing so both columns match consistently.",
+        "Moved anonymized-span editing UI into a floating popover anchored to the double-clicked highlighted text instead of rendering inline below the dialog.",
+      ]
+    },
+    {
+      version: "0.4.16",
+      date: "2026-03-17",
+      highlights: [
+        "Updated region dialog layout to render text input and anonymization preview side-by-side instead of stacked.",
+        "Moved anonymization entity picker to appear directly under the `Anonymize` button area in the dialog controls.",
+        "Fixed unstable entity-label handling by restoring the developer label catalog with correct Arabic text encoding to prevent selection-related blank-screen crashes.",
+      ]
+    },
+    {
+      version: "0.4.15",
+      date: "2026-03-17",
+      highlights: [
+        "Replaced region dialog text editing with a canonical textarea input plus synchronized anonymization preview to fix reversed/duplicated character typing issues.",
+        "Selection no longer triggers entity UI automatically; entity picker appears only after clicking `Anonymize`.",
+        "Kept RTL default with explicit RTL/LTR toggle, and ensured span remapping shifts post-cursor spans deterministically after text edits.",
+        "Span editing remains entity-change/remove only (no manual start/end index controls), while generated JSON `entities` output semantics are unchanged.",
+      ]
+    },
+    {
+      version: "0.4.14",
+      date: "2026-03-16",
+      highlights: [
+        "Updated dialog anonymization flow: selecting text does nothing by itself; entity picker opens only after pressing `Anonymize`.",
+        "Removed manual span index editing (no direct start/end edits) and kept double-click span editing to entity change/remove only.",
+        "Fixed region dialog text editor focus loss while typing so caret no longer drops after each character.",
+        "Generated OCR JSON now emits `content_extraction[*].entities` with exact 0-based inclusive/exclusive indices, including patched and appended regions (`[]` when none).",
+      ]
+    },
+    {
+      version: "0.4.13",
+      date: "2026-03-16",
+      highlights: [
+        "Setup `Load to Viewer` now prompts for confirmation when the active overlay session contains viewer edits (bbox/text changes).",
+        "Cancelling the prompt keeps current overlays untouched; confirming proceeds to parse and load the new input JSON.",
+      ]
+    },
+    {
+      version: "0.4.12",
+      date: "2026-03-16",
+      highlights: [
+        "Region editor Delete now prompts for confirmation and fully removes the selected bbox from the overlay session.",
+        "Generate JSON now removes deleted regions from both `layout_detection` and matched `content_extraction` entries.",
+        "Aligned the dialog Delete button visual style to the same red close-button color family used by the top-right `X` control.",
+      ]
+    },
     {
       version: "0.4.11",
       date: "2026-03-16",
@@ -41,7 +140,7 @@ export const APP_META: AppMeta = {
       version: "0.4.7",
       date: "2026-03-16",
       highlights: [
-        "Aligned the Whatâ€™s New dialog close control with the region editor by reusing the same red square `X` button.",
+        "Aligned the What's New dialog close control with the region editor by reusing the same red square `X` button.",
         "Adjusted close-glyph sizing/line metrics so the `X` is visually centered in the red close button.",
       ]
     },

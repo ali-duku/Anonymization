@@ -22,6 +22,8 @@ describe("Header", () => {
     );
 
     expect(screen.getByLabelText(`Version ${APP_META.version}`)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Generate JSON" })).toHaveClass("action-button");
+    expect(screen.getByRole("button", { name: "Generate JSON" })).not.toHaveClass("secondary");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "What's New" }));

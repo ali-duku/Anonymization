@@ -2,11 +2,13 @@
 import type {
   NormalizedBbox,
   OverlayDocument,
+  OverlayEntitySpan,
   OverlayParseResult,
   OverlayRegion,
   OverlaySourceRef
 } from "../types/overlay";
 import type { AnnotationService } from "../types/services";
+import { normalizeEntitySpansForText } from "../shared/anonymizationEntities";
 
 const BBOX_EPSILON = 1e-4;
 const BBOX_ROUNDING = 6;
@@ -15,6 +17,7 @@ const PATCH_EPSILON = 1e-6;
 interface ParsedContentRegion {
   bbox: NormalizedBbox;
   text: string;
+  entities: OverlayEntitySpan[];
   label: string;
   pageNumber: number | null;
   regionId: number | null;
@@ -62,6 +65,27 @@ function buildRoundedBboxKey(bbox: NormalizedBbox): string {
 
 function buildSourceKey(pageIndex: number, regionIndex: number): string {
   return `${pageIndex}:${regionIndex}`;
+}
+
+function collectKeptSourceKeys(document: OverlayDocument): {
+  layout: Set<string>;
+  content: Set<string>;
+} {
+  const layout = new Set<string>();
+  const content = new Set<string>();
+
+  for (const page of document.pages) {
+    for (const region of page.regions) {
+      if (region.layoutSource) {
+        layout.add(buildSourceKey(region.layoutSource.pageIndex, region.layoutSource.regionIndex));
+      }
+      if (region.contentSource) {
+        content.add(buildSourceKey(region.contentSource.pageIndex, region.contentSource.regionIndex));
+      }
+    }
+  }
+
+  return { layout, content };
 }
 
 function buildContentSequenceMap(contentExtraction: unknown[]): Map<string, number> {
@@ -138,6 +162,23 @@ function sanitizeBboxForPatch(bbox: NormalizedBbox): NormalizedBbox {
   };
 }
 
+function ensurePageArray(container: unknown[], pageIndex: number): unknown[] {
+  while (container.length <= pageIndex) {
+    container.push([]);
+  }
+
+  if (container[pageIndex] === null || container[pageIndex] === undefined) {
+    container[pageIndex] = [];
+  }
+
+  const page = container[pageIndex];
+  if (!Array.isArray(page)) {
+    throw new Error(`Page index ${pageIndex} is not available in loaded snapshot.`);
+  }
+
+  return page;
+}
+
 /**
  * Parses OCR JSON into a viewer-friendly overlay model.
  */
@@ -190,13 +231,29 @@ export class BrowserAnnotationService implements AnnotationService {
         throw new Error('Missing required array at key "pipeline_steps.content_extraction" in loaded snapshot.');
       }
 
+      const keptSourceKeys = collectKeptSourceKeys(document);
+      const snapshotLayoutToContent = this.buildSnapshotLayoutToContentMap(layoutDetection, contentExtraction);
+      const deletedLayoutKeys = this.buildDeletedLayoutKeys(layoutDetection, keptSourceKeys.layout);
+      const deletedContentKeys = new Set<string>();
+      for (const deletedLayoutKey of deletedLayoutKeys) {
+        const mappedContent = snapshotLayoutToContent.get(deletedLayoutKey);
+        if (mappedContent) {
+          deletedContentKeys.add(buildSourceKey(mappedContent.pageIndex, mappedContent.regionIndex));
+        }
+      }
+
       const contentSequenceMap = buildContentSequenceMap(contentExtraction);
       let nextSequenceId = contentSequenceMap.size + 1;
 
       for (const page of document.pages) {
         for (const region of page.regions) {
           const nextBbox = sanitizeBboxForPatch(region.bbox);
-          this.patchLayoutRegion(layoutDetection, region.layoutSource, nextBbox, region.label);
+
+          if (region.layoutSource) {
+            this.patchLayoutRegion(layoutDetection, region.layoutSource, nextBbox, region.label);
+          } else {
+            this.appendLayoutRegion(contentExtraction, layoutDetection, region.pageNumber, nextBbox, region.label);
+          }
 
           if (region.contentSource) {
             const sequenceId =
@@ -209,21 +266,27 @@ export class BrowserAnnotationService implements AnnotationService {
               nextBbox,
               sequenceId,
               region.label,
-              region.text
+              region.text,
+              region.entities
             );
           } else {
             this.appendContentRegion(
               contentExtraction,
-              region.layoutSource.pageIndex,
+              region.pageNumber - 1,
               nextBbox,
               region.label,
               region.text,
+              region.entities,
               nextSequenceId
             );
             nextSequenceId += 1;
           }
         }
       }
+
+      this.pruneLayoutRegions(layoutDetection, deletedLayoutKeys);
+      this.pruneContentRegions(contentExtraction, deletedContentKeys);
+      this.normalizeContentEntitiesArrays(contentExtraction);
 
       return {
         success: true,
@@ -237,6 +300,155 @@ export class BrowserAnnotationService implements AnnotationService {
           message: error instanceof Error ? error.message : "Could not generate JSON from overlay edits."
         }
       };
+    }
+  }
+
+  private appendLayoutRegion(
+    contentExtraction: unknown[],
+    layoutDetection: unknown[],
+    pageNumber: number,
+    nextBbox: NormalizedBbox,
+    nextLabel: string
+  ): void {
+    const pageIndex = Math.max(0, pageNumber - 1);
+    while (layoutDetection.length <= pageIndex) {
+      layoutDetection.push({ regions: [] });
+    }
+
+    const pageObject = asObject(layoutDetection[pageIndex]);
+    if (!pageObject) {
+      throw new Error(`Layout page index ${pageIndex} is not available in loaded snapshot.`);
+    }
+
+    if (!Array.isArray(pageObject.regions)) {
+      pageObject.regions = [];
+    }
+    const regions = pageObject.regions;
+    if (!Array.isArray(regions)) {
+      throw new Error(`Layout page index ${pageIndex} is missing a regions array in loaded snapshot.`);
+    }
+
+    regions.push({
+      bbox: { ...nextBbox },
+      label: nextLabel
+    });
+
+    ensurePageArray(contentExtraction, pageIndex);
+  }
+
+  private buildSnapshotLayoutToContentMap(
+    layoutDetection: unknown[],
+    contentExtraction: unknown[]
+  ): Map<string, OverlaySourceRef> {
+    const layoutToContent = new Map<string, OverlaySourceRef>();
+    const contentSequenceMap = buildContentSequenceMap(contentExtraction);
+
+    for (let pageIndex = 0; pageIndex < layoutDetection.length; pageIndex += 1) {
+      const pageObject = asObject(layoutDetection[pageIndex]);
+      if (!pageObject) {
+        continue;
+      }
+
+      const regions = pageObject.regions;
+      if (!Array.isArray(regions)) {
+        continue;
+      }
+
+      const contentPage = this.parseContentPage(contentExtraction[pageIndex], pageIndex, contentSequenceMap);
+      for (let regionIndex = 0; regionIndex < regions.length; regionIndex += 1) {
+        const regionObject = asObject(regions[regionIndex]);
+        if (!regionObject) {
+          continue;
+        }
+
+        const bbox = toNormalizedBbox(regionObject.bbox);
+        if (!bbox) {
+          continue;
+        }
+
+        const matched = this.findContentMatch(contentPage, bbox);
+        if (!matched) {
+          continue;
+        }
+
+        layoutToContent.set(buildSourceKey(pageIndex, regionIndex), matched.source);
+      }
+    }
+
+    return layoutToContent;
+  }
+
+  private buildDeletedLayoutKeys(layoutDetection: unknown[], keptLayoutKeys: Set<string>): Set<string> {
+    const deleted = new Set<string>();
+
+    for (let pageIndex = 0; pageIndex < layoutDetection.length; pageIndex += 1) {
+      const pageObject = asObject(layoutDetection[pageIndex]);
+      if (!pageObject) {
+        continue;
+      }
+
+      const regions = pageObject.regions;
+      if (!Array.isArray(regions)) {
+        continue;
+      }
+
+      for (let regionIndex = 0; regionIndex < regions.length; regionIndex += 1) {
+        const key = buildSourceKey(pageIndex, regionIndex);
+        if (!keptLayoutKeys.has(key)) {
+          deleted.add(key);
+        }
+      }
+    }
+
+    return deleted;
+  }
+
+  private pruneLayoutRegions(layoutDetection: unknown[], deletedLayoutKeys: Set<string>): void {
+    for (let pageIndex = 0; pageIndex < layoutDetection.length; pageIndex += 1) {
+      const pageObject = asObject(layoutDetection[pageIndex]);
+      if (!pageObject) {
+        continue;
+      }
+
+      const regions = pageObject.regions;
+      if (!Array.isArray(regions)) {
+        continue;
+      }
+
+      pageObject.regions = regions.filter(
+        (_region, regionIndex) => !deletedLayoutKeys.has(buildSourceKey(pageIndex, regionIndex))
+      );
+    }
+  }
+
+  private pruneContentRegions(contentExtraction: unknown[], deletedContentKeys: Set<string>): void {
+    for (let pageIndex = 0; pageIndex < contentExtraction.length; pageIndex += 1) {
+      const page = contentExtraction[pageIndex];
+      if (!Array.isArray(page)) {
+        continue;
+      }
+
+      contentExtraction[pageIndex] = page.filter(
+        (_region, regionIndex) => !deletedContentKeys.has(buildSourceKey(pageIndex, regionIndex))
+      );
+    }
+  }
+
+  private normalizeContentEntitiesArrays(contentExtraction: unknown[]): void {
+    for (let pageIndex = 0; pageIndex < contentExtraction.length; pageIndex += 1) {
+      const page = contentExtraction[pageIndex];
+      if (!Array.isArray(page)) {
+        continue;
+      }
+
+      for (let regionIndex = 0; regionIndex < page.length; regionIndex += 1) {
+        const region = asObject(page[regionIndex]);
+        if (!region) {
+          continue;
+        }
+        const text = typeof region.text === "string" ? region.text : "";
+        region.entities = normalizeEntitySpansForText(region.entities, text);
+      }
     }
   }
 
@@ -273,7 +485,8 @@ export class BrowserAnnotationService implements AnnotationService {
     nextBbox: NormalizedBbox,
     sequenceId: number | null,
     nextLabel: string,
-    nextText: string
+    nextText: string,
+    nextEntities: OverlayEntitySpan[]
   ): void {
     const page = contentExtraction[source.pageIndex];
     if (!Array.isArray(page)) {
@@ -290,6 +503,7 @@ export class BrowserAnnotationService implements AnnotationService {
     region.bbox = { ...nextBbox };
     region.region_label = nextLabel;
     region.text = nextText;
+    region.entities = normalizeEntitySpansForText(nextEntities, nextText);
 
     const existingMetadata = asObject(region.metadata);
     const metadata = existingMetadata ?? {};
@@ -308,25 +522,16 @@ export class BrowserAnnotationService implements AnnotationService {
     nextBbox: NormalizedBbox,
     nextLabel: string,
     nextText: string,
+    nextEntities: OverlayEntitySpan[],
     sequenceId: number
   ): void {
-    while (contentExtraction.length <= pageIndex) {
-      contentExtraction.push([]);
-    }
-
-    if (contentExtraction[pageIndex] === null || contentExtraction[pageIndex] === undefined) {
-      contentExtraction[pageIndex] = [];
-    }
-
-    const page = contentExtraction[pageIndex];
-    if (!Array.isArray(page)) {
-      throw new Error(`Content page index ${pageIndex} is not available in loaded snapshot.`);
-    }
+    const page = ensurePageArray(contentExtraction, pageIndex);
 
     page.push({
       bbox: { ...nextBbox },
       text: nextText,
       region_label: nextLabel,
+      entities: normalizeEntitySpansForText(nextEntities, nextText),
       metadata: {
         page_number: pageIndex,
         region_id: sequenceId
@@ -410,6 +615,7 @@ export class BrowserAnnotationService implements AnnotationService {
           bbox,
           matchedContent: Boolean(matched),
           text: matched?.text ?? "",
+          entities: matched?.entities ?? [],
           metadata: {
             pageNumber: matched?.pageNumber ?? (matched?.source.pageIndex ?? pageIndex),
             regionId: matched?.regionId ?? matched?.sequenceId ?? null
@@ -418,7 +624,7 @@ export class BrowserAnnotationService implements AnnotationService {
             pageIndex,
             regionIndex
           },
-          contentSource: matched?.source
+          contentSource: matched?.source ?? null
         };
 
         return region;
@@ -468,6 +674,7 @@ export class BrowserAnnotationService implements AnnotationService {
       return {
         bbox,
         text: typeof region.text === "string" ? region.text : "",
+        entities: normalizeEntitySpansForText(region.entities, typeof region.text === "string" ? region.text : ""),
         label: typeof region.region_label === "string" ? region.region_label : "Unknown",
         pageNumber: toNumericOrNull(metadata?.page_number),
         regionId: toNumericOrNull(metadata?.region_id),

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { APP_META } from "./appMeta";
 import {
   canRedoHistory,
@@ -46,6 +46,7 @@ function isEditableKeyboardTarget(target: EventTarget | null): boolean {
 
 export default function App({ services }: AppProps) {
   const [activeTab, setActiveTab] = useState<AppTab>("viewer");
+  const setupGenerateHandlerRef = useRef<(() => void) | null>(null);
   const [overlayHistory, setOverlayHistory] = useState(() =>
     createHistoryState<OverlayEditSession | null>(null, {
       meta: { action: "init" }
@@ -84,6 +85,7 @@ export default function App({ services }: AppProps) {
         left.document === right.document &&
         left.sourceRoot === right.sourceRoot &&
         left.sourceJsonRaw === right.sourceJsonRaw &&
+        left.hasViewerChanges === right.hasViewerChanges &&
         left.saveState.isSaving === right.saveState.isSaving &&
         left.saveState.isSaved === right.saveState.isSaved &&
         left.saveState.lastSavedAt === right.saveState.lastSavedAt
@@ -104,6 +106,7 @@ export default function App({ services }: AppProps) {
   const handleLoadOverlays = useCallback((payload: OverlayLoadPayload) => {
     commitOverlaySession({
       ...payload,
+      hasViewerChanges: false,
       saveState: {
         isSaving: false,
         isSaved: true,
@@ -128,6 +131,7 @@ export default function App({ services }: AppProps) {
         {
           ...previous,
           document: nextDocument,
+          hasViewerChanges: true,
           saveState: {
             isSaving: false,
             isSaved: true,
@@ -241,12 +245,28 @@ export default function App({ services }: AppProps) {
     });
   }, [areOverlaySessionsEqual]);
 
+  const handleSetupGenerateRegister = useCallback((handler: (() => void) | null) => {
+    setupGenerateHandlerRef.current = handler;
+  }, []);
+
+  const handleGenerateJson = useCallback(() => {
+    if (activeTab !== "setup") {
+      setActiveTab("setup");
+      queueMicrotask(() => {
+        setupGenerateHandlerRef.current?.();
+      });
+      return;
+    }
+    setupGenerateHandlerRef.current?.();
+  }, [activeTab]);
+
   return (
     <div className="app-shell">
       <Header
         appMeta={APP_META}
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        onGenerateJson={handleGenerateJson}
         onManualSave={handleManualSave}
         onUndo={handleUndo}
         onRedo={handleRedo}
@@ -280,6 +300,7 @@ export default function App({ services }: AppProps) {
             onLoadToViewer={handleLoadOverlays}
             overlaySession={setupOverlaySession}
             onClearOverlaySession={handleClearOverlaySession}
+            onGenerateJsonRegister={handleSetupGenerateRegister}
           />
         </section>
       </main>

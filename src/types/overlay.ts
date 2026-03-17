@@ -17,6 +17,12 @@ export interface OverlaySourceRef {
   regionIndex: number;
 }
 
+export interface OverlayEntitySpan {
+  start: number;
+  end: number;
+  entity: string;
+}
+
 export interface OverlayRegion {
   id: string;
   pageNumber: number;
@@ -24,9 +30,10 @@ export interface OverlayRegion {
   bbox: NormalizedBbox;
   matchedContent: boolean;
   text: string;
+  entities: OverlayEntitySpan[];
   metadata: OverlayMetadata;
-  layoutSource: OverlaySourceRef;
-  contentSource?: OverlaySourceRef;
+  layoutSource: OverlaySourceRef | null;
+  contentSource: OverlaySourceRef | null;
 }
 
 export interface OverlayPage {
@@ -52,6 +59,7 @@ export interface OverlayLoadPayload {
 
 export interface OverlayEditSession extends OverlayLoadPayload {
   saveState: OverlaySaveState;
+  hasViewerChanges: boolean;
 }
 
 export interface OverlayParseResult {

@@ -7,6 +7,7 @@ interface HeaderProps {
   appMeta: AppMeta;
   activeTab: AppTab;
   onTabChange: (tab: AppTab) => void;
+  onGenerateJson?: () => void;
   onManualSave?: () => void;
   onUndo?: () => void;
   onRedo?: () => void;
@@ -19,6 +20,7 @@ export function Header({
   appMeta,
   activeTab,
   onTabChange,
+  onGenerateJson,
   onManualSave,
   onUndo,
   onRedo,
@@ -39,6 +41,14 @@ export function Header({
 
         <div className="header-actions">
           <div className="header-history-actions">
+            <button
+              className="action-button"
+              type="button"
+              onClick={onGenerateJson}
+              disabled={!onGenerateJson}
+            >
+              Generate JSON
+            </button>
             <button
               className="action-button secondary"
               type="button"

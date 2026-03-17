@@ -1,5 +1,6 @@
-import { readFileSync } from "node:fs";
+﻿import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { FALLBACK_ANONYMIZATION_ENTITY_LABEL } from "../shared/anonymizationEntities";
 import { BrowserAnnotationService } from "./annotationService";
 
 describe("BrowserAnnotationService", () => {
@@ -227,6 +228,7 @@ describe("BrowserAnnotationService", () => {
     });
     expect(root.pipeline_steps.content_extraction[0][0].region_label).toBe("Table");
     expect(root.pipeline_steps.content_extraction[0][0].text).toBe("updated text");
+    expect(root.pipeline_steps.content_extraction[0][0].entities).toEqual([]);
     expect(root.pipeline_steps.content_extraction[0][0].metadata).toEqual({
       page_number: 0,
       region_id: 11
@@ -286,6 +288,7 @@ describe("BrowserAnnotationService", () => {
       },
       text: "new content text",
       region_label: "Section-header",
+      entities: [],
       metadata: {
         page_number: 0,
         region_id: 1
@@ -341,5 +344,304 @@ describe("BrowserAnnotationService", () => {
       page_number: 99,
       region_id: 999
     });
+  });
+
+  it("removes deleted overlay regions from layout_detection and matched content_extraction", () => {
+    const raw = JSON.stringify({
+      pipeline_steps: {
+        layout_detection: [
+          {
+            regions: [
+              {
+                bbox: { x1: 0.1, y1: 0.1, x2: 0.2, y2: 0.2 },
+                label: "Text"
+              },
+              {
+                bbox: { x1: 0.3, y1: 0.3, x2: 0.4, y2: 0.4 },
+                label: "Table"
+              }
+            ]
+          }
+        ],
+        content_extraction: [
+          [
+            {
+              bbox: { x1: 0.1, y1: 0.1, x2: 0.2, y2: 0.2 },
+              text: "first",
+              region_label: "Text",
+              metadata: { page_number: 0, region_id: 1 }
+            },
+            {
+              bbox: { x1: 0.3, y1: 0.3, x2: 0.4, y2: 0.4 },
+              text: "second",
+              region_label: "Table",
+              metadata: { page_number: 0, region_id: 2 }
+            }
+          ]
+        ]
+      }
+    });
+
+    const parsed = service.parseOverlayInput(raw);
+    expect(parsed.success).toBe(true);
+    expect(parsed.document).not.toBeNull();
+    expect(parsed.sourceRoot).not.toBeNull();
+
+    const document = parsed.document!;
+    document.pages[0].regions = [document.pages[0].regions[1]];
+
+    const generated = service.generateWithOverlayEdits(parsed.sourceRoot!, document);
+    expect(generated.success).toBe(true);
+    const root = JSON.parse(generated.formattedJson ?? "{}");
+
+    expect(root.pipeline_steps.layout_detection[0].regions).toHaveLength(1);
+    expect(root.pipeline_steps.layout_detection[0].regions[0]).toMatchObject({
+      label: "Table",
+      bbox: { x1: 0.3, y1: 0.3, x2: 0.4, y2: 0.4 }
+    });
+
+    expect(root.pipeline_steps.content_extraction[0]).toHaveLength(1);
+    expect(root.pipeline_steps.content_extraction[0][0]).toMatchObject({
+      text: "second",
+      region_label: "Table",
+      bbox: { x1: 0.3, y1: 0.3, x2: 0.4, y2: 0.4 },
+      entities: [],
+      metadata: { page_number: 0, region_id: 2 }
+    });
+  });
+
+  it("patches entities array into generated content_extraction output", () => {
+    const raw = JSON.stringify({
+      pipeline_steps: {
+        layout_detection: [
+          {
+            regions: [
+              {
+                bbox: { x1: 0.1, y1: 0.1, x2: 0.3, y2: 0.3 },
+                label: "Text"
+              }
+            ]
+          }
+        ],
+        content_extraction: [
+          [
+            {
+              bbox: { x1: 0.1, y1: 0.1, x2: 0.3, y2: 0.3 },
+              text: "abcdef",
+              region_label: "Text",
+              metadata: { page_number: 0, region_id: 1 }
+            }
+          ]
+        ]
+      }
+    });
+
+    const parsed = service.parseOverlayInput(raw);
+    expect(parsed.success).toBe(true);
+    expect(parsed.document).not.toBeNull();
+    expect(parsed.sourceRoot).not.toBeNull();
+
+    const document = parsed.document!;
+    document.pages[0].regions[0].entities = [
+      {
+        start: 1,
+        end: 4,
+        entity: "المدّعي"
+      }
+    ];
+
+    const generated = service.generateWithOverlayEdits(parsed.sourceRoot!, document);
+    expect(generated.success).toBe(true);
+    const root = JSON.parse(generated.formattedJson ?? "{}");
+
+    expect(root.pipeline_steps.content_extraction[0][0].entities).toEqual([
+      {
+        start: 1,
+        end: 4,
+        entity: "المدّعي"
+      }
+    ]);
+  });
+  it("parseOverlayInput canonicalizes unknown entity labels to fallback", () => {
+    const raw = JSON.stringify({
+      pipeline_steps: {
+        layout_detection: [
+          {
+            regions: [
+              {
+                bbox: { x1: 0.1, y1: 0.1, x2: 0.3, y2: 0.3 },
+                label: "Text"
+              }
+            ]
+          }
+        ],
+        content_extraction: [
+          [
+            {
+              bbox: { x1: 0.1, y1: 0.1, x2: 0.3, y2: 0.3 },
+              text: "abcdef",
+              region_label: "Text",
+              entities: [{ start: 1, end: 4, entity: "not-canonical" }],
+              metadata: { page_number: 0, region_id: 1 }
+            }
+          ]
+        ]
+      }
+    });
+
+    const parsed = service.parseOverlayInput(raw);
+    expect(parsed.success).toBe(true);
+    expect(parsed.document?.pages[0].regions[0].entities).toEqual([
+      {
+        start: 1,
+        end: 4,
+        entity: FALLBACK_ANONYMIZATION_ENTITY_LABEL
+      }
+    ]);
+  });
+
+  it("generateWithOverlayEdits canonicalizes patched and appended entity labels", () => {
+    const raw = JSON.stringify({
+      pipeline_steps: {
+        layout_detection: [
+          {
+            regions: [
+              {
+                bbox: { x1: 0.1, y1: 0.1, x2: 0.2, y2: 0.2 },
+                label: "Text"
+              },
+              {
+                bbox: { x1: 0.5, y1: 0.5, x2: 0.7, y2: 0.7 },
+                label: "Text"
+              }
+            ]
+          }
+        ],
+        content_extraction: [
+          [
+            {
+              bbox: { x1: 0.1, y1: 0.1, x2: 0.2, y2: 0.2 },
+              text: "first text",
+              region_label: "Text",
+              metadata: { page_number: 0, region_id: 1 }
+            }
+          ]
+        ]
+      }
+    });
+
+    const parsed = service.parseOverlayInput(raw);
+    expect(parsed.success).toBe(true);
+    expect(parsed.document).not.toBeNull();
+    expect(parsed.sourceRoot).not.toBeNull();
+
+    const document = parsed.document!;
+    document.pages[0].regions[0].entities = [{ start: 0, end: 5, entity: "patched-unknown" }];
+    document.pages[0].regions[1].text = "second text";
+    document.pages[0].regions[1].entities = [{ start: 0, end: 6, entity: "appended-unknown" }];
+
+    const generated = service.generateWithOverlayEdits(parsed.sourceRoot!, document);
+    expect(generated.success).toBe(true);
+    const root = JSON.parse(generated.formattedJson ?? "{}");
+
+    expect(root.pipeline_steps.content_extraction[0][0].entities).toEqual([
+      { start: 0, end: 5, entity: FALLBACK_ANONYMIZATION_ENTITY_LABEL }
+    ]);
+    expect(root.pipeline_steps.content_extraction[0][1].entities).toEqual([
+      { start: 0, end: 6, entity: FALLBACK_ANONYMIZATION_ENTITY_LABEL }
+    ]);
+  });
+
+  it("appends new user-added regions to layout_detection and content_extraction output", () => {
+    const raw = JSON.stringify({
+      pipeline_steps: {
+        layout_detection: [{ regions: [] }],
+        content_extraction: [[]]
+      }
+    });
+
+    const parsed = service.parseOverlayInput(raw);
+    expect(parsed.success).toBe(true);
+    expect(parsed.document).not.toBeNull();
+    expect(parsed.sourceRoot).not.toBeNull();
+
+    const document = parsed.document!;
+    document.pages[0].regions.push({
+      id: "page-1-region-1",
+      pageNumber: 1,
+      label: "Text",
+      bbox: { x1: 0.111111111, y1: 0.222222222, x2: 0.333333333, y2: 0.444444444 },
+      matchedContent: false,
+      text: "added content",
+      entities: [{ start: 0, end: 5, entity: "unknown-added-entity" }],
+      metadata: { pageNumber: 0, regionId: null },
+      layoutSource: null,
+      contentSource: null
+    });
+
+    const generated = service.generateWithOverlayEdits(parsed.sourceRoot!, document);
+    expect(generated.success).toBe(true);
+    const root = JSON.parse(generated.formattedJson ?? "{}");
+
+    expect(root.pipeline_steps.layout_detection[0].regions).toHaveLength(1);
+    expect(root.pipeline_steps.layout_detection[0].regions[0]).toEqual({
+      bbox: { x1: 0.111111, y1: 0.222222, x2: 0.333333, y2: 0.444444 },
+      label: "Text"
+    });
+
+    expect(root.pipeline_steps.content_extraction[0]).toHaveLength(1);
+    expect(root.pipeline_steps.content_extraction[0][0]).toEqual({
+      bbox: { x1: 0.111111, y1: 0.222222, x2: 0.333333, y2: 0.444444 },
+      text: "added content",
+      region_label: "Text",
+      entities: [{ start: 0, end: 5, entity: FALLBACK_ANONYMIZATION_ENTITY_LABEL }],
+      metadata: {
+        page_number: 0,
+        region_id: 1
+      }
+    });
+  });
+
+  it("filters malformed entity spans without throwing", () => {
+    const raw = JSON.stringify({
+      pipeline_steps: {
+        layout_detection: [
+          {
+            regions: [
+              {
+                bbox: { x1: 0.1, y1: 0.1, x2: 0.3, y2: 0.3 },
+                label: "Text"
+              }
+            ]
+          }
+        ],
+        content_extraction: [
+          [
+            {
+              bbox: { x1: 0.1, y1: 0.1, x2: 0.3, y2: 0.3 },
+              text: "abcdef",
+              region_label: "Text",
+              entities: [
+                { start: -1, end: 2, entity: "bad-range" },
+                { start: 1, end: 1, entity: "zero-length" },
+                { start: 1, end: 3, entity: "bad-entity" },
+                { start: 2, end: 4, entity: "overlap-drop" }
+              ],
+              metadata: { page_number: 0, region_id: 1 }
+            }
+          ]
+        ]
+      }
+    });
+
+    const parsed = service.parseOverlayInput(raw);
+    expect(parsed.success).toBe(true);
+    expect(parsed.document?.pages[0].regions[0].entities).toEqual([
+      {
+        start: 1,
+        end: 3,
+        entity: FALLBACK_ANONYMIZATION_ENTITY_LABEL
+      }
+    ]);
   });
 });

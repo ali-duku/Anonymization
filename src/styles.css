@@ -271,11 +271,50 @@ body {
   border-color: var(--line);
 }
 
+.icon-button.active {
+  color: var(--bg);
+  background: linear-gradient(135deg, var(--accent), #67f2df);
+  border-color: transparent;
+}
+
+.action-button.danger {
+  color: #fff6f6;
+  background: linear-gradient(180deg, #d54a4e, #b61f25);
+  border-color: #7f181d;
+}
+
+.action-button.danger:hover {
+  background: linear-gradient(180deg, #e66b72, #c22f36);
+}
+
 .action-button:disabled,
 .icon-button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
   transform: none;
+}
+
+.anonymize-button {
+  border-color: #4f4ab7;
+  color: #eff6ff;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(255, 255, 255, 0.55) 0 1px, transparent 2px),
+    radial-gradient(circle at 70% 28%, rgba(255, 255, 255, 0.45) 0 1px, transparent 2px),
+    radial-gradient(circle at 88% 68%, rgba(255, 255, 255, 0.35) 0 1px, transparent 2px),
+    linear-gradient(145deg, #0b1028, #1a1750 55%, #2e1e67);
+  box-shadow:
+    0 0 0 1px rgba(116, 103, 255, 0.38),
+    0 6px 18px rgba(15, 10, 45, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.anonymize-button:hover:not(:disabled) {
+  background:
+    radial-gradient(circle at 16% 26%, rgba(255, 255, 255, 0.65) 0 1px, transparent 2px),
+    radial-gradient(circle at 76% 26%, rgba(255, 255, 255, 0.5) 0 1px, transparent 2px),
+    radial-gradient(circle at 82% 72%, rgba(255, 255, 255, 0.45) 0 1px, transparent 2px),
+    linear-gradient(145deg, #101538, #251d68 55%, #3a2781);
+  filter: brightness(1.08);
 }
 
 .hidden-input {
@@ -308,6 +347,14 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
+}
+
+.overlay-create-surface {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+  cursor: crosshair;
+  z-index: 5;
 }
 
 .overlay-box {
@@ -462,16 +509,35 @@ body {
   background: #050b11;
 }
 
-.setup-actions {
+.setup-footer {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  position: sticky;
+  bottom: 0;
+  padding-top: 8px;
+  background: linear-gradient(180deg, rgba(18, 29, 40, 0), rgba(18, 29, 40, 0.92) 24%);
+  z-index: 1;
+}
+
+.setup-footer-lane {
+  display: inline-flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.setup-footer-lane-right {
+  margin-left: auto;
 }
 
 .setup-meta {
   color: var(--muted);
   font-size: 0.88rem;
+  white-space: nowrap;
 }
 
 .status-line {
@@ -541,6 +607,7 @@ body {
 .overlay-dialog-body {
   display: grid;
   gap: 10px;
+  position: relative;
 }
 
 .overlay-dialog-label {
@@ -559,8 +626,21 @@ body {
   gap: 10px;
 }
 
+.overlay-dialog-text-controls {
+  display: inline-flex;
+  align-items: flex-end;
+  position: relative;
+  gap: 8px;
+}
+
+.overlay-dialog-text-controls > .ghost-button,
+.overlay-dialog-text-controls > .action-button {
+  min-height: 38px;
+  padding: 7px 11px;
+}
+
 .overlay-dialog-direction-toggle {
-  padding: 4px 10px;
+  min-width: 118px;
 }
 
 .overlay-dialog-select {
@@ -574,11 +654,40 @@ body {
   font-size: 0.84rem;
 }
 
-.overlay-dialog-text {
+.overlay-dialog-text-input {
+  resize: none;
+  outline: none;
+  margin: 0;
+}
+
+.overlay-dialog-editor-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+.overlay-dialog-editor-column {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.overlay-dialog-preview-label {
+  font-size: 0.88rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.overlay-dialog-text-preview {
+  margin: 0;
+}
+
+.overlay-dialog-text-input,
+.overlay-dialog-text-preview {
   width: 100%;
   min-height: 170px;
   max-height: 320px;
-  resize: vertical;
+  overflow: auto;
   border: 1px solid var(--line);
   border-radius: 10px;
   background: #08121a;
@@ -587,6 +696,95 @@ body {
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.84rem;
   line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.overlay-dialog-segment {
+  white-space: pre-wrap;
+}
+
+.overlay-dialog-entity-span {
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 0 1px;
+  cursor: pointer;
+}
+
+.overlay-dialog-entity-span:hover {
+  filter: brightness(1.1);
+}
+
+.overlay-entity-picker {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(8, 18, 26, 0.65);
+  display: grid;
+  gap: 8px;
+}
+
+.overlay-entity-picker.controls-picker {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 280px;
+  max-width: min(360px, 90vw);
+  z-index: 5;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.overlay-span-editor {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(8, 18, 26, 0.65);
+  display: grid;
+  gap: 8px;
+}
+
+.overlay-span-editor.floating {
+  position: absolute;
+  z-index: 30;
+  min-width: 280px;
+  max-width: min(360px, calc(100% - 16px));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.overlay-span-editor h3 {
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.overlay-span-editor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.overlay-span-editor-grid label {
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.overlay-span-editor-grid input {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #08121a;
+  color: var(--text);
+  padding: 7px 8px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.82rem;
+}
+
+.overlay-span-editor-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .overlay-metadata {
@@ -762,6 +960,23 @@ body {
 
   .json-textarea {
     min-height: 180px;
+  }
+
+  .overlay-dialog-editor-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .setup-footer {
+    position: static;
+    padding-top: 0;
+    background: transparent;
+  }
+
+  .setup-footer-lane,
+  .setup-footer-lane-right {
+    width: 100%;
+    justify-content: flex-start;
+    margin-left: 0;
   }
 }
 

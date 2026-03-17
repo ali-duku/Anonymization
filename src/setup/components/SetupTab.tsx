@@ -1,4 +1,4 @@
-import { memo, useRef, useState, type ChangeEventHandler } from "react";
+import { memo, useCallback, useEffect, useRef, useState, type ChangeEventHandler } from "react";
 import type { OverlayEditSession, OverlayLoadPayload } from "../../types/overlay";
 import type { AnnotationService, JsonService } from "../../types/services";
 
@@ -8,6 +8,7 @@ interface SetupTabProps {
   overlaySession: OverlayEditSession | null;
   onLoadToViewer: (payload: OverlayLoadPayload) => void;
   onClearOverlaySession: () => void;
+  onGenerateJsonRegister?: (handler: (() => void) | null) => void;
 }
 
 function hasVisibleContent(value: string): boolean {
@@ -39,7 +40,8 @@ function SetupTabComponent({
   annotationService,
   overlaySession,
   onLoadToViewer,
-  onClearOverlaySession
+  onClearOverlaySession,
+  onGenerateJsonRegister
 }: SetupTabProps) {
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const outputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -47,13 +49,14 @@ function SetupTabComponent({
   const [hasInput, setHasInput] = useState(false);
   const [hasOutput, setHasOutput] = useState(false);
   const [outputLineCount, setOutputLineCount] = useState(0);
+  const [loadStatusText, setLoadStatusText] = useState("");
   const [successText, setSuccessText] = useState<string | null>(null);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [isCopying, setIsCopying] = useState(false);
 
   const outputStats = hasOutput ? `${outputLineCount} lines generated` : "No generated JSON yet.";
 
-  const handleGenerate = () => {
+  const handleGenerate = useCallback(() => {
     const inputJson = inputRef.current?.value ?? "";
     setSuccessText(null);
     const result = overlaySession
@@ -75,7 +78,14 @@ function SetupTabComponent({
     setOutputLineCount(countLines(result.formattedJson));
     setErrorText(null);
     setSuccessText(overlaySession ? "JSON generated with overlay edits." : "JSON generated successfully.");
-  };
+  }, [annotationService, jsonService, overlaySession]);
+
+  useEffect(() => {
+    onGenerateJsonRegister?.(handleGenerate);
+    return () => {
+      onGenerateJsonRegister?.(null);
+    };
+  }, [handleGenerate, onGenerateJsonRegister]);
 
   const handleCopy = async () => {
     const outputJson = outputRef.current?.value ?? "";
@@ -93,6 +103,15 @@ function SetupTabComponent({
   };
 
   const handleLoadToViewer = () => {
+    if (overlaySession?.hasViewerChanges) {
+      const shouldContinue = window.confirm(
+        "You have viewer bbox/text edits on the currently loaded overlays. Loading new overlays will discard them. Continue?"
+      );
+      if (!shouldContinue) {
+        return;
+      }
+    }
+
     const inputJson = inputRef.current?.value ?? "";
     setSuccessText(null);
     const result = annotationService.parseOverlayInput(inputJson);
@@ -111,8 +130,9 @@ function SetupTabComponent({
       sourceJsonRaw: result.sourceJsonRaw
     });
     const regionCount = result.document.pages.reduce((total, page) => total + page.regions.length, 0);
+    setLoadStatusText(`Loaded ${regionCount} overlays from ${result.document.pages.length} pages.`);
     setErrorText(null);
-    setSuccessText(`Loaded ${regionCount} overlays from ${result.document.pages.length} pages.`);
+    setSuccessText(null);
   };
 
   const handleInputChange: ChangeEventHandler<HTMLTextAreaElement> = (event) => {
@@ -130,6 +150,7 @@ function SetupTabComponent({
         return;
       }
       onClearOverlaySession();
+      setLoadStatusText("");
     }
 
     previousInputRef.current = nextValue;
@@ -178,29 +199,31 @@ function SetupTabComponent({
         </div>
       </div>
 
-      <div className="setup-actions">
-        <button type="button" className="action-button" onClick={handleGenerate}>
-          Generate JSON
-        </button>
-        <button
-          type="button"
-          className="action-button secondary"
-          onClick={handleCopy}
-          disabled={!hasOutput || isCopying}
-        >
-          Copy Output
-        </button>
-        <button
-          type="button"
-          className="action-button secondary"
-          onClick={handleLoadToViewer}
-          disabled={!hasInput}
-        >
-          Load to Viewer
-        </button>
-        <span className="setup-meta">{outputStats}</span>
-      </div>
+      <div className="setup-footer">
+        <div className="setup-footer-lane">
+          <button
+            type="button"
+            className="action-button secondary"
+            onClick={handleLoadToViewer}
+            disabled={!hasInput}
+          >
+            Load to Viewer
+          </button>
+          {loadStatusText && <span className="setup-meta">{loadStatusText}</span>}
+        </div>
 
+        <div className="setup-footer-lane setup-footer-lane-right">
+          <button
+            type="button"
+            className="action-button secondary"
+            onClick={handleCopy}
+            disabled={!hasOutput || isCopying}
+          >
+            Copy Output
+          </button>
+          <span className="setup-meta">{outputStats}</span>
+        </div>
+      </div>
       <div className="status-region">
         {errorText ? (
           <p className="status-line error" role="alert">
