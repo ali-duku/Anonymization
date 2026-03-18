@@ -4,27 +4,26 @@ import {
   useMemo,
   useRef,
   useState,
-  type ChangeEventHandler,
   type Dispatch,
   type MutableRefObject,
   type SetStateAction
 } from "react";
 import { GlobalWorkerOptions, getDocument, type PDFDocumentProxy } from "pdfjs-dist";
 import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
-import type { PersistedViewerState, PdfLoadStatus, StoredPdfRecord } from "../../../types/pdf";
-import type { StorageService } from "../../../types/services";
+import type { PdfLoadStatus } from "../../../types/pdf";
+import type { RetrievedPdfDocument, RetrievedPdfMeta } from "../../../types/pdfRetrieval";
 import { MAX_ZOOM, MIN_ZOOM, ZOOM_STEP } from "../constants/viewerConstants";
 import { clampZoom } from "../utils/viewerStatus";
 
 GlobalWorkerOptions.workerSrc = pdfWorker;
 
 interface UsePdfDocumentOptions {
-  storageService: StorageService;
+  retrievedPdfDocument: RetrievedPdfDocument | null;
 }
 
 export interface PdfDocumentState {
   pdfDoc: PDFDocumentProxy | null;
-  recordMeta: StoredPdfRecord | null;
+  documentMeta: RetrievedPdfMeta | null;
   loadStatus: PdfLoadStatus;
   errorMessage?: string;
   currentPage: number;
@@ -36,28 +35,26 @@ export interface PdfDocumentState {
 }
 
 export interface PdfDocumentActions {
-  fileInputRef: MutableRefObject<HTMLInputElement | null>;
   canvasRef: MutableRefObject<HTMLCanvasElement | null>;
   canvasContainerRef: MutableRefObject<HTMLDivElement | null>;
   pageStageRef: MutableRefObject<HTMLDivElement | null>;
-  handleFilePick: () => void;
-  handleFileChange: ChangeEventHandler<HTMLInputElement>;
   movePage: (direction: -1 | 1) => void;
-  handlePageInput: ChangeEventHandler<HTMLInputElement>;
+  handlePageInput: (nextPage: number) => void;
   handleZoomIn: () => void;
   handleZoomOut: () => void;
   handleFitToWidth: () => Promise<void>;
   setZoom: Dispatch<SetStateAction<number>>;
 }
 
-export function usePdfDocument({ storageService }: UsePdfDocumentOptions): PdfDocumentState & PdfDocumentActions {
+export function usePdfDocument({
+  retrievedPdfDocument
+}: UsePdfDocumentOptions): PdfDocumentState & PdfDocumentActions {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const canvasContainerRef = useRef<HTMLDivElement | null>(null);
   const pageStageRef = useRef<HTMLDivElement | null>(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [pdfDoc, setPdfDoc] = useState<PDFDocumentProxy | null>(null);
-  const [recordMeta, setRecordMeta] = useState<StoredPdfRecord | null>(null);
+  const [documentMeta, setDocumentMeta] = useState<RetrievedPdfMeta | null>(null);
   const [loadStatus, setLoadStatus] = useState<PdfLoadStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string>();
   const [currentPage, setCurrentPage] = useState(1);
@@ -65,72 +62,87 @@ export function usePdfDocument({ storageService }: UsePdfDocumentOptions): PdfDo
   const [zoom, setZoom] = useState(1);
   const [pageWidth, setPageWidth] = useState(0);
   const [pageHeight, setPageHeight] = useState(0);
+  const loadSequenceRef = useRef(0);
 
-  const loadPdfFromBlob = useCallback(
-    async (
-      blob: Blob,
-      preferredState?: PersistedViewerState,
-      shouldContinue: () => boolean = () => true
-    ) => {
-      setLoadStatus("loading");
-      setErrorMessage(undefined);
-
-      const data = await blob.arrayBuffer();
-      const loadingTask = getDocument({ data: new Uint8Array(data) });
-      const nextDoc = await loadingTask.promise;
-      if (!shouldContinue()) {
-        nextDoc.destroy();
-        return;
-      }
-
-      const stateFromStorage = preferredState ?? (await storageService.loadViewerState()) ?? {
-        currentPage: 1,
-        zoom: 1
-      };
-
-      const safePage = Math.min(nextDoc.numPages, Math.max(1, stateFromStorage.currentPage));
-      const safeZoom = clampZoom(stateFromStorage.zoom, MIN_ZOOM, MAX_ZOOM);
-
-      setPdfDoc(nextDoc);
-      setTotalPages(nextDoc.numPages);
-      setCurrentPage(safePage);
-      setZoom(safeZoom);
-      setLoadStatus("ready");
-    },
-    [storageService]
-  );
+  const clearCanvasSurface = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const context = canvas.getContext("2d");
+      context?.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.width = 0;
+      canvas.height = 0;
+    }
+    setPageWidth(0);
+    setPageHeight(0);
+  }, []);
 
   useEffect(() => {
+    const nextSequence = loadSequenceRef.current + 1;
+    loadSequenceRef.current = nextSequence;
+
+    if (!retrievedPdfDocument) {
+      clearCanvasSurface();
+      setPdfDoc((previousDoc) => {
+        if (previousDoc) {
+          previousDoc.destroy().catch(() => {
+            // Ignore cleanup failures while resetting the viewer.
+          });
+        }
+        return null;
+      });
+      setDocumentMeta(null);
+      setTotalPages(0);
+      setCurrentPage(1);
+      setZoom(1);
+      setPageWidth(0);
+      setPageHeight(0);
+      setErrorMessage(undefined);
+      setLoadStatus("idle");
+      return;
+    }
+
     let cancelled = false;
+    setLoadStatus("loading");
+    setErrorMessage(undefined);
 
     const initialize = async () => {
-      setLoadStatus("loading");
-      const record = await storageService.loadPdfRecord();
+      const data = await retrievedPdfDocument.blob.arrayBuffer();
+      const loadingTask = getDocument({ data: new Uint8Array(data) });
+      const nextDoc = await loadingTask.promise;
 
-      if (cancelled) {
+      if (cancelled || loadSequenceRef.current !== nextSequence) {
+        await nextDoc.destroy().catch(() => {
+          // Ignore cleanup failures for stale retrieval responses.
+        });
         return;
       }
 
-      if (!record) {
-        setLoadStatus("idle");
-        return;
-      }
-
-      setRecordMeta(record);
-      await loadPdfFromBlob(record.pdfBlob, record.viewerState, () => !cancelled);
+      setPdfDoc((previousDoc) => {
+        if (previousDoc) {
+          previousDoc.destroy().catch(() => {
+            // Ignore cleanup failures while replacing a document.
+          });
+        }
+        return nextDoc;
+      });
+      setDocumentMeta(retrievedPdfDocument.meta);
+      setTotalPages(nextDoc.numPages);
+      setCurrentPage(1);
+      setZoom(1);
+      setLoadStatus("ready");
     };
 
     initialize().catch(() => {
-      if (!cancelled) {
+      if (!cancelled && loadSequenceRef.current === nextSequence) {
         setLoadStatus("error");
-        setErrorMessage("Failed to restore the last uploaded PDF.");
+        setErrorMessage("PDF loading failed after retrieval.");
       }
     });
 
     return () => {
       cancelled = true;
     };
-  }, [loadPdfFromBlob, storageService]);
+  }, [clearCanvasSurface, retrievedPdfDocument]);
 
   useEffect(() => {
     if (!pdfDoc) {
@@ -173,6 +185,7 @@ export function usePdfDocument({ storageService }: UsePdfDocumentOptions): PdfDo
       if (errorName !== "RenderingCancelledException") {
         setLoadStatus("error");
         setErrorMessage("PDF rendering failed.");
+        clearCanvasSurface();
       }
     });
 
@@ -182,7 +195,7 @@ export function usePdfDocument({ storageService }: UsePdfDocumentOptions): PdfDo
         renderTask.cancel();
       }
     };
-  }, [currentPage, pdfDoc, zoom]);
+  }, [clearCanvasSurface, currentPage, pdfDoc, zoom]);
 
   useEffect(() => {
     return () => {
@@ -194,39 +207,6 @@ export function usePdfDocument({ storageService }: UsePdfDocumentOptions): PdfDo
     };
   }, [pdfDoc]);
 
-  const handleFilePick = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
-
-  const handleFileChange: ChangeEventHandler<HTMLInputElement> = useCallback(
-    async (event) => {
-      const file = event.target.files?.[0];
-      if (!file) {
-        return;
-      }
-
-      if (!file.name.toLowerCase().endsWith(".pdf")) {
-        setLoadStatus("error");
-        setErrorMessage("Only PDF files are supported.");
-        return;
-      }
-
-      try {
-        const record = await storageService.replacePdf(file, { currentPage: 1, zoom: 1 });
-        setRecordMeta(record);
-        await loadPdfFromBlob(record.pdfBlob, record.viewerState);
-      } catch {
-        setLoadStatus("error");
-        setErrorMessage("Could not store and open this PDF.");
-      } finally {
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
-      }
-    },
-    [loadPdfFromBlob, storageService]
-  );
-
   const movePage = useCallback(
     (direction: -1 | 1) => {
       setCurrentPage((page) => {
@@ -237,13 +217,12 @@ export function usePdfDocument({ storageService }: UsePdfDocumentOptions): PdfDo
     [totalPages]
   );
 
-  const handlePageInput: ChangeEventHandler<HTMLInputElement> = useCallback(
-    (event) => {
-      const value = Number(event.target.value);
-      if (!Number.isFinite(value)) {
+  const handlePageInput = useCallback(
+    (nextPage: number) => {
+      if (!Number.isFinite(nextPage)) {
         return;
       }
-      setCurrentPage(Math.min(Math.max(Math.trunc(value), 1), totalPages || 1));
+      setCurrentPage(Math.min(Math.max(Math.trunc(nextPage), 1), totalPages || 1));
     },
     [totalPages]
   );
@@ -253,9 +232,15 @@ export function usePdfDocument({ storageService }: UsePdfDocumentOptions): PdfDo
       return;
     }
 
+    const container = canvasContainerRef.current;
+    const containerStyles = window.getComputedStyle(container);
+    const horizontalPadding =
+      Number.parseFloat(containerStyles.paddingLeft || "0") +
+      Number.parseFloat(containerStyles.paddingRight || "0");
+
     const page = await pdfDoc.getPage(currentPage);
     const viewportAtOne = page.getViewport({ scale: 1 });
-    const availableWidth = Math.max(canvasContainerRef.current.clientWidth - 24, 320);
+    const availableWidth = Math.max(container.clientWidth - horizontalPadding, 1);
     const fittedZoom = clampZoom(availableWidth / viewportAtOne.width, MIN_ZOOM, MAX_ZOOM);
     setZoom(fittedZoom);
   }, [currentPage, pdfDoc]);
@@ -273,9 +258,8 @@ export function usePdfDocument({ storageService }: UsePdfDocumentOptions): PdfDo
       canvasRef,
       canvasContainerRef,
       pageStageRef,
-      fileInputRef,
       pdfDoc,
-      recordMeta,
+      documentMeta,
       loadStatus,
       errorMessage,
       currentPage,
@@ -284,8 +268,6 @@ export function usePdfDocument({ storageService }: UsePdfDocumentOptions): PdfDo
       pageWidth,
       pageHeight,
       hasPdf: Boolean(pdfDoc),
-      handleFilePick,
-      handleFileChange,
       movePage,
       handlePageInput,
       handleZoomIn,
@@ -295,9 +277,8 @@ export function usePdfDocument({ storageService }: UsePdfDocumentOptions): PdfDo
     }),
     [
       currentPage,
+      documentMeta,
       errorMessage,
-      handleFileChange,
-      handleFilePick,
       handleFitToWidth,
       handlePageInput,
       handleZoomIn,
@@ -306,7 +287,6 @@ export function usePdfDocument({ storageService }: UsePdfDocumentOptions): PdfDo
       pageHeight,
       pageWidth,
       pdfDoc,
-      recordMeta,
       totalPages,
       zoom
     ]

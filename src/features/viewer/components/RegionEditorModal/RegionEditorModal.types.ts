@@ -3,8 +3,15 @@ import type { OverlayEntitySpan, OverlayRegion } from "../../../../types/overlay
 import type { SpanEditorDraft, TextDirection } from "../../hooks/useRegionEditor";
 import type { PendingSelectionRange, TextSegment } from "../../utils/textEntities";
 
+export interface RegionEditorSnippet {
+  imageUrl: string | null;
+  width: number | null;
+  height: number | null;
+}
+
 export interface RegionEditorModalProps {
   activeRegion: OverlayRegion | null;
+  snippet: RegionEditorSnippet | null;
   dialogDraftLabel: string;
   dialogDraftText: string;
   dialogTextDirection: TextDirection;
@@ -18,6 +25,10 @@ export interface RegionEditorModalProps {
   normalizedDraftEntities: OverlayEntitySpan[];
   anonymizationEntityLabels: readonly string[];
   canAnonymizeSelection: boolean;
+  hasPreviousRegion: boolean;
+  hasNextRegion: boolean;
+  currentRegionOrder: number | null;
+  totalRegionsOnPage: number;
   dialogTextareaRef: RefObject<HTMLTextAreaElement>;
   dialogPreviewRef: RefObject<HTMLDivElement>;
   buildEntityPalette: (entity: string) => { background: string; text: string; border: string };
@@ -26,6 +37,8 @@ export interface RegionEditorModalProps {
   onLabelChange: (nextLabel: string) => void;
   onToggleDirection: () => void;
   onAnonymize: () => void;
+  onGoPreviousRegion: () => void;
+  onGoNextRegion: () => void;
   onPendingEntityChange: (nextEntity: string) => void;
   onApplyPickerEntity: () => void;
   onCancelPicker: () => void;

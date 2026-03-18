@@ -1,17 +1,12 @@
 import type { JsonGenerationResult } from "./json";
 import type { OverlayDocument, OverlayParseResult } from "./overlay";
-import type { PersistedViewerState, StoredPdfRecord } from "./pdf";
+import type { GetFileRequest, GetFileResponse } from "./pdfRetrieval";
 
 /**
- * Storage contract used by the viewer tab.
+ * Backend-facing PDF retrieval contract.
  */
-export interface StorageService {
-  loadPdfRecord(): Promise<StoredPdfRecord | null>;
-  savePdfRecord(record: StoredPdfRecord): Promise<void>;
-  replacePdf(file: File, initialState: PersistedViewerState): Promise<StoredPdfRecord>;
-  loadViewerState(): Promise<PersistedViewerState | null>;
-  saveViewerState(state: PersistedViewerState): Promise<void>;
-  clearPdfRecord(): Promise<void>;
+export interface PdfRetrievalService {
+  getFile(request: GetFileRequest, options?: { signal?: AbortSignal }): Promise<GetFileResponse>;
 }
 
 /**

@@ -2,8 +2,28 @@ import type { AppMeta } from "./types/appMeta";
 
 export const APP_META: AppMeta = {
   name: "Anonymizer",
-  version: "0.5.0",
+  version: "0.6.1",
   releaseNotes: [
+    {
+      version: "0.6.1",
+      date: "2026-03-18",
+      highlights: [
+        "Made the Edit Region dialog viewport-aware: body now scrolls safely so metadata and bottom actions remain reachable on smaller heights.",
+        "Added region-context snippet protections (blocked context menu/drag save path), plus explicit zoom controls and reset.",
+        "Added page-local bbox navigation (Previous/Next) in region edit mode, ordered by current page overlay sequence.",
+        "Fixed anonymization UX by making the action always clickable (with selection validation feedback) and improved LTR/RTL + Anonymize hover clipping.",
+        "Fixed anonymized-span popover anchoring so it opens from the selected highlighted span using stable viewport positioning."
+      ]
+    },
+    {
+      version: "0.6.0",
+      date: "2026-03-18",
+      highlights: [
+        "Replaced local PDF upload/persistence flow with secure-simulated backend retrieval using `GET api/getfile?id=...` and strict ID validation.",
+        "Added a dedicated PDF retrieval domain (`features/pdf`) with API abstraction, defensive response guards, and future-ready error states (401/403/404/500/malformed/invalid payload).",
+        "Removed IndexedDB viewer persistence and startup auto-reopen behavior so PDFs load only through explicit retrieval requests."
+      ]
+    },
     {
       version: "0.5.0",
       date: "2026-03-18",
@@ -269,4 +289,7 @@ export const APP_META: AppMeta = {
     }
   ]
 };
+
+
+
 

@@ -1,4 +1,4 @@
-import type { ChangeEventHandler, RefObject } from "react";
+import type { PdfRetrievalStatus } from "../../../pdf/hooks/usePdfRetrieval";
 
 export interface ViewerToolbarProps {
   hasPdf: boolean;
@@ -12,11 +12,16 @@ export interface ViewerToolbarProps {
   showOverlayCount: boolean;
   saveIndicatorText: string;
   isSaving: boolean;
-  fileInputRef: RefObject<HTMLInputElement>;
-  onFilePick: () => void;
-  onFileChange: ChangeEventHandler<HTMLInputElement>;
+  retrievalInputValue: string;
+  retrievalStatus: PdfRetrievalStatus;
+  retrievalStatusText: string;
+  canRetryRetrieval: boolean;
+  onRetrievalInputChange: (value: string) => void;
+  onRetrieveDocument: () => void;
+  onResetRetrieval: () => void;
+  onRetryRetrieval: () => void;
   onMovePage: (direction: -1 | 1) => void;
-  onPageInput: ChangeEventHandler<HTMLInputElement>;
+  onPageInput: (nextPage: number) => void;
   onToggleCreateMode: () => void;
   onZoomOut: () => void;
   onZoomIn: () => void;

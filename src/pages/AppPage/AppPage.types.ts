@@ -1,8 +1,12 @@
-import type { AnnotationService, JsonService, StorageService } from "../../types/services";
+import type {
+  AnnotationService,
+  JsonService,
+  PdfRetrievalService
+} from "../../types/services";
 
 export interface AppPageProps {
   services?: {
-    storageService?: StorageService;
+    pdfRetrievalService?: PdfRetrievalService;
     jsonService?: JsonService;
     annotationService?: AnnotationService;
   };

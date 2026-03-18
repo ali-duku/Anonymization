@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import styles from "./SpanEditorPopover.module.css";
 import type { SpanEditorPopoverProps } from "./SpanEditorPopover.types";
 
@@ -11,7 +11,23 @@ function SpanEditorPopoverComponent({
   onRemove,
   onCancel
 }: SpanEditorPopoverProps) {
-  if (!spanEditor) {
+  const clampedPosition = useMemo(() => {
+    if (!spanEditor) {
+      return null;
+    }
+
+    const viewportWidth = typeof window !== "undefined" ? window.innerWidth : 1280;
+    const viewportHeight = typeof window !== "undefined" ? window.innerHeight : 720;
+    const estimatedWidth = 360;
+    const estimatedHeight = 170;
+
+    const left = Math.max(8, Math.min(spanEditor.anchorX, viewportWidth - estimatedWidth - 8));
+    const top = Math.max(8, Math.min(spanEditor.anchorY, viewportHeight - estimatedHeight - 8));
+
+    return { left, top };
+  }, [spanEditor]);
+
+  if (!spanEditor || !clampedPosition) {
     return null;
   }
 
@@ -19,8 +35,8 @@ function SpanEditorPopoverComponent({
     <div
       className={styles.spanEditor}
       style={{
-        left: `${Math.max(8, spanEditor.anchorX)}px`,
-        top: `${Math.max(8, spanEditor.anchorY)}px`
+        left: `${clampedPosition.left}px`,
+        top: `${clampedPosition.top}px`
       }}
     >
       <h3>Edit Anonymized Span</h3>

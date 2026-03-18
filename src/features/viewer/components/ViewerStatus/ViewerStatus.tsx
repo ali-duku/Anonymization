@@ -2,16 +2,13 @@ import { memo } from "react";
 import styles from "./ViewerStatus.module.css";
 import type { ViewerStatusProps } from "./ViewerStatus.types";
 
-function ViewerStatusComponent({ hasPdf, loadStatus, statusText, onFilePick }: ViewerStatusProps) {
+function ViewerStatusComponent({ hasPdf, loadStatus, statusText }: ViewerStatusProps) {
   return (
     <>
       {!hasPdf && loadStatus !== "loading" && (
         <div className={styles.emptyView}>
-          <h3>No PDF uploaded yet</h3>
-          <p>Upload one PDF to start. This tool restores only your most recently uploaded file.</p>
-          <button type="button" className={styles.buttonPrimary} onClick={onFilePick}>
-            Upload PDF
-          </button>
+          <h3>No PDF loaded</h3>
+          <p>Enter a file ID in the toolbar to load a document.</p>
         </div>
       )}
 

@@ -19,7 +19,7 @@ import {
 } from "../../utils/history";
 import { annotationService } from "../../services/annotationService";
 import { jsonService } from "../../services/jsonService";
-import { storageService } from "../../services/indexedDbStorageService";
+import { pdfRetrievalService } from "../../features/pdf/services/pdfRetrievalService";
 import { Header } from "../../components/general/Header/Header";
 import type { AppTab } from "../../components/general/TabNav/TabNav.types";
 import type {
@@ -35,9 +35,9 @@ const LazySetupTab = lazy(async () => {
   return { default: module.SetupTab };
 });
 
-const LazyPdfViewerTab = lazy(async () => {
-  const module = await import("../../features/viewer/components/PdfViewerTab/PdfViewerTab");
-  return { default: module.PdfViewerTab };
+const LazyPdfWorkspaceTab = lazy(async () => {
+  const module = await import("../../features/pdf/components/PdfWorkspaceTab/PdfWorkspaceTab");
+  return { default: module.PdfWorkspaceTab };
 });
 
 function isEditableKeyboardTarget(target: EventTarget | null): boolean {
@@ -66,9 +66,9 @@ export function AppPage({ services }: AppPageProps) {
     })
   );
 
-  const resolvedStorageService = useMemo(
-    () => services?.storageService ?? storageService,
-    [services?.storageService]
+  const resolvedPdfRetrievalService = useMemo(
+    () => services?.pdfRetrievalService ?? pdfRetrievalService,
+    [services?.pdfRetrievalService]
   );
   const resolvedJsonService = useMemo(
     () => services?.jsonService ?? jsonService,
@@ -163,6 +163,14 @@ export function AppPage({ services }: AppPageProps) {
   const handleClearOverlaySession = useCallback(() => {
     commitOverlaySession(null, "setup-clear-overlays");
   }, [commitOverlaySession]);
+
+  const handleResetOverlaySessionForDocumentSwitch = useCallback(() => {
+    setOverlayHistory(
+      createHistoryState<OverlayEditSession | null>(null, {
+        meta: { action: "viewer-document-switch-reset" }
+      })
+    );
+  }, []);
 
   const handleOverlayDocumentSaved = useCallback(
     (nextDocument: OverlayDocument) => {
@@ -305,12 +313,13 @@ export function AppPage({ services }: AppPageProps) {
           aria-hidden={activeTab !== "viewer"}
         >
           <Suspense fallback={null}>
-            <LazyPdfViewerTab
-              storageService={resolvedStorageService}
+            <LazyPdfWorkspaceTab
+              pdfRetrievalService={resolvedPdfRetrievalService}
               overlayDocument={overlaySession?.document ?? null}
               overlaySaveState={overlaySession?.saveState ?? null}
               onOverlayEditStarted={handleOverlayEditStarted}
               onOverlayDocumentSaved={handleOverlayDocumentSaved}
+              onClearOverlaySessionForDocumentSwitch={handleResetOverlaySessionForDocumentSwitch}
             />
           </Suspense>
         </section>

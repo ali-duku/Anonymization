@@ -14,9 +14,14 @@ function ViewerToolbarComponent({
   showOverlayCount,
   saveIndicatorText,
   isSaving,
-  fileInputRef,
-  onFilePick,
-  onFileChange,
+  retrievalInputValue,
+  retrievalStatus,
+  retrievalStatusText,
+  canRetryRetrieval,
+  onRetrievalInputChange,
+  onRetrieveDocument,
+  onResetRetrieval,
+  onRetryRetrieval,
   onMovePage,
   onPageInput,
   onToggleCreateMode,
@@ -28,16 +33,39 @@ function ViewerToolbarComponent({
     <header className={styles.viewerTopline}>
       <h2>Viewer</h2>
       <div className={styles.viewerToolbar}>
-        <button type="button" className={styles.buttonPrimary} onClick={onFilePick}>
-          {hasPdf ? "Replace PDF" : "Upload PDF"}
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="application/pdf,.pdf"
-          onChange={onFileChange}
-          className={styles.hiddenInput}
-        />
+        <form
+          className={styles.toolbarGroup}
+          onSubmit={(event) => {
+            event.preventDefault();
+            onRetrieveDocument();
+          }}
+        >
+          <label className={styles.compactField}>
+            ID
+            <input
+              className={styles.retrievalInput}
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              spellCheck={false}
+              placeholder="123456"
+              value={retrievalInputValue}
+              onChange={(event) => onRetrievalInputChange(event.currentTarget.value)}
+              disabled={retrievalStatus === "loading"}
+            />
+          </label>
+          <button type="submit" className={styles.buttonPrimary} disabled={retrievalStatus === "loading"}>
+            {retrievalStatus === "loading" ? "..." : "Retrieve"}
+          </button>
+          <button type="button" className={styles.buttonSecondary} onClick={onResetRetrieval}>
+            Reset
+          </button>
+          {canRetryRetrieval && retrievalStatus === "error" && (
+            <button type="button" className={styles.buttonSecondary} onClick={onRetryRetrieval}>
+              Retry
+            </button>
+          )}
+        </form>
 
         <div className={styles.toolbarGroup}>
           <button type="button" className={styles.buttonSecondary} onClick={() => onMovePage(-1)} disabled={!hasPdf}>
@@ -46,11 +74,12 @@ function ViewerToolbarComponent({
           <label className={styles.compactField}>
             Page
             <input
+              className={styles.pageInput}
               type="number"
               min={1}
               max={Math.max(1, totalPages)}
               value={currentPage}
-              onChange={onPageInput}
+              onChange={(event) => onPageInput(Number(event.target.value))}
               disabled={!hasPdf}
             />
           </label>
@@ -85,6 +114,19 @@ function ViewerToolbarComponent({
         {recordSummary && <span className={styles.viewerInlineMeta}>{recordSummary}</span>}
         {showOverlayCount && (
           <span className={styles.viewerInlineMeta}>Page {currentPage}: {overlayCount} overlays</span>
+        )}
+        {retrievalStatusText && (
+          <span
+            className={`${styles.viewerInlineMeta} ${
+              retrievalStatus === "error"
+                ? styles.viewerInlineMetaError
+                : retrievalStatus === "success"
+                  ? styles.viewerInlineMetaSuccess
+                  : ""
+            }`}
+          >
+            {retrievalStatusText}
+          </span>
         )}
         {saveIndicatorText && (
           <span

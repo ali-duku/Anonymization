@@ -1,12 +1,13 @@
 .panel {
   display: flex;
   flex-direction: column;
+  gap: 8px;
   min-height: 0;
-  height: 100%;
+  flex: 1;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: linear-gradient(145deg, rgba(18, 29, 40, 0.92), rgba(13, 21, 30, 0.95));
   box-shadow: none;
   padding: 12px;
-  overflow: auto;
+  overflow: hidden;
 }

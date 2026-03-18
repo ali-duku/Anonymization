@@ -21,6 +21,11 @@ function ViewerCanvasStageComponent({
     <div
       ref={canvasContainerRef}
       className={`${styles.canvasShell} ${hasPdf ? styles.canvasShellActive : ""}`}
+      onContextMenu={(event) => {
+        if (hasPdf) {
+          event.preventDefault();
+        }
+      }}
     >
       <div
         ref={pageStageRef}
@@ -34,7 +39,7 @@ function ViewerCanvasStageComponent({
             : undefined
         }
       >
-        <canvas ref={canvasRef} className={styles.pdfCanvas} />
+        {hasPdf && <canvas ref={canvasRef} className={styles.pdfCanvas} />}
 
         {hasPdf && (visiblePageOverlays.length > 0 || isCreateMode) && (
           <OverlayLayer

@@ -1,8 +1,17 @@
 import type { OverlayDocument, OverlaySaveState } from "../../../../types/overlay";
-import type { StorageService } from "../../../../types/services";
+import type { RetrievedPdfDocument } from "../../../../types/pdfRetrieval";
+import type { PdfRetrievalStatus } from "../../../pdf/hooks/usePdfRetrieval";
 
 export interface PdfViewerTabProps {
-  storageService: StorageService;
+  retrievedPdfDocument: RetrievedPdfDocument | null;
+  retrievalInputValue: string;
+  retrievalStatus: PdfRetrievalStatus;
+  retrievalErrorMessage: string | null;
+  canRetryRetrieval: boolean;
+  onRetrievalInputChange: (value: string) => void;
+  onRetrieveDocument: () => void;
+  onResetRetrieval: () => void;
+  onRetryRetrieval: () => void;
   overlayDocument?: OverlayDocument | null;
   overlaySaveState?: OverlaySaveState | null;
   onOverlayEditStarted?: () => void;

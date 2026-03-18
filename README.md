@@ -11,10 +11,10 @@ Every functional/UI update must include both:
 
 ## Latest Update
 
-- **v0.5.0 (2026-03-18)**
-  - Refactored the frontend to a feature-first architecture with strict per-component foldering (`tsx` + `.types.ts` + `.module.css`).
-  - Split the Viewer and Setup domains into focused subcomponents/hooks/utilities while preserving behavior.
-  - Modularized annotation parse/generate internals into dedicated parsing, matching, patching, and JSON error helper modules.
+- **v0.6.1 (2026-03-18)**
+  - Made the Edit Region dialog viewport-aware so metadata and action buttons are always reachable.
+  - Added region-context snippet zoom controls, plus blocked context-menu/drag-save behavior on snippet images.
+  - Added previous/next bbox navigation for the current page, fixed span-popover anchoring to selected preview spans, and restored reliable anonymize action behavior.
 
 ## Core Features
 
@@ -22,10 +22,12 @@ Every functional/UI update must include both:
 - Main `Viewer` tab for PDF rendering, overlay interaction, and region editing.
 - `Setup` tab for JSON input, generation, copy, and loading overlays into Viewer.
 - Viewer supports:
-  - PDF upload/replace and session restore.
+  - Secure retrieval by ID through simulated backend contract (`api/getfile?id=<id>`).
   - Page navigation, zoom, and fit-width.
   - Overlay drag/resize/create.
   - Region dialog editing (label/text/entities), span anonymization, and delete.
+  - Current-page bbox Previous/Next navigation while editing.
+  - Region snippet zoom controls with right-click/drag-save prevention.
 - Setup supports:
   - Uncontrolled input/output textareas for large JSON payloads.
   - Pretty-printed generation output.
@@ -79,8 +81,9 @@ npm run build
 - `src/components/general`: reusable shell UI (`Header`, `TabNav`, `WhatsNewModal`).
 - `src/features/setup`: Setup domain components/hooks/utils.
 - `src/features/viewer`: Viewer domain components/hooks/utils/constants.
+- `src/features/pdf`: secure retrieval UI/hooks/services/utils for backend-driven PDF loading.
 - `src/constants`: shared static catalogs and label constants.
-- `src/services`: API/storage/domain services.
+- `src/services`: shared API/domain services (`annotation`, `json`).
 - `src/types`: shared contracts.
 - `src/utils`: shared pure utilities.
 - `docs/ARCHITECTURE.md`: module boundaries and data flow.

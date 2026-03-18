@@ -7,6 +7,15 @@
   - `package.json`
   - `src/appMeta.ts` (`APP_META.version`)
 
+## Current Baseline
+
+- Latest shipped version: `0.6.1`.
+- Latest viewer baseline includes:
+  - viewport-aware region editor scrolling,
+  - snippet zoom + save-prevention UX controls,
+  - current-page bbox previous/next navigation,
+  - viewport-anchored span editor popover.
+
 ## What's New Updates
 
 Release notes are managed in `src/appMeta.ts`:
@@ -30,7 +39,7 @@ Release notes are managed in `src/appMeta.ts`:
   - `ComponentName.types.ts`
   - `ComponentName.module.css`
 - Shared shell UI belongs in `src/components/general`.
-- Feature UI stays in its domain (`src/features/setup`, `src/features/viewer`).
+- Feature UI stays in its domain (`src/features/setup`, `src/features/pdf`, `src/features/viewer`).
 - Hooks go in feature `hooks/` unless truly cross-feature.
 - Services contain orchestration/data-access only.
 - Utilities remain pure and side-effect free.
@@ -38,9 +47,10 @@ Release notes are managed in `src/appMeta.ts`:
 
 ## Service Boundaries
 
-- Keep `AnnotationService`, `JsonService`, and `StorageService` contracts stable in `src/types/services.ts`.
+- Keep `AnnotationService`, `JsonService`, and `PdfRetrievalService` contracts stable in `src/types/services.ts`.
 - `src/services/annotationService.ts` should remain an orchestrator.
 - Parsing/matching/patching/error helper logic belongs in `src/services/annotation/*`.
+- PDF retrieval transport and backend simulation logic stays in `src/features/pdf/services/*`.
 
 ## Build + Deploy Checklist
 

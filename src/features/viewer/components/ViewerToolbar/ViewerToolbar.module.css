@@ -3,6 +3,7 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 8px;
+  min-width: 0;
 }
 
 .viewerTopline h2 {
@@ -61,12 +62,19 @@
 }
 
 .compactField input {
-  width: 72px;
   border: 1px solid var(--line);
   background: #0a1219;
   color: var(--text);
   border-radius: 8px;
   padding: 5px 8px;
+}
+
+.pageInput {
+  width: 72px;
+}
+
+.retrievalInput {
+  width: 132px;
 }
 
 .totalPages,
@@ -117,11 +125,12 @@
   transform: none;
 }
 
-.hiddenInput {
-  position: absolute;
-  left: -9999px;
-  width: 1px;
-  height: 1px;
+.viewerInlineMetaError {
+  color: var(--error);
+}
+
+.viewerInlineMetaSuccess {
+  color: var(--success);
 }
 
 @media (max-width: 720px) {

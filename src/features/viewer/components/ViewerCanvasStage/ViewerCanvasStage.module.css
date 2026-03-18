@@ -1,11 +1,13 @@
 .canvasShell {
   flex: 1;
   min-height: 0;
+  min-width: 0;
   border: 1px solid var(--line);
   border-radius: 10px;
   background: #05090e;
   padding: 12px;
   overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .canvasShellActive {
@@ -15,8 +17,10 @@
 .pageStage {
   position: relative;
   margin: 0 auto;
+  max-width: 100%;
 }
 
 .pdfCanvas {
   display: block;
+  max-width: 100%;
 }
