@@ -1,0 +1,22 @@
+.canvasShell {
+  flex: 1;
+  min-height: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #05090e;
+  padding: 12px;
+  overflow: auto;
+}
+
+.canvasShellActive {
+  background: #05090e;
+}
+
+.pageStage {
+  position: relative;
+  margin: 0 auto;
+}
+
+.pdfCanvas {
+  display: block;
+}

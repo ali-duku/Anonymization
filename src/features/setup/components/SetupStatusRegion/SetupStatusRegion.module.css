@@ -1,0 +1,20 @@
+.statusRegion {
+  min-height: 24px;
+}
+
+.statusLine {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.statusLineSuccess {
+  color: var(--success);
+}
+
+.statusLineError {
+  color: var(--error);
+}
+
+.statusLinePlaceholder {
+  color: transparent;
+}

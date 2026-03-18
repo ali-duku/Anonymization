@@ -1,0 +1,44 @@
+import type { ChangeEventHandler, KeyboardEvent as ReactKeyboardEvent, RefObject } from "react";
+import type { OverlayEntitySpan, OverlayRegion } from "../../../../types/overlay";
+import type { SpanEditorDraft, TextDirection } from "../../hooks/useRegionEditor";
+import type { PendingSelectionRange, TextSegment } from "../../utils/textEntities";
+
+export interface RegionEditorModalProps {
+  activeRegion: OverlayRegion | null;
+  dialogDraftLabel: string;
+  dialogDraftText: string;
+  dialogTextDirection: TextDirection;
+  dialogLabelOptions: readonly string[];
+  pendingSelection: PendingSelectionRange | null;
+  pendingEntity: string;
+  pickerSelection: PendingSelectionRange | null;
+  spanEditor: SpanEditorDraft | null;
+  entityWarning: string | null;
+  textSegments: TextSegment[];
+  normalizedDraftEntities: OverlayEntitySpan[];
+  anonymizationEntityLabels: readonly string[];
+  canAnonymizeSelection: boolean;
+  dialogTextareaRef: RefObject<HTMLTextAreaElement>;
+  dialogPreviewRef: RefObject<HTMLDivElement>;
+  buildEntityPalette: (entity: string) => { background: string; text: string; border: string };
+  coerceEntityLabel: (value: unknown) => string;
+  onClose: () => void;
+  onLabelChange: (nextLabel: string) => void;
+  onToggleDirection: () => void;
+  onAnonymize: () => void;
+  onPendingEntityChange: (nextEntity: string) => void;
+  onApplyPickerEntity: () => void;
+  onCancelPicker: () => void;
+  onEditorInput: ChangeEventHandler<HTMLTextAreaElement>;
+  onEditorSelect: () => void;
+  onEditorMouseUp: () => void;
+  onEditorKeyUp: (event: ReactKeyboardEvent<HTMLTextAreaElement>) => void;
+  onOpenSpanEditor: (index: number, anchorX: number, anchorY: number) => void;
+  onSpanEditorEntityChange: (nextEntity: string) => void;
+  onApplySpanEditor: () => void;
+  onRemoveSpan: () => void;
+  onCancelSpanEditor: () => void;
+  onSave: () => void;
+  onReset: () => void;
+  onDelete: () => void;
+}

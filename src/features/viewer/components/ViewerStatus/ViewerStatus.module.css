@@ -1,0 +1,43 @@
+.emptyView {
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  padding: 22px;
+  text-align: center;
+  margin-bottom: 14px;
+  background: rgba(6, 13, 18, 0.55);
+}
+
+.emptyView h3 {
+  margin: 0 0 6px;
+}
+
+.emptyView p {
+  margin: 0 0 12px;
+  color: var(--muted);
+}
+
+.statusLine {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.statusLineError {
+  color: var(--error);
+}
+
+.buttonPrimary {
+  font: inherit;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: var(--bg);
+  background: linear-gradient(135deg, var(--accent), #67f2df);
+  padding: 7px 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 140ms ease, filter 140ms ease;
+}
+
+.buttonPrimary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}

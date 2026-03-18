@@ -1,0 +1,13 @@
+.overlayLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.overlayCreateSurface {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+  cursor: crosshair;
+  z-index: 5;
+}

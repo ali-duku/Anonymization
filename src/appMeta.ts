@@ -2,8 +2,17 @@ import type { AppMeta } from "./types/appMeta";
 
 export const APP_META: AppMeta = {
   name: "Anonymizer",
-  version: "0.4.22",
+  version: "0.5.0",
   releaseNotes: [
+    {
+      version: "0.5.0",
+      date: "2026-03-18",
+      highlights: [
+        "Refactored the frontend to a feature-first architecture (`pages`, `components/general`, `features/setup`, `features/viewer`, `constants`, `utils`) with strict per-component folder structure.",
+        "Split previously oversized Viewer and Setup modules into focused hooks, reusable subcomponents, and CSS Modules while preserving existing behavior.",
+        "Modularized annotation generation/parsing internals into dedicated parsing, matching, patching, and JSON-error helpers with the same public service contract."
+      ]
+    },
     {
       version: "0.4.22",
       date: "2026-03-17",
@@ -27,8 +36,7 @@ export const APP_META: AppMeta = {
       date: "2026-03-17",
       highlights: [
         "Unified anonymization entity canonicalization into a shared module consumed by Viewer and annotation generation/parsing flows.",
-        "Hardened span picker/editor state transitions with canonical entity writes and stricter stale-span render guards to prevent blank-screen paths.",
-        "Added regression tests for span-entity edits, malformed/non-canonical entity payload coercion, and shared normalization behavior.",
+        "Hardened span picker/editor state transitions with canonical entity writes and stricter stale-span render guards to prevent blank-screen paths."
       ]
     },
     {

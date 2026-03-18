@@ -1,0 +1,77 @@
+.spanEditor {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(8, 18, 26, 0.65);
+  display: grid;
+  gap: 8px;
+  position: absolute;
+  z-index: 30;
+  min-width: 280px;
+  max-width: min(360px, calc(100% - 16px));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.spanEditor h3 {
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.textLabel {
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #08121a;
+  color: var(--text);
+  padding: 9px 10px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.84rem;
+}
+
+.actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.buttonPrimary,
+.buttonSecondary,
+.buttonDanger {
+  font: inherit;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 7px 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 140ms ease, filter 140ms ease;
+}
+
+.buttonPrimary {
+  color: var(--bg);
+  background: linear-gradient(135deg, var(--accent), #67f2df);
+}
+
+.buttonSecondary {
+  color: var(--text);
+  background: rgba(20, 32, 45, 0.92);
+  border-color: var(--line);
+}
+
+.buttonDanger {
+  color: #fff6f6;
+  background: linear-gradient(180deg, #d54a4e, #b61f25);
+  border-color: #7f181d;
+}
+
+.buttonPrimary:hover,
+.buttonSecondary:hover,
+.buttonDanger:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}

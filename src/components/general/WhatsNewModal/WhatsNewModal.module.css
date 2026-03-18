@@ -1,0 +1,139 @@
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(2px);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  z-index: 20;
+}
+
+.modalCard {
+  width: min(820px, 100%);
+  max-height: min(86vh, 900px);
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: linear-gradient(145deg, #111d29, #0d151f);
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.modalHeader h2 {
+  margin: 0;
+}
+
+.dialogCloseButton {
+  min-width: 34px;
+  width: 34px;
+  min-height: 34px;
+  height: 34px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  flex-shrink: 0;
+  color: #fff6f6;
+  background: linear-gradient(180deg, #d54a4e, #b61f25);
+  border-color: #7f181d;
+  border-radius: 8px;
+  border-style: solid;
+  border-width: 1px;
+  cursor: pointer;
+}
+
+.dialogCloseButton:hover {
+  background: linear-gradient(180deg, #e66b72, #c22f36);
+  border-color: #9d252b;
+}
+
+.dialogCloseButton:active {
+  background: linear-gradient(180deg, #ad171f, #8e1017);
+}
+
+.dialogCloseGlyph {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+}
+
+.dialogCloseGlyph::before,
+.dialogCloseGlyph::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  transform-origin: center;
+}
+
+.dialogCloseGlyph::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.dialogCloseGlyph::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.releaseList {
+  display: grid;
+  gap: 10px;
+}
+
+.releaseCard {
+  border: 1px solid var(--line);
+  background: rgba(7, 11, 16, 0.78);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.releaseHeadline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.versionPill,
+.currentPill {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.versionPill {
+  background: rgba(45, 212, 191, 0.14);
+  color: var(--accent);
+}
+
+.currentPill {
+  background: rgba(255, 145, 77, 0.15);
+  color: var(--accent-2);
+}
+
+.releaseDate {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.releaseHighlights {
+  margin: 0;
+  padding-left: 18px;
+  color: #d9e5f2;
+}

@@ -1,0 +1,316 @@
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(2px);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  z-index: 20;
+}
+
+.modalCard {
+  width: min(700px, 100%);
+  max-height: min(86vh, 900px);
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: linear-gradient(145deg, #111d29, #0d151f);
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.modalHeader h2 {
+  margin: 0;
+}
+
+.dialogCloseButton {
+  min-width: 34px;
+  width: 34px;
+  min-height: 34px;
+  height: 34px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  flex-shrink: 0;
+  color: #fff6f6;
+  background: linear-gradient(180deg, #d54a4e, #b61f25);
+  border-color: #7f181d;
+  border-radius: 8px;
+  border-style: solid;
+  border-width: 1px;
+  cursor: pointer;
+}
+
+.dialogCloseButton:hover {
+  background: linear-gradient(180deg, #e66b72, #c22f36);
+  border-color: #9d252b;
+}
+
+.dialogCloseGlyph {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+}
+
+.dialogCloseGlyph::before,
+.dialogCloseGlyph::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  transform-origin: center;
+}
+
+.dialogCloseGlyph::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.dialogCloseGlyph::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.dialogBody {
+  display: grid;
+  gap: 10px;
+  position: relative;
+}
+
+.textLabel {
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #08121a;
+  color: var(--text);
+  padding: 9px 10px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.84rem;
+}
+
+.textHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.textControls {
+  display: inline-flex;
+  align-items: flex-end;
+  position: relative;
+  gap: 8px;
+}
+
+.textControls > button {
+  min-height: 38px;
+  padding: 7px 11px;
+}
+
+.directionToggle {
+  min-width: 118px;
+}
+
+.editorGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+.editorColumn {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.previewLabel {
+  font-size: 0.88rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.textInput,
+.textPreview {
+  width: 100%;
+  min-height: 170px;
+  max-height: 320px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #08121a;
+  color: var(--text);
+  padding: 10px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.textInput {
+  resize: none;
+  outline: none;
+  margin: 0;
+}
+
+.segment {
+  white-space: pre-wrap;
+}
+
+.entitySpan {
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 0 1px;
+  cursor: pointer;
+}
+
+.entitySpan:hover {
+  filter: brightness(1.1);
+}
+
+.anonymizeButton {
+  border-color: #4f4ab7;
+  color: #eff6ff;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(255, 255, 255, 0.55) 0 1px, transparent 2px),
+    radial-gradient(circle at 70% 28%, rgba(255, 255, 255, 0.45) 0 1px, transparent 2px),
+    radial-gradient(circle at 88% 68%, rgba(255, 255, 255, 0.35) 0 1px, transparent 2px),
+    linear-gradient(145deg, #0b1028, #1a1750 55%, #2e1e67);
+  box-shadow:
+    0 0 0 1px rgba(116, 103, 255, 0.38),
+    0 6px 18px rgba(15, 10, 45, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.anonymizeButton:hover:not(:disabled) {
+  background:
+    radial-gradient(circle at 16% 26%, rgba(255, 255, 255, 0.65) 0 1px, transparent 2px),
+    radial-gradient(circle at 76% 26%, rgba(255, 255, 255, 0.5) 0 1px, transparent 2px),
+    radial-gradient(circle at 82% 72%, rgba(255, 255, 255, 0.45) 0 1px, transparent 2px),
+    linear-gradient(145deg, #101538, #251d68 55%, #3a2781);
+  filter: brightness(1.08);
+}
+
+.metadata {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: rgba(7, 12, 18, 0.72);
+}
+
+.metadata summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.85rem;
+  user-select: none;
+}
+
+.metadata dl {
+  margin: 8px 0 0;
+  display: grid;
+  gap: 6px;
+}
+
+.metadata dl div {
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  gap: 10px;
+}
+
+.metadata dt {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.metadata dd {
+  margin: 0;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.86rem;
+}
+
+.dialogActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.statusLineError {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--error);
+}
+
+.buttonPrimary,
+.buttonSecondary,
+.buttonDanger,
+.buttonGhost {
+  font: inherit;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 7px 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 140ms ease, filter 140ms ease;
+}
+
+.buttonPrimary {
+  color: var(--bg);
+  background: linear-gradient(135deg, var(--accent), #67f2df);
+}
+
+.buttonSecondary,
+.buttonGhost {
+  color: var(--text);
+  background: rgba(20, 32, 45, 0.92);
+  border-color: var(--line);
+}
+
+.buttonDanger {
+  color: #fff6f6;
+  background: linear-gradient(180deg, #d54a4e, #b61f25);
+  border-color: #7f181d;
+}
+
+.buttonPrimary:hover,
+.buttonSecondary:hover,
+.buttonDanger:hover,
+.buttonGhost:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}
+
+.buttonPrimary:disabled,
+.buttonSecondary:disabled,
+.buttonDanger:disabled,
+.buttonGhost:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 1024px) {
+  .editorGrid {
+    grid-template-columns: 1fr;
+  }
+}

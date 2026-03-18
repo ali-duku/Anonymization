@@ -1,0 +1,80 @@
+.appHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  background: rgba(13, 21, 31, 0.95);
+  border-bottom: 1px solid var(--line);
+  padding: 10px 14px;
+}
+
+.identityBlock h1 {
+  margin: 0;
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  letter-spacing: 0.01em;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.headerHistoryActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.versionBadge {
+  border: 1px solid rgba(45, 212, 191, 0.45);
+  color: var(--accent);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.actionButton {
+  font: inherit;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: var(--bg);
+  background: linear-gradient(135deg, var(--accent), #67f2df);
+  padding: 7px 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 140ms ease, filter 140ms ease;
+}
+
+.actionButton:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}
+
+.actionButtonSecondary {
+  color: var(--text);
+  background: rgba(20, 32, 45, 0.92);
+  border-color: var(--line);
+}
+
+.actionButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 720px) {
+  .appHeader {
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 10px;
+  }
+
+  .headerActions {
+    margin-left: auto;
+  }
+}

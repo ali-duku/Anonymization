@@ -1,0 +1,84 @@
+.overlayBox {
+  position: absolute;
+  border: 1px solid;
+  border-radius: 5px;
+  pointer-events: auto;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.overlayBoxEditing {
+  box-shadow: 0 0 0 1px rgba(5, 10, 15, 0.8), 0 0 0 2px rgba(255, 255, 255, 0.28);
+}
+
+.overlayDragSurface {
+  position: absolute;
+  inset: 0;
+  cursor: move;
+  z-index: 1;
+}
+
+.overlayResizeHandle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  background: rgba(7, 17, 27, 0.92);
+  border-radius: 3px;
+  padding: 0;
+  z-index: 2;
+}
+
+.overlayResizeHandleNw {
+  top: -6px;
+  left: -6px;
+  cursor: nwse-resize;
+}
+
+.overlayResizeHandleNe {
+  top: -6px;
+  right: -6px;
+  cursor: nesw-resize;
+}
+
+.overlayResizeHandleSw {
+  bottom: -6px;
+  left: -6px;
+  cursor: nesw-resize;
+}
+
+.overlayResizeHandleSe {
+  right: -6px;
+  bottom: -6px;
+  cursor: nwse-resize;
+}
+
+.overlayResizeHandle:hover {
+  filter: brightness(1.15);
+  transform: scale(1.05);
+}
+
+.overlayEditButton {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  border: 1px solid;
+  border-radius: 7px;
+  color: #08111a;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 4px 7px;
+  cursor: pointer;
+  opacity: 0.96;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(7, 14, 22, 0.35);
+  transition: opacity 130ms ease, filter 130ms ease, transform 130ms ease;
+  z-index: 3;
+}
+
+.overlayBox:hover .overlayEditButton,
+.overlayBox:focus-within .overlayEditButton {
+  opacity: 1;
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}

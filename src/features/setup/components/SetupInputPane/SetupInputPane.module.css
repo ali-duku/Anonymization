@@ -1,0 +1,35 @@
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+}
+
+.label {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.textarea {
+  min-height: 220px;
+  height: 100%;
+  resize: vertical;
+  overflow: auto;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #08121a;
+  color: var(--text);
+  padding: 12px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 1024px) {
+  .textarea {
+    min-height: 180px;
+  }
+}

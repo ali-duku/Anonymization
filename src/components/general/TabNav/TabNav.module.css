@@ -1,0 +1,32 @@
+.tabNav {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 4px;
+  background: rgba(15, 22, 30, 0.8);
+  gap: 6px;
+  width: fit-content;
+  margin: 0;
+}
+
+.tabTrigger {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 600;
+  transition: background-color 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+.tabTriggerActive {
+  color: var(--bg);
+  background: linear-gradient(135deg, var(--accent), #50e3cd);
+}
+
+.tabTrigger:hover:not(.tabTriggerActive) {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+}

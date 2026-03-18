@@ -1,0 +1,132 @@
+.viewerTopline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.viewerTopline h2 {
+  margin: 0;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+.viewerToolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+  align-items: center;
+  min-width: 0;
+  flex: 1;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.viewerToolbar::-webkit-scrollbar {
+  height: 6px;
+}
+
+.viewerInlineMeta {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-family: "IBM Plex Mono", monospace;
+  white-space: nowrap;
+}
+
+.viewerSaveIndicatorSaving {
+  color: #f7c26b;
+}
+
+.viewerSaveIndicatorSaved {
+  color: var(--success);
+}
+
+.toolbarGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(8, 14, 20, 0.6);
+  flex: 0 0 auto;
+}
+
+.compactField {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.compactField input {
+  width: 72px;
+  border: 1px solid var(--line);
+  background: #0a1219;
+  color: var(--text);
+  border-radius: 8px;
+  padding: 5px 8px;
+}
+
+.totalPages,
+.zoomLabel {
+  font-family: "IBM Plex Mono", monospace;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.buttonPrimary,
+.buttonSecondary {
+  font: inherit;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 7px 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 140ms ease, filter 140ms ease;
+}
+
+.buttonPrimary {
+  color: var(--bg);
+  background: linear-gradient(135deg, var(--accent), #67f2df);
+}
+
+.buttonSecondary {
+  color: var(--text);
+  background: rgba(20, 32, 45, 0.92);
+  border-color: var(--line);
+}
+
+.buttonSecondaryActive {
+  color: var(--bg);
+  background: linear-gradient(135deg, var(--accent), #67f2df);
+  border-color: transparent;
+}
+
+.buttonPrimary:hover,
+.buttonSecondary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}
+
+.buttonPrimary:disabled,
+.buttonSecondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.hiddenInput {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+}
+
+@media (max-width: 720px) {
+  .viewerTopline {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
