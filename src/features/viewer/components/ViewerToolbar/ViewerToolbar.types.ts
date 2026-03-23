@@ -1,3 +1,4 @@
+import type { ChangeEventHandler, RefObject } from "react";
 import type { PdfRetrievalStatus } from "../../../pdf/hooks/usePdfRetrieval";
 
 export interface ViewerToolbarProps {
@@ -20,6 +21,11 @@ export interface ViewerToolbarProps {
   onRetrieveDocument: () => void;
   onResetRetrieval: () => void;
   onRetryRetrieval: () => void;
+  manualFileInputRef?: RefObject<HTMLInputElement>;
+  onManualFilePick?: () => void;
+  onManualFileChange?: ChangeEventHandler<HTMLInputElement>;
+  manualUploadStatusText?: string;
+  manualUploadStatusTone?: "error" | "success" | "neutral";
   onMovePage: (direction: -1 | 1) => void;
   onPageInput: (nextPage: number) => void;
   onToggleCreateMode: () => void;

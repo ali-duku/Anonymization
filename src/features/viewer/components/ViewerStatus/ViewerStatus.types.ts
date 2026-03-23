@@ -4,4 +4,5 @@ export interface ViewerStatusProps {
   hasPdf: boolean;
   loadStatus: PdfLoadStatus;
   statusText: string;
+  onManualFilePick?: () => void;
 }

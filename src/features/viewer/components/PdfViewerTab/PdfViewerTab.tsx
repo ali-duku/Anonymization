@@ -29,6 +29,11 @@ function PdfViewerTabComponent({
   onRetrieveDocument,
   onResetRetrieval,
   onRetryRetrieval,
+  manualFileInputRef,
+  onManualFilePick,
+  onManualFileChange,
+  manualUploadStatusText,
+  manualUploadStatusTone = "neutral",
   overlayDocument = null,
   overlaySaveState = null,
   onOverlayEditStarted,
@@ -174,6 +179,11 @@ function PdfViewerTabComponent({
         onRetrieveDocument={onRetrieveDocument}
         onResetRetrieval={onResetRetrieval}
         onRetryRetrieval={onRetryRetrieval}
+        manualFileInputRef={manualFileInputRef}
+        onManualFilePick={onManualFilePick}
+        onManualFileChange={onManualFileChange}
+        manualUploadStatusText={manualUploadStatusText ?? ""}
+        manualUploadStatusTone={manualUploadStatusTone}
         onMovePage={pdfState.movePage}
         onPageInput={pdfState.handlePageInput}
         onToggleCreateMode={toggleCreateMode}
@@ -188,6 +198,7 @@ function PdfViewerTabComponent({
         hasPdf={pdfState.hasPdf}
         loadStatus={pdfState.loadStatus}
         statusText={statusText}
+        onManualFilePick={onManualFilePick}
       />
 
       <ViewerCanvasStage

@@ -2,8 +2,17 @@ import type { AppMeta } from "./types/appMeta";
 
 export const APP_META: AppMeta = {
   name: "Anonymizer",
-  version: "0.6.1",
+  version: "0.6.2",
   releaseNotes: [
+    {
+      version: "0.6.2",
+      date: "2026-03-23",
+      highlights: [
+        "Added a manual PDF upload bypass as a secondary Viewer action while keeping secure ID-based retrieval (`GET api/getfile?id=...`) fully intact.",
+        "Introduced dual-source PDF loading orchestration where the last successful load wins (retrieval or manual upload) without changing viewer editing logic.",
+        "Kept manual upload session-only (no local persistence/rehydration) and preserved existing overlay save/undo/redo flow."
+      ]
+    },
     {
       version: "0.6.1",
       date: "2026-03-18",

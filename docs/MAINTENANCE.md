@@ -9,8 +9,10 @@
 
 ## Current Baseline
 
-- Latest shipped version: `0.6.1`.
+- Latest shipped version: `0.6.2`.
 - Latest viewer baseline includes:
+  - retrieval-by-ID as the primary PDF flow,
+  - session-only manual upload bypass as secondary flow,
   - viewport-aware region editor scrolling,
   - snippet zoom + save-prevention UX controls,
   - current-page bbox previous/next navigation,
@@ -51,6 +53,7 @@ Release notes are managed in `src/appMeta.ts`:
 - `src/services/annotationService.ts` should remain an orchestrator.
 - Parsing/matching/patching/error helper logic belongs in `src/services/annotation/*`.
 - PDF retrieval transport and backend simulation logic stays in `src/features/pdf/services/*`.
+- Manual upload bypass remains UI-level/session-level logic in `src/features/pdf/hooks/*` and must not introduce local persistence services.
 
 ## Build + Deploy Checklist
 

@@ -16,6 +16,23 @@
   color: var(--muted);
 }
 
+.buttonPrimary {
+  font: inherit;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 7px 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 140ms ease, filter 140ms ease;
+  color: var(--bg);
+  background: linear-gradient(135deg, var(--accent), #67f2df);
+}
+
+.buttonPrimary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}
+
 .statusLine {
   margin: 0;
   font-size: 0.9rem;

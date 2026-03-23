@@ -125,6 +125,10 @@
   transform: none;
 }
 
+.hiddenInput {
+  display: none;
+}
+
 .viewerInlineMetaError {
   color: var(--error);
 }

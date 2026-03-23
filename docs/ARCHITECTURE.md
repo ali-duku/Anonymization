@@ -15,8 +15,9 @@
   - `hooks/useSetupJsonWorkflow.ts`: Setup workflow state/actions.
   - `utils/setupText.ts`: pure text helpers.
 - `src/features/pdf`
-  - `components`: secure retrieval workspace composition (`PdfWorkspaceTab`).
+  - `components`: retrieval-first workspace composition (`PdfWorkspaceTab`) with source selection wiring.
   - `hooks/usePdfRetrieval.ts`: request lifecycle state machine (validation, abort, stale-response guard, retry/reset).
+  - `hooks/useManualPdfBypass.ts`: session-only local upload bypass state/actions and PDF validation.
   - `services`: endpoint adapter + simulated backend/bucket lookup.
   - `utils`: identifier validation and backend response/payload guards.
 - `src/features/viewer`
@@ -48,7 +49,7 @@ This pattern is applied consistently to general, setup, pdf, and viewer componen
 
 1. `AppPage` owns overlay session history (`past/present/future`) and global actions (Save/Undo/Redo/Generate trigger).
 2. `SetupTab` parses input JSON and emits overlay load payloads into App session state.
-3. `PdfWorkspaceTab` manages secure retrieval and passes retrieved documents into `PdfViewerTab`, which emits overlay edits back to App.
+3. `PdfWorkspaceTab` manages retrieval + manual bypass sources and passes the active document into `PdfViewerTab`, which emits overlay edits back to App.
 4. `annotationService` transforms between OCR snapshot JSON and normalized overlay document model.
 5. `jsonService`, `annotationService`, and `pdfRetrievalService` remain stable service boundaries.
 
@@ -65,7 +66,8 @@ This pattern is applied consistently to general, setup, pdf, and viewer componen
 - Frontend retrieval contract: `GET api/getfile?id=<safe-id>`.
 - ID input is sanitized/validated before request dispatch.
 - Backend simulation resolves only allow-listed records in a mocked company bucket mapping.
-- No local PDF persistence or startup auto-rehydration behavior.
+- Optional manual PDF upload bypass is available for session-only local loading.
+- No local PDF persistence or startup auto-rehydration behavior for either source.
 
 ## Release Metadata Contract
 

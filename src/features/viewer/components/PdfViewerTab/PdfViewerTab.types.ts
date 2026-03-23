@@ -1,3 +1,4 @@
+import type { ChangeEventHandler, RefObject } from "react";
 import type { OverlayDocument, OverlaySaveState } from "../../../../types/overlay";
 import type { RetrievedPdfDocument } from "../../../../types/pdfRetrieval";
 import type { PdfRetrievalStatus } from "../../../pdf/hooks/usePdfRetrieval";
@@ -12,6 +13,11 @@ export interface PdfViewerTabProps {
   onRetrieveDocument: () => void;
   onResetRetrieval: () => void;
   onRetryRetrieval: () => void;
+  manualFileInputRef?: RefObject<HTMLInputElement>;
+  onManualFilePick?: () => void;
+  onManualFileChange?: ChangeEventHandler<HTMLInputElement>;
+  manualUploadStatusText?: string;
+  manualUploadStatusTone?: "error" | "success" | "neutral";
   overlayDocument?: OverlayDocument | null;
   overlaySaveState?: OverlaySaveState | null;
   onOverlayEditStarted?: () => void;

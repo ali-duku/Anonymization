@@ -22,6 +22,11 @@ function ViewerToolbarComponent({
   onRetrieveDocument,
   onResetRetrieval,
   onRetryRetrieval,
+  manualFileInputRef,
+  onManualFilePick,
+  onManualFileChange,
+  manualUploadStatusText,
+  manualUploadStatusTone = "neutral",
   onMovePage,
   onPageInput,
   onToggleCreateMode,
@@ -64,6 +69,20 @@ function ViewerToolbarComponent({
             <button type="button" className={styles.buttonSecondary} onClick={onRetryRetrieval}>
               Retry
             </button>
+          )}
+          {onManualFilePick && onManualFileChange && (
+            <>
+              <button type="button" className={styles.buttonSecondary} onClick={onManualFilePick}>
+                {hasPdf ? "Replace PDF" : "Upload PDF"}
+              </button>
+              <input
+                ref={manualFileInputRef}
+                type="file"
+                accept="application/pdf,.pdf"
+                onChange={onManualFileChange}
+                className={styles.hiddenInput}
+              />
+            </>
           )}
         </form>
 
@@ -126,6 +145,19 @@ function ViewerToolbarComponent({
             }`}
           >
             {retrievalStatusText}
+          </span>
+        )}
+        {manualUploadStatusText && (
+          <span
+            className={`${styles.viewerInlineMeta} ${
+              manualUploadStatusTone === "error"
+                ? styles.viewerInlineMetaError
+                : manualUploadStatusTone === "success"
+                  ? styles.viewerInlineMetaSuccess
+                  : ""
+            }`}
+          >
+            {manualUploadStatusText}
           </span>
         )}
         {saveIndicatorText && (

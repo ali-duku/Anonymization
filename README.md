@@ -11,10 +11,10 @@ Every functional/UI update must include both:
 
 ## Latest Update
 
-- **v0.6.1 (2026-03-18)**
-  - Made the Edit Region dialog viewport-aware so metadata and action buttons are always reachable.
-  - Added region-context snippet zoom controls, plus blocked context-menu/drag-save behavior on snippet images.
-  - Added previous/next bbox navigation for the current page, fixed span-popover anchoring to selected preview spans, and restored reliable anonymize action behavior.
+- **v0.6.2 (2026-03-23)**
+  - Added a manual PDF upload bypass as a secondary Viewer action while preserving secure retrieval-by-ID flow.
+  - Added dual-source loading behavior where the latest successful load (retrieval or manual upload) becomes active.
+  - Kept manual upload session-only (no persistence/rehydration) and preserved existing overlay editing/save history behavior.
 
 ## Core Features
 
@@ -23,6 +23,7 @@ Every functional/UI update must include both:
 - `Setup` tab for JSON input, generation, copy, and loading overlays into Viewer.
 - Viewer supports:
   - Secure retrieval by ID through simulated backend contract (`api/getfile?id=<id>`).
+  - Optional manual local PDF upload bypass from the same toolbar/empty state.
   - Page navigation, zoom, and fit-width.
   - Overlay drag/resize/create.
   - Region dialog editing (label/text/entities), span anonymization, and delete.
@@ -81,7 +82,7 @@ npm run build
 - `src/components/general`: reusable shell UI (`Header`, `TabNav`, `WhatsNewModal`).
 - `src/features/setup`: Setup domain components/hooks/utils.
 - `src/features/viewer`: Viewer domain components/hooks/utils/constants.
-- `src/features/pdf`: secure retrieval UI/hooks/services/utils for backend-driven PDF loading.
+- `src/features/pdf`: retrieval-first PDF workspace plus session-only manual upload bypass, with source orchestration and backend-driven services.
 - `src/constants`: shared static catalogs and label constants.
 - `src/services`: shared API/domain services (`annotation`, `json`).
 - `src/types`: shared contracts.
