@@ -2,8 +2,17 @@ import type { AppMeta } from "./types/appMeta";
 
 export const APP_META: AppMeta = {
   name: "Anonymizer",
-  version: "0.6.3",
+  version: "0.6.4",
   releaseNotes: [
+    {
+      version: "0.6.4",
+      date: "2026-03-24",
+      highlights: [
+        "Added a draggable vertical outer-column separator in the Edit Region dialog (Region Context vs Edit Region panes).",
+        "Added keyboard-accessible pane resizing on the separator (Arrow Left/Right/Home/End with ARIA-valued separator semantics).",
+        "Region dialog outer-pane width now persists per browser tab session using sessionStorage and restores after refresh/reopen."
+      ]
+    },
     {
       version: "0.6.3",
       date: "2026-03-24",

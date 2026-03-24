@@ -11,10 +11,10 @@ Every functional/UI update must include both:
 
 ## Latest Update
 
-- **v0.6.3 (2026-03-24)**
-  - Added HTML table-aware Region Editor Preview rendering for fenced ` ```html ` table content.
-  - Kept anonymization span highlighting/editing behavior in table mode with raw-offset compatibility.
-  - Added selection guards for table mode so markup-overlapping ranges cannot be anonymized.
+- **v0.6.4 (2026-03-24)**
+  - Added a draggable outer-column separator in the Edit Region dialog (Region Context vs Edit Region panes).
+  - Added keyboard resizing for the separator (`ArrowLeft`, `ArrowRight`, `Home`, `End`) with ARIA-valued separator semantics.
+  - Region dialog right-pane width now persists per browser tab session and restores after refresh/reopen.
 
 ## Core Features
 
@@ -27,6 +27,7 @@ Every functional/UI update must include both:
   - Page navigation, zoom, and fit-width.
   - Overlay drag/resize/create.
   - Region dialog editing (label/text/entities), span anonymization, and delete.
+  - Draggable outer dialog pane separator with session-scoped width persistence.
   - Fenced HTML table preview rendering in region dialog Preview (table-only).
   - Current-page bbox Previous/Next navigation while editing.
   - Region snippet zoom controls with right-click/drag-save prevention.

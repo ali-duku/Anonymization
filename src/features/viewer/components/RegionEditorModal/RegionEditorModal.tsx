@@ -1,4 +1,5 @@
 import { memo, useEffect, useMemo, useState } from "react";
+import { useRegionDialogLayout } from "../../hooks/useRegionDialogLayout";
 import { createPortal } from "react-dom";
 import { EntityPicker } from "../EntityPicker/EntityPicker";
 import { SpanEditorPopover } from "../SpanEditorPopover/SpanEditorPopover";
@@ -60,6 +61,16 @@ function RegionEditorModalComponent({
   onDelete
 }: RegionEditorModalProps) {
   const [snippetZoom, setSnippetZoom] = useState(1);
+  const {
+    modalShellStyle,
+    rightPaneWidth,
+    isCompactLayout,
+    isDragging,
+    separatorAriaMin,
+    separatorAriaMax,
+    onSeparatorPointerDown,
+    onSeparatorKeyDown
+  } = useRegionDialogLayout();
 
   useEffect(() => {
     setSnippetZoom(1);
@@ -72,7 +83,10 @@ function RegionEditorModalComponent({
   }
   const modalContent = (
     <div className={styles.modalOverlay} role="dialog" aria-modal="true" aria-labelledby="region-editor-title">
-      <div className={styles.modalShell}>
+      <div
+        className={`${styles.modalShell} ${isDragging ? styles.modalShellDragging : ""}`}
+        style={modalShellStyle}
+      >
         <aside className={styles.snippetPane}>
           <header className={styles.snippetHeader}>
             <h2 id="region-editor-title">Region Context</h2>
@@ -168,6 +182,21 @@ function RegionEditorModalComponent({
             )}
           </div>
         </aside>
+
+        {!isCompactLayout ? (
+          <div
+            className={`${styles.paneSeparator} ${isDragging ? styles.paneSeparatorDragging : ""}`}
+            role="separator"
+            tabIndex={0}
+            aria-label="Resize region dialog columns"
+            aria-orientation="vertical"
+            aria-valuemin={separatorAriaMin}
+            aria-valuemax={separatorAriaMax}
+            aria-valuenow={rightPaneWidth}
+            onPointerDown={onSeparatorPointerDown}
+            onKeyDown={onSeparatorKeyDown}
+          />
+        ) : null}
 
         <section className={styles.modalCard}>
           <header className={styles.modalHeader}>
