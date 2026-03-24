@@ -2,8 +2,17 @@ import type { AppMeta } from "./types/appMeta";
 
 export const APP_META: AppMeta = {
   name: "Anonymizer",
-  version: "0.6.4",
+  version: "0.6.5",
   releaseNotes: [
+    {
+      version: "0.6.5",
+      date: "2026-03-24",
+      highlights: [
+        "Replaced fixed entity `<select>` controls with a shared searchable entity dropdown in both the anonymization picker and span editor.",
+        "Changed anonymization flow so pressing `Anonymize` starts with an empty entity input and requires explicit entity choice.",
+        "Hardened entity apply validation to accept only canonical catalog labels, with warning feedback for invalid/free-typed values."
+      ]
+    },
     {
       version: "0.6.4",
       date: "2026-03-24",

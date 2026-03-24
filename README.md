@@ -11,10 +11,10 @@ Every functional/UI update must include both:
 
 ## Latest Update
 
-- **v0.6.4 (2026-03-24)**
-  - Added a draggable outer-column separator in the Edit Region dialog (Region Context vs Edit Region panes).
-  - Added keyboard resizing for the separator (`ArrowLeft`, `ArrowRight`, `Home`, `End`) with ARIA-valued separator semantics.
-  - Region dialog right-pane width now persists per browser tab session and restores after refresh/reopen.
+- **v0.6.5 (2026-03-24)**
+  - Replaced fixed entity `<select>` inputs with a searchable entity dropdown field in both anonymization entity pickers.
+  - Updated anonymize flow so pressing `Anonymize` opens entity input in an empty state until a valid catalog label is selected.
+  - Added stricter entity apply validation so unknown/free-typed labels are rejected with clear warning feedback.
 
 ## Core Features
 
@@ -27,6 +27,7 @@ Every functional/UI update must include both:
   - Page navigation, zoom, and fit-width.
   - Overlay drag/resize/create.
   - Region dialog editing (label/text/entities), span anonymization, and delete.
+  - Searchable entity-label dropdown for both new anonymization spans and span-editor updates.
   - Draggable outer dialog pane separator with session-scoped width persistence.
   - Fenced HTML table preview rendering in region dialog Preview (table-only).
   - Current-page bbox Previous/Next navigation while editing.

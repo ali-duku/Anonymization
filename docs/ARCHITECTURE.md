@@ -21,12 +21,13 @@
   - `services`: endpoint adapter + simulated backend/bucket lookup.
   - `utils`: identifier validation and backend response/payload guards.
 - `src/features/viewer`
-  - `components`: `PdfViewerTab` plus focused UI blocks (`ViewerToolbar`, `ViewerCanvasStage`, `OverlayLayer`, `OverlayBox`, `RegionEditorModal`, `EntityPicker`, `SpanEditorPopover`, `ViewerStatus`).
+  - `components`: `PdfViewerTab` plus focused UI blocks (`ViewerToolbar`, `ViewerCanvasStage`, `OverlayLayer`, `OverlayBox`, `RegionEditorModal`, `EntityPicker`, `SearchableEntityField`, `SpanEditorPopover`, `ViewerStatus`).
   - `hooks`: PDF rendering lifecycle, overlay interactions, bbox creation, region editor state, region-dialog layout splitter state/persistence (`useRegionDialogLayout`).
   - `utils`: pure geometry/status/text/document helpers.
   - `utils/previewModel.ts` owns table-preview detection/projection (` ```html ` table-only), including raw-offset entity mapping and markup-overlap warnings.
   - `constants`: viewer interaction constants.
   - `RegionEditorModal` owns viewport-aware dialog UX, snippet zoom/protection controls, current-page previous/next bbox navigation wiring, and outer-pane separator rendering for drag/keyboard resize.
+  - `SearchableEntityField` is the shared searchable dropdown input used by both `EntityPicker` and `SpanEditorPopover` for canonical entity-label selection.
   - `SpanEditorPopover` is viewport-positioned and anchored from preview-span geometry emitted by the dialog.
 - `src/constants`: shared catalogs (`anonymizationEntities`, `regionLabelOptions`).
 - `src/services`

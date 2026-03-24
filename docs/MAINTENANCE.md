@@ -9,13 +9,15 @@
 
 ## Current Baseline
 
-- Latest shipped version: `0.6.4`.
+- Latest shipped version: `0.6.5`.
 - Latest viewer baseline includes:
   - retrieval-by-ID as the primary PDF flow,
   - session-only manual upload bypass as secondary flow,
   - viewport-aware region editor scrolling,
   - draggable outer region-dialog separator with keyboard resize support,
   - per-tab session persistence for outer dialog pane width,
+  - searchable entity dropdown field for anonymization entity selection (entity picker + span editor),
+  - empty-default anonymization entity input after pressing `Anonymize`, requiring a valid catalog label before apply,
   - snippet zoom + save-prevention UX controls,
   - current-page bbox previous/next navigation,
   - viewport-anchored span editor popover,
