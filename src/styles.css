@@ -2,6 +2,7 @@
 
 :root {
   color-scheme: dark;
+  --app-font-size-scale: 1;
   --bg: #070d12;
   --bg-2: #0e1620;
   --panel: #121d28;
@@ -14,6 +15,7 @@
   --success: #43d17b;
   --error: #ff6f6f;
   --shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  font-size: calc(16px * var(--app-font-size-scale));
   font-family: "Space Grotesk", "Segoe UI", "Trebuchet MS", sans-serif;
 }
 

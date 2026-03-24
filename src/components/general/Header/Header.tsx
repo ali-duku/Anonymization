@@ -1,4 +1,5 @@
 import { Suspense, lazy, memo, useState } from "react";
+import { FontSizeControl } from "../FontSizeControl/FontSizeControl";
 import { TabNav } from "../TabNav/TabNav";
 import styles from "./Header.module.css";
 import type { HeaderProps } from "./Header.types";
@@ -16,6 +17,8 @@ function HeaderComponent({
   onManualSave,
   onUndo,
   onRedo,
+  fontSize,
+  onFontSizeChange,
   canManualSave = false,
   canUndo = false,
   canRedo = false
@@ -66,6 +69,7 @@ function HeaderComponent({
               Redo
             </button>
           </div>
+          <FontSizeControl value={fontSize} onChange={onFontSizeChange} />
           <span className={styles.versionBadge} aria-label={`Version ${appMeta.version}`}>
             Version {appMeta.version}
           </span>

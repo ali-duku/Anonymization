@@ -13,6 +13,7 @@ import { pdfRetrievalService } from "../../features/pdf/services/pdfRetrievalSer
 import { Header } from "../../components/general/Header/Header";
 import type { AppTab } from "../../components/general/TabNav/TabNav.types";
 import type { OverlayLoadPayload } from "../../types/overlay";
+import { useDisplaySettings } from "../../features/settings/hooks/useDisplaySettings";
 import { useOverlayHistoryShortcuts } from "./useOverlayHistoryShortcuts";
 import { useOverlaySessionHistory } from "./useOverlaySessionHistory";
 import styles from "./AppPage.module.css";
@@ -31,6 +32,7 @@ const LazyPdfWorkspaceTab = lazy(async () => {
 export function AppPage({ services }: AppPageProps) {
   const [activeTab, setActiveTab] = useState<AppTab>("viewer");
   const setupGenerateHandlerRef = useRef<(() => void) | null>(null);
+  const { settings, setFontSize } = useDisplaySettings();
 
   const {
     overlaySession,
@@ -106,6 +108,8 @@ export function AppPage({ services }: AppPageProps) {
         onManualSave={manualSaveOverlay}
         onUndo={undoOverlay}
         onRedo={redoOverlay}
+        fontSize={settings.fontSize}
+        onFontSizeChange={setFontSize}
         canManualSave={canManualSaveOverlay}
         canUndo={canUndoOverlay}
         canRedo={canRedoOverlay}

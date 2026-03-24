@@ -29,6 +29,9 @@
   - `RegionEditorModal` owns viewport-aware dialog UX, snippet zoom/protection controls, current-page previous/next bbox navigation wiring, and outer-pane separator rendering for drag/keyboard resize.
   - `SearchableEntityField` is the shared searchable dropdown input used by both `EntityPicker` and `SpanEditorPopover` for canonical entity-label selection.
   - `SpanEditorPopover` is viewport-positioned and anchored from preview-span geometry emitted by the dialog.
+- `src/features/settings`
+  - `hooks/useDisplaySettings.tsx`: app-level display settings context/provider, persistence, and global CSS-variable application.
+  - `constants/displaySettings.ts`: storage keys/defaults/font-size scale mapping.
 - `src/constants`: shared catalogs (`anonymizationEntities`, `regionLabelOptions`).
 - `src/services`
   - `jsonService.ts`
@@ -50,10 +53,11 @@ This pattern is applied consistently to general, setup, pdf, and viewer componen
 ## Data Flow
 
 1. `AppPage` owns overlay session history (`past/present/future`) and global actions (Save/Undo/Redo/Generate trigger).
-2. `SetupTab` parses input JSON and emits overlay load payloads into App session state.
-3. `PdfWorkspaceTab` manages retrieval + manual bypass sources and passes the active document into `PdfViewerTab`, which emits overlay edits back to App.
-4. `annotationService` transforms between OCR snapshot JSON and normalized overlay document model.
-5. `jsonService`, `annotationService`, and `pdfRetrievalService` remain stable service boundaries.
+2. `DisplaySettingsProvider` wraps the app and applies persistent global display settings (currently `fontSize`) to root CSS variables.
+3. `SetupTab` parses input JSON and emits overlay load payloads into App session state.
+4. `PdfWorkspaceTab` manages retrieval + manual bypass sources and passes the active document into `PdfViewerTab`, which emits overlay edits back to App.
+5. `annotationService` transforms between OCR snapshot JSON and normalized overlay document model.
+6. `jsonService`, `annotationService`, and `pdfRetrievalService` remain stable service boundaries.
 
 ## Performance Strategy
 
