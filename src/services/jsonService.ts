@@ -1,5 +1,6 @@
 import type { JsonErrorDetails, JsonGenerationResult } from "../types/json";
 import type { JsonService } from "../types/services";
+import { writeTextToClipboard } from "../utils/clipboard";
 
 /**
  * Parse and re-serialize JSON losslessly using readable pretty output.
@@ -34,16 +35,7 @@ export class BrowserJsonService implements JsonService {
   }
 
   async copyToClipboard(text: string): Promise<boolean> {
-    if (!text.trim()) {
-      return false;
-    }
-
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch {
-      return false;
-    }
+    return writeTextToClipboard(text);
   }
 
   private parseJsonError(rawJson: string, error: unknown): JsonErrorDetails {

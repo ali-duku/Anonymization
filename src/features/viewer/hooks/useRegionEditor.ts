@@ -16,7 +16,8 @@ import {
 } from "../../../constants/anonymizationEntities";
 import { REGION_LABEL_OPTIONS } from "../../../constants/regionLabelOptions";
 import type { OverlayDocument, OverlayRegion } from "../../../types/overlay";
-import { applyRegionEdits, removeRegionFromDocument } from "../utils/overlayDocument";
+import { buildRegionEditsFromBboxClipboardPayload } from "../utils/bboxClipboard";
+import { applyRegionEdits, hasBboxChanged, removeRegionFromDocument } from "../utils/overlayDocument";
 import {
   areEntitySpansEqual,
   buildTextSegments,
@@ -45,6 +46,7 @@ function resolveActiveRegion(overlayDocument: OverlayDocument | null, activeRegi
 export function useRegionEditor({
   overlayDocument,
   currentPage,
+  copiedBbox,
   onOverlayEditStarted,
   onOverlayDocumentSaved
 }: UseRegionEditorOptions) {
@@ -59,6 +61,8 @@ export function useRegionEditor({
     setDialogDraftText,
     dialogDraftEntities,
     setDialogDraftEntities,
+    dialogDraftBbox,
+    setDialogDraftBbox,
     dialogTextDirection,
     setDialogTextDirection,
     pendingSelection,
@@ -117,15 +121,18 @@ export function useRegionEditor({
       return false;
     }
 
+    const nextDraftBbox = dialogDraftBbox ?? activeRegion.bbox;
+
     return (
       dialogDraftLabel !== activeRegion.label ||
+      hasBboxChanged(activeRegion.bbox, nextDraftBbox, 0) ||
       dialogDraftText !== (activeRegion.text || "") ||
       !areEntitySpansEqual(
         normalizeEntitySpansForText(dialogDraftEntities, dialogDraftText),
         normalizeEntitySpansForText(activeRegion.entities || [], activeRegion.text || "")
       )
     );
-  }, [activeRegion, dialogDraftEntities, dialogDraftLabel, dialogDraftText]);
+  }, [activeRegion, dialogDraftBbox, dialogDraftEntities, dialogDraftLabel, dialogDraftText]);
 
   const canAnonymizeSelection = useMemo(() => {
     if (!pendingSelection) {
@@ -145,6 +152,12 @@ export function useRegionEditor({
   const openRegionEditor = useCallback((region: OverlayRegion) => {
     setActiveRegionId(region.id);
     setDialogDraftLabel(region.label);
+    setDialogDraftBbox({
+      x1: region.bbox.x1,
+      y1: region.bbox.y1,
+      x2: region.bbox.x2,
+      y2: region.bbox.y2
+    });
     setDialogDraftText(region.text || "");
     setDialogDraftEntities(normalizeEntitySpansForText(region.entities || [], region.text || ""));
     setDialogTextDirection("rtl");
@@ -174,6 +187,12 @@ export function useRegionEditor({
     }
 
     setDialogDraftLabel(activeRegion.label);
+    setDialogDraftBbox({
+      x1: activeRegion.bbox.x1,
+      y1: activeRegion.bbox.y1,
+      x2: activeRegion.bbox.x2,
+      y2: activeRegion.bbox.y2
+    });
     setDialogDraftText(activeRegion.text || "");
     setDialogDraftEntities(normalizeEntitySpansForText(activeRegion.entities || [], activeRegion.text || ""));
     setPendingSelection(null);
@@ -188,12 +207,14 @@ export function useRegionEditor({
     }
 
     const nextLabel = dialogDraftLabel.trim() || activeRegion.label;
+    const nextBbox = dialogDraftBbox ?? activeRegion.bbox;
     const nextText = dialogDraftText;
     const nextEntities = normalizeEntitySpansForText(dialogDraftEntities, nextText);
 
     if (overlayDocument && onOverlayDocumentSaved) {
       onOverlayEditStarted?.();
       const nextDocument = applyRegionEdits(overlayDocument, activeRegion.pageNumber, activeRegion.id, {
+        bbox: nextBbox,
         label: nextLabel,
         text: nextText,
         entities: nextEntities
@@ -202,6 +223,7 @@ export function useRegionEditor({
     }
   }, [
     activeRegion,
+    dialogDraftBbox,
     dialogDraftEntities,
     dialogDraftLabel,
     dialogDraftText,
@@ -210,28 +232,62 @@ export function useRegionEditor({
     overlayDocument
   ]);
 
+  const canPasteCopiedBboxIntoRegion = useMemo(
+    () => Boolean(activeRegion && copiedBbox),
+    [activeRegion, copiedBbox]
+  );
+
+  const handlePasteCopiedBboxIntoRegion = useCallback(() => {
+    if (!activeRegion || !copiedBbox) {
+      return;
+    }
+
+    const edits = buildRegionEditsFromBboxClipboardPayload(copiedBbox);
+    setDialogDraftLabel(edits.label);
+    setDialogDraftBbox(edits.bbox);
+    setDialogDraftText(edits.text);
+    setDialogDraftEntities(normalizeEntitySpansForText(edits.entities, edits.text));
+    setPendingSelection(null);
+    setPickerSelection(null);
+    setSpanEditor(null);
+    setEntityWarning(null);
+  }, [activeRegion, copiedBbox]);
+
+  const deleteRegionWithCanonicalFlow = useCallback(
+    (region: OverlayRegion) => {
+      if (!overlayDocument || !onOverlayDocumentSaved) {
+        return;
+      }
+
+      const shouldDelete = window.confirm(
+        "Delete this bbox region? This will remove it from generated JSON output."
+      );
+      if (!shouldDelete) {
+        return;
+      }
+
+      onOverlayEditStarted?.();
+      const nextDocument = removeRegionFromDocument(
+        overlayDocument,
+        region.pageNumber,
+        region.id
+      );
+      onOverlayDocumentSaved(nextDocument);
+
+      if (activeRegionId === region.id) {
+        closeAndResetEditor();
+      }
+    },
+    [activeRegionId, closeAndResetEditor, onOverlayDocumentSaved, onOverlayEditStarted, overlayDocument]
+  );
+
   const handleDeleteRegionEditor = useCallback(() => {
-    if (!activeRegion || !overlayDocument || !onOverlayDocumentSaved) {
+    if (!activeRegion) {
       return;
     }
 
-    const shouldDelete = window.confirm(
-      "Delete this bbox region? This will remove it from generated JSON output."
-    );
-    if (!shouldDelete) {
-      return;
-    }
-
-    onOverlayEditStarted?.();
-    const nextDocument = removeRegionFromDocument(
-      overlayDocument,
-      activeRegion.pageNumber,
-      activeRegion.id
-    );
-    onOverlayDocumentSaved(nextDocument);
-
-    closeAndResetEditor();
-  }, [activeRegion, closeAndResetEditor, onOverlayDocumentSaved, onOverlayEditStarted, overlayDocument]);
+    deleteRegionWithCanonicalFlow(activeRegion);
+  }, [activeRegion, deleteRegionWithCanonicalFlow]);
 
   const refreshPendingSelection = useCallback(() => {
     const textarea = dialogTextareaRef.current;
@@ -445,13 +501,16 @@ export function useRegionEditor({
     canAnonymizeSelection,
     dialogLabelOptions,
     hasDialogChanges,
+    canPasteCopiedBboxIntoRegion,
     anonymizationEntityLabels: ANONYMIZATION_ENTITY_LABELS,
     buildEntityPalette,
     openRegionEditor,
     closeRegionEditor,
     handleResetRegionEditor,
     handleSaveRegionEditor,
+    handlePasteCopiedBboxIntoRegion,
     handleDeleteRegionEditor,
+    deleteRegionWithCanonicalFlow,
     refreshPendingSelection,
     handleEditorInput,
     handleEditorKeyUp,

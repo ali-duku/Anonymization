@@ -1,8 +1,14 @@
 import type { JsonErrorDetails } from "../../types/json";
 import type { OverlayParseResult, OverlayRegion } from "../../types/overlay";
+import { logOverlayParseSummary } from "./annotation.diagnostics";
 import { parseJsonError } from "./jsonError";
 import { findContentMatch, parseContentPage } from "./annotation.matching";
-import { asObject, buildContentSequenceMap, toNormalizedBbox } from "./annotation.helpers";
+import {
+  asObject,
+  assertNormalizedBboxContract,
+  buildContentSequenceMap,
+  toNormalizedBbox
+} from "./annotation.helpers";
 
 function fail(message: string, sourceJsonRaw: string): OverlayParseResult {
   return {
@@ -64,6 +70,7 @@ function toOverlayDocument(rootValue: unknown, sourceJsonRaw: string): OverlayPa
     const contentPageValue = contentExtraction[pageIndex];
     const contentPage = parseContentPage(contentPageValue, pageIndex, contentSequenceMap);
 
+    // Viewer pages are 1-based; source arrays are 0-based.
     const pageNumber = pageIndex + 1;
     const overlayRegions = regions.map((layoutRegionValue, regionIndex) => {
       const layoutRegion = asObject(layoutRegionValue);
@@ -75,6 +82,7 @@ function toOverlayDocument(rootValue: unknown, sourceJsonRaw: string): OverlayPa
       if (!bbox) {
         throw new Error(`Layout region ${regionIndex + 1} on page ${pageNumber} has an invalid bbox.`);
       }
+      assertNormalizedBboxContract(bbox, `pipeline_steps.layout_detection[${pageIndex}].regions[${regionIndex}]`);
 
       const matched = findContentMatch(contentPage, bbox);
       const matchedLabel = matched?.label?.trim() ? matched.label : "Unknown";
@@ -110,6 +118,8 @@ function toOverlayDocument(rootValue: unknown, sourceJsonRaw: string): OverlayPa
       regions: overlayRegions
     };
   });
+
+  logOverlayParseSummary(pages);
 
   return {
     success: true,

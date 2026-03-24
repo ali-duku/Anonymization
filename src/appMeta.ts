@@ -2,8 +2,44 @@ import type { AppMeta } from "./types/appMeta";
 
 export const APP_META: AppMeta = {
   name: "Anonymizer",
-  version: "0.6.6",
+  version: "0.6.10",
   releaseNotes: [
+    {
+      version: "0.6.10",
+      date: "2026-03-24",
+      highlights: [
+        "Fixed bbox overlay misalignment risk by aligning PDF canvas and overlay stage to one canonical pixel basis (removed responsive max-width clamping from the render stage).",
+        "Centralized normalized bbox projection math into shared viewer utilities so overlay CSS placement and snippet crop conversion use the same coordinate translation path.",
+        "Hardened overlay-input parsing with explicit normalized-coordinate validation (`x1/y1/x2/y2` in [0..1]) and clear errors when upstream data violates the bbox contract."
+      ]
+    },
+    {
+      version: "0.6.9",
+      date: "2026-03-24",
+      highlights: [
+        "Added `Paste BBox` in Edit Region so copied full-bbox payload can be applied directly to the currently edited bbox draft.",
+        "Dialog paste now updates the active bbox in place (including copied bbox geometry/size, label, text, and entities) instead of creating a new bbox.",
+        "Unified toolbar-paste (new bbox) and dialog-paste (current bbox overwrite) on one canonical full-bbox clipboard payload mapping."
+      ]
+    },
+    {
+      version: "0.6.8",
+      date: "2026-03-24",
+      highlights: [
+        "Updated Viewer toolbar labels by renaming `Fit Width` to `Fit` and replacing page `Prev/Next` text with arrow controls while preserving behavior.",
+        "Added full bbox copy actions on both overlay controls and Region Editor dialog, plus a toolbar paste action next to `Add BBox`.",
+        "Added separate text-only copy actions on both overlay controls and Region Editor dialog, keeping this flow independent from full bbox copy/paste."
+      ]
+    },
+    {
+      version: "0.6.7",
+      date: "2026-03-24",
+      highlights: [
+        "Updated on-bbox action controls to compact icon buttons (pen for edit, trash for delete) with lower opacity so page content remains visible beneath.",
+        "Added direct bbox delete action on the overlay surface and wired it to the same canonical delete flow used by the Edit Region dialog.",
+        "Kept existing edit/delete behavior and overlay interaction model intact while reducing on-canvas control footprint."
+      ]
+    },
     {
       version: "0.6.6",
       date: "2026-03-24",

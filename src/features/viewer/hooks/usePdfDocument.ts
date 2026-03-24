@@ -13,6 +13,7 @@ import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import type { PdfLoadStatus } from "../../../types/pdf";
 import type { RetrievedPdfDocument, RetrievedPdfMeta } from "../../../types/pdfRetrieval";
 import { MAX_ZOOM, MIN_ZOOM, ZOOM_STEP } from "../constants/viewerConstants";
+import { logStageGeometryMismatch } from "../utils/viewerDiagnostics";
 import { clampZoom } from "../utils/viewerStatus";
 
 GlobalWorkerOptions.workerSrc = pdfWorker;
@@ -173,6 +174,8 @@ export function usePdfDocument({
       const height = Math.floor(viewport.height);
       canvas.width = width;
       canvas.height = height;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
       setPageWidth(width);
       setPageHeight(height);
 
@@ -196,6 +199,27 @@ export function usePdfDocument({
       }
     };
   }, [clearCanvasSurface, currentPage, pdfDoc, zoom]);
+
+  useEffect(() => {
+    const stage = pageStageRef.current;
+    const canvas = canvasRef.current;
+    if (!stage || !canvas || pageWidth <= 0 || pageHeight <= 0) {
+      return;
+    }
+
+    const stageRect = stage.getBoundingClientRect();
+    const canvasRect = canvas.getBoundingClientRect();
+    logStageGeometryMismatch({
+      page: currentPage,
+      zoom,
+      stageWidth: stageRect.width,
+      stageHeight: stageRect.height,
+      canvasCssWidth: canvasRect.width,
+      canvasCssHeight: canvasRect.height,
+      canvasPixelWidth: canvas.width,
+      canvasPixelHeight: canvas.height
+    });
+  }, [currentPage, pageHeight, pageWidth, zoom]);
 
   useEffect(() => {
     return () => {

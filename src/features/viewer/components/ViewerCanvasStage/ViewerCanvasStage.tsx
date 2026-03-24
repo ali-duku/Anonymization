@@ -15,7 +15,10 @@ function ViewerCanvasStageComponent({
   canvasRef,
   onBeginCreateBBox,
   onBeginInteraction,
-  onOpenRegionEditor
+  onOpenRegionEditor,
+  onDeleteRegion,
+  onCopyRegion,
+  onCopyRegionText
 }: ViewerCanvasStageProps) {
   return (
     <div
@@ -49,6 +52,9 @@ function ViewerCanvasStageComponent({
             onBeginCreateBBox={onBeginCreateBBox}
             onBeginInteraction={onBeginInteraction}
             onOpenRegionEditor={onOpenRegionEditor}
+            onDeleteRegion={onDeleteRegion}
+            onCopyRegion={onCopyRegion}
+            onCopyRegionText={onCopyRegionText}
           />
         )}
       </div>

@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import type { NormalizedBbox, OverlayRegion } from "../../../types/overlay";
 import { LABEL_HUES } from "../constants/viewerConstants";
-import { clamp01 } from "./viewerGeometry";
+import { normalizedBboxToPercentRect } from "./bboxProjection";
 
 export interface LabelPalette {
   border: string;
@@ -33,21 +33,13 @@ export function buildPalette(label: string): LabelPalette {
 
 export function toOverlayStyle(region: OverlayRegion, bbox: NormalizedBbox): CSSProperties {
   const palette = buildPalette(region.label);
-  const x1 = clamp01(bbox.x1);
-  const y1 = clamp01(bbox.y1);
-  const x2 = clamp01(bbox.x2);
-  const y2 = clamp01(bbox.y2);
-
-  const left = Math.min(x1, x2) * 100;
-  const top = Math.min(y1, y2) * 100;
-  const width = Math.max(0.01, Math.abs(x2 - x1) * 100);
-  const height = Math.max(0.01, Math.abs(y2 - y1) * 100);
+  const rect = normalizedBboxToPercentRect(bbox);
 
   return {
-    left: `${left}%`,
-    top: `${top}%`,
-    width: `${width}%`,
-    height: `${height}%`,
+    left: `${rect.left}%`,
+    top: `${rect.top}%`,
+    width: `${rect.width}%`,
+    height: `${rect.height}%`,
     borderColor: palette.border,
     backgroundColor: region.matchedContent ? palette.fillMatched : palette.fillUnmatched
   };

@@ -1,66 +1,23 @@
 ﻿import type { OverlayEntitySpan } from "../types/overlay";
 
 export const ANONYMIZATION_ENTITY_LABELS = [
-  "آخر",
-  "أمين سر الدائرة",
-  "البريد الإلكتروني",
-  "البريد الإلكتروني للمحامي",
-  "البريد الإلكتروني للمدعى عليه",
-  "البريد الإلكتروني للمدعية",
-  "التاريخ",
-  "التلكس",
-  "التوقيع",
-  "الجنسية",
-  "الراتب",
-  "الرقم الشخصي للمحامي",
-  "الرقم الشخصي للمدعي",
-  "العنوان",
-  "القاضي (1)",
-  "القاضي (2)",
-  "المحامي",
-  "المدّعى عليه",
-  "المدّعي",
-  "المسمى الوظيفي",
-  "الموقع الإلكتروني",
-  "برئاسة القاضي",
-  "تاريخ الميلاد",
-  "تاريخ ميلاد المدّعي",
-  "توقيع المدعي",
-  "توقيع محامي قضايا الدولة",
-  "جهة حكومية",
-  "رأس المال",
-  "رقم الآيبان",
-  "رقم الجوال",
-  "رقم الجوال للمدعي",
-  "رقم السجل التجاري",
-  "رقم الصندوق البريدي",
-  "رقم العضوية",
-  "مرجع قانوني",
-  "رقم القضية",
-  "رقم المؤسسة للمدعى عليها",
-  "رقم المنشأة / المؤسسة",
-  "رقم الموظف / الرقم الوظيفي",
-  "رقم الهاتف",
   "رقم الهوية الشخصية",
-  "رقم جواز سفر المُدّعي",
-  "رقم حساب المدعي",
-  "رقم منشأة المحامي",
-  "رقم منشأة المدعى عليه",
-  "رقم هاتف المحامي",
-  "رقم هاتف المدعى عليه",
-  "رقم وظيفي للمدعي",
-  "صورة المدعي",
-  "عنوان المحامي",
-  "عنوان المدعى عليه",
-  "عنوان المدعي",
-  "كاتب العدل",
-  "محامي قضايا دولة",
-  "موظف حكومي",
-  "موظف قضايا الدولة",
-  "موظفين من الجهة المدعى عليها"
+  "رقم الجوال",
+  "رقم الهاتف",
+  "البريد الإلكتروني",
+  "العنوان",
+  "رقم الموظف / الرقم الوظيفي",
+  "رقم المنشأة / المؤسسة",
+  "رقم الحساب البنكي",
+  "تاريخ الميلاد",
+  "رقم جواز السفر",
+  "التوقيع",
+  "رقم الآيبان",
+  "صورة جواز السفر",
 ] as const;
 
-export type AnonymizationEntityLabel = (typeof ANONYMIZATION_ENTITY_LABELS)[number];
+export type AnonymizationEntityLabel =
+  (typeof ANONYMIZATION_ENTITY_LABELS)[number];
 
 export const FALLBACK_ANONYMIZATION_ENTITY_LABEL: AnonymizationEntityLabel =
   ANONYMIZATION_ENTITY_LABELS[ANONYMIZATION_ENTITY_LABELS.length - 1];
@@ -75,17 +32,21 @@ export function coerceEntityLabel(value: unknown): AnonymizationEntityLabel {
   if (!trimmed) {
     return FALLBACK_ANONYMIZATION_ENTITY_LABEL;
   }
-  return ANONYMIZATION_ENTITY_LABELS.includes(trimmed as AnonymizationEntityLabel)
+  return ANONYMIZATION_ENTITY_LABELS.includes(
+    trimmed as AnonymizationEntityLabel,
+  )
     ? (trimmed as AnonymizationEntityLabel)
     : FALLBACK_ANONYMIZATION_ENTITY_LABEL;
 }
 
-export function sortEntitySpans(spans: readonly OverlayEntitySpan[]): OverlayEntitySpan[] {
+export function sortEntitySpans(
+  spans: readonly OverlayEntitySpan[],
+): OverlayEntitySpan[] {
   return [...spans].sort(
     (left, right) =>
-      (left.start - right.start) ||
-      (left.end - right.end) ||
-      left.entity.localeCompare(right.entity)
+      left.start - right.start ||
+      left.end - right.end ||
+      left.entity.localeCompare(right.entity),
   );
 }
 
@@ -93,7 +54,7 @@ export function hasEntityOverlap(
   spans: readonly OverlayEntitySpan[],
   nextStart: number,
   nextEnd: number,
-  ignoreIndex?: number
+  ignoreIndex?: number,
 ): boolean {
   return spans.some((span, index) => {
     if (ignoreIndex !== undefined && index === ignoreIndex) {
@@ -105,7 +66,7 @@ export function hasEntityOverlap(
 
 export function normalizeEntitySpansForText(
   spansValue: readonly OverlayEntitySpan[] | unknown,
-  text: string
+  text: string,
 ): OverlayEntitySpan[] {
   if (!Array.isArray(spansValue)) {
     return [];
@@ -121,14 +82,20 @@ export function normalizeEntitySpansForText(
     const span = value as Partial<OverlayEntitySpan>;
     const start = Number(span.start);
     const end = Number(span.end);
-    if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end > textLength || start >= end) {
+    if (
+      !Number.isInteger(start) ||
+      !Number.isInteger(end) ||
+      start < 0 ||
+      end > textLength ||
+      start >= end
+    ) {
       continue;
     }
 
     candidateSpans.push({
       start,
       end,
-      entity: coerceEntityLabel(span.entity)
+      entity: coerceEntityLabel(span.entity),
     });
   }
 
@@ -143,7 +110,11 @@ export function normalizeEntitySpansForText(
   return normalized;
 }
 
-export function buildEntityPalette(entity: string): { background: string; text: string; border: string } {
+export function buildEntityPalette(entity: string): {
+  background: string;
+  text: string;
+  border: string;
+} {
   const safeEntity = coerceEntityLabel(entity);
   let hash = 0;
   for (let index = 0; index < safeEntity.length; index += 1) {
@@ -153,6 +124,6 @@ export function buildEntityPalette(entity: string): { background: string; text: 
   return {
     background: `hsl(${hue} 85% 64% / 0.35)`,
     text: `hsl(${hue} 70% 86%)`,
-    border: `hsl(${hue} 85% 58% / 0.95)`
+    border: `hsl(${hue} 85% 58% / 0.95)`,
   };
 }

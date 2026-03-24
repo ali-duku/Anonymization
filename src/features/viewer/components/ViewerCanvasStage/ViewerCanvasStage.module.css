@@ -17,10 +17,8 @@
 .pageStage {
   position: relative;
   margin: 0 auto;
-  max-width: 100%;
 }
 
 .pdfCanvas {
   display: block;
-  max-width: 100%;
 }

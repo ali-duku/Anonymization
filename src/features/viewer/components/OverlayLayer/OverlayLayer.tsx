@@ -11,7 +11,10 @@ function OverlayLayerComponent({
   isCreateMode,
   onBeginCreateBBox,
   onBeginInteraction,
-  onOpenRegionEditor
+  onOpenRegionEditor,
+  onDeleteRegion,
+  onCopyRegion,
+  onCopyRegionText
 }: OverlayLayerProps) {
   return (
     <div className={styles.overlayLayer} aria-label="Page overlays">
@@ -39,6 +42,9 @@ function OverlayLayerComponent({
             resizeHandles={[...RESIZE_HANDLES]}
             onBeginInteraction={onBeginInteraction}
             onOpenRegionEditor={onOpenRegionEditor}
+            onDeleteRegion={onDeleteRegion}
+            onCopyRegion={onCopyRegion}
+            onCopyRegionText={onCopyRegionText}
           />
         );
       })}

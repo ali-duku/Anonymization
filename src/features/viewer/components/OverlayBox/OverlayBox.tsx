@@ -18,7 +18,10 @@ function OverlayBoxComponent({
   isCreateMode,
   resizeHandles,
   onBeginInteraction,
-  onOpenRegionEditor
+  onOpenRegionEditor,
+  onDeleteRegion,
+  onCopyRegion,
+  onCopyRegionText
 }: OverlayBoxProps) {
   const palette = useMemo(() => buildPalette(region.label), [region.label]);
 
@@ -51,25 +54,106 @@ function OverlayBoxComponent({
               aria-label={`Resize ${region.label} region (${handle.toUpperCase()})`}
             />
           ))}
-          <button
-            type="button"
-            className={styles.overlayEditButton}
-            style={{
-              borderColor: palette.border,
-              background: palette.buttonBackground,
-              color: palette.buttonText
-            }}
-            onPointerDown={(event) => event.stopPropagation()}
-            onClick={() => {
-              if (isCreateMode) {
-                return;
-              }
-              onOpenRegionEditor(region);
-            }}
-            aria-label={`Edit ${region.label} region`}
-          >
-            Edit
-          </button>
+          <div className={styles.overlayActionGroup}>
+            <button
+              type="button"
+              className={styles.overlayActionButton}
+              style={{
+                borderColor: palette.border,
+                background: palette.buttonBackground,
+                color: palette.buttonText
+              }}
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={() => {
+                if (isCreateMode) {
+                  return;
+                }
+                onCopyRegion(region);
+              }}
+              aria-label={`Copy ${region.label} region`}
+              title="Copy bbox"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.overlayActionIcon}>
+                <path
+                  d="M9 4h10a1 1 0 0 1 1 1v12h-2V6H9V4zm-4 4h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            <button
+              type="button"
+              className={styles.overlayActionButton}
+              style={{
+                borderColor: palette.border,
+                background: palette.buttonBackground,
+                color: palette.buttonText
+              }}
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={() => {
+                if (isCreateMode) {
+                  return;
+                }
+                onCopyRegionText(region);
+              }}
+              aria-label={`Copy text from ${region.label} region`}
+              title="Copy text"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.overlayActionIcon}>
+                <path
+                  d="M5 5h14v2H5V5zm4 4h6v2H9V9zm-4 4h14v2H5v-2zm6 4h2v2h-2v-2z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            <button
+              type="button"
+              className={styles.overlayActionButton}
+              style={{
+                borderColor: palette.border,
+                background: palette.buttonBackground,
+                color: palette.buttonText
+              }}
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={() => {
+                if (isCreateMode) {
+                  return;
+                }
+                onOpenRegionEditor(region);
+              }}
+              aria-label={`Edit ${region.label} region`}
+              title="Edit"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.overlayActionIcon}>
+                <path
+                  d="M4 20l4-.8L19.2 8l-3.2-3.2L4.8 16 4 20zm13.1-14.1l1-1a1.5 1.5 0 0 1 2.1 0l1 1a1.5 1.5 0 0 1 0 2.1l-1 1-3.1-3.1z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            <button
+              type="button"
+              className={`${styles.overlayActionButton} ${styles.overlayDeleteButton}`}
+              style={{
+                borderColor: palette.border
+              }}
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={() => {
+                if (isCreateMode) {
+                  return;
+                }
+                onDeleteRegion(region);
+              }}
+              aria-label={`Delete ${region.label} region`}
+              title="Delete"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.overlayActionIcon}>
+                <path
+                  d="M9 3h6l1 2h4v2H4V5h4l1-2zm-2 6h10l-1 11H8L7 9zm3 2v7h2v-7h-2zm4 0v7h2v-7h-2z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+          </div>
         </>
       )}
     </div>

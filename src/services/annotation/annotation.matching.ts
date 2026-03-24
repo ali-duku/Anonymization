@@ -2,6 +2,7 @@ import { normalizeEntitySpansForText } from "../../constants/anonymizationEntiti
 import type { NormalizedBbox, OverlaySourceRef } from "../../types/overlay";
 import {
   asObject,
+  assertNormalizedBboxContract,
   buildContentSequenceMap,
   buildExactBboxKey,
   buildRoundedBboxKey,
@@ -35,6 +36,10 @@ export function parseContentPage(
     if (!bbox) {
       return [];
     }
+    assertNormalizedBboxContract(
+      bbox,
+      `pipeline_steps.content_extraction[${pageIndex}][${regionIndex}]`
+    );
 
     const metadata = asObject(region.metadata);
     const textValue = typeof region.text === "string" ? region.text : "";

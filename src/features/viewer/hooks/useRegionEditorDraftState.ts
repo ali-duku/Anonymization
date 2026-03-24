@@ -7,7 +7,7 @@ import {
   type SetStateAction
 } from "react";
 import { DEFAULT_ANONYMIZATION_ENTITY_LABEL } from "../../../constants/anonymizationEntities";
-import type { OverlayEntitySpan } from "../../../types/overlay";
+import type { NormalizedBbox, OverlayEntitySpan } from "../../../types/overlay";
 import type { PendingSelectionRange } from "../utils/textEntities";
 import type { SpanEditorDraft, TextDirection } from "./useRegionEditor.types";
 
@@ -22,6 +22,8 @@ export interface RegionEditorDraftState {
   setDialogDraftText: Dispatch<SetStateAction<string>>;
   dialogDraftEntities: OverlayEntitySpan[];
   setDialogDraftEntities: Dispatch<SetStateAction<OverlayEntitySpan[]>>;
+  dialogDraftBbox: NormalizedBbox | null;
+  setDialogDraftBbox: Dispatch<SetStateAction<NormalizedBbox | null>>;
   dialogTextDirection: TextDirection;
   setDialogTextDirection: Dispatch<SetStateAction<TextDirection>>;
   pendingSelection: PendingSelectionRange | null;
@@ -44,6 +46,7 @@ export function useRegionEditorDraftState(): RegionEditorDraftState {
   const [dialogDraftLabel, setDialogDraftLabel] = useState("");
   const [dialogDraftText, setDialogDraftText] = useState("");
   const [dialogDraftEntities, setDialogDraftEntities] = useState<OverlayEntitySpan[]>([]);
+  const [dialogDraftBbox, setDialogDraftBbox] = useState<NormalizedBbox | null>(null);
   const [dialogTextDirection, setDialogTextDirection] = useState<TextDirection>("rtl");
   const [pendingSelection, setPendingSelection] = useState<PendingSelectionRange | null>(null);
   const [pendingEntity, setPendingEntity] = useState<string>(DEFAULT_ANONYMIZATION_ENTITY_LABEL);
@@ -55,6 +58,7 @@ export function useRegionEditorDraftState(): RegionEditorDraftState {
     setDialogDraftLabel("");
     setDialogDraftText("");
     setDialogDraftEntities([]);
+    setDialogDraftBbox(null);
     setDialogTextDirection("rtl");
     setPendingSelection(null);
     setPendingEntity(DEFAULT_ANONYMIZATION_ENTITY_LABEL);
@@ -74,6 +78,8 @@ export function useRegionEditorDraftState(): RegionEditorDraftState {
     setDialogDraftText,
     dialogDraftEntities,
     setDialogDraftEntities,
+    dialogDraftBbox,
+    setDialogDraftBbox,
     dialogTextDirection,
     setDialogTextDirection,
     pendingSelection,

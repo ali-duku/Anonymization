@@ -9,7 +9,7 @@
 
 ## Current Baseline
 
-- Latest shipped version: `0.6.6`.
+- Latest shipped version: `0.6.10`.
 - Latest viewer baseline includes:
   - viewport-aware region editor scrolling,
   - draggable outer region-dialog separator with keyboard resize support,
@@ -18,6 +18,15 @@
   - searchable entity dropdown field for anonymization entity selection (entity picker + span editor),
   - empty-default anonymization entity input after pressing `Anonymize`, requiring a valid catalog label before apply,
   - app-level persistent display settings with global top-header font-size control (Small/Medium/Large),
+  - compact translucent on-canvas bbox icon controls (pen edit + trash delete),
+  - on-canvas bbox full-copy and text-only copy controls,
+  - toolbar bbox paste action beside `Add BBox`,
+  - region-dialog `Paste BBox` action to apply copied full-bbox payload into the active region draft (in-place update),
+  - canonical bbox projection helpers shared by overlay rendering and snippet crop conversion,
+  - explicit normalized bbox input contract validation (`x1/y1/x2/y2` in `[0..1]`) during overlay parse,
+  - identical page-stage/canvas pixel basis to prevent overlay drift under responsive container constraints,
+  - toolbar `Fit` label and arrow-based page nav controls (`←`/`→`),
+  - direct on-canvas delete routed through the same canonical delete behavior used by the region dialog,
   - snippet zoom + save-prevention UX controls,
   - current-page bbox previous/next navigation,
   - viewport-anchored span editor popover.
@@ -69,9 +78,15 @@ npm run build
 2. Verify `dist/index.html` exists.
 3. Publish `dist/` to GitHub Pages target branch.
 
+## BBox Diagnostics
+
+- To audit bbox/page geometry in development, run with `VITE_VIEWER_BBOX_DEBUG=1`.
+- This enables concise console diagnostics for parse-time bbox range summary and stage/canvas basis mismatch detection.
+
 ## Release Checklist
 
 1. Update `package.json` version.
 2. Update `APP_META.version` and prepend a `releaseNotes` entry.
 3. Update docs per Definition of Done.
 4. Run `npm run build`.
+

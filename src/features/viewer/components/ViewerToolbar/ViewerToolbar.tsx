@@ -9,6 +9,7 @@ function ViewerToolbarComponent({
   zoom,
   isCreateMode,
   canCreateBbox,
+  hasCopiedBbox,
   recordSummary,
   overlayCount,
   showOverlayCount,
@@ -25,6 +26,7 @@ function ViewerToolbarComponent({
   onMovePage,
   onPageInput,
   onToggleCreateMode,
+  onPasteCopiedBbox,
   onZoomOut,
   onZoomIn,
   onFitToWidth
@@ -68,8 +70,15 @@ function ViewerToolbarComponent({
         </form>
 
         <div className={styles.toolbarGroup}>
-          <button type="button" className={styles.buttonSecondary} onClick={() => onMovePage(-1)} disabled={!hasPdf}>
-            Prev
+          <button
+            type="button"
+            className={`${styles.buttonSecondary} ${styles.iconButton}`}
+            onClick={() => onMovePage(-1)}
+            disabled={!hasPdf}
+            aria-label="Previous page"
+            title="Previous page"
+          >
+            <span className={styles.iconGlyph} aria-hidden="true">{"\u2190"}</span>
           </button>
           <label className={styles.compactField}>
             Page
@@ -84,8 +93,15 @@ function ViewerToolbarComponent({
             />
           </label>
           <span className={styles.totalPages}>/ {totalPages || 0}</span>
-          <button type="button" className={styles.buttonSecondary} onClick={() => onMovePage(1)} disabled={!hasPdf}>
-            Next
+          <button
+            type="button"
+            className={`${styles.buttonSecondary} ${styles.iconButton}`}
+            onClick={() => onMovePage(1)}
+            disabled={!hasPdf}
+            aria-label="Next page"
+            title="Next page"
+          >
+            <span className={styles.iconGlyph} aria-hidden="true">{"\u2192"}</span>
           </button>
         </div>
 
@@ -99,6 +115,14 @@ function ViewerToolbarComponent({
           >
             {isCreateMode ? "Cancel Add BBox" : "Add BBox"}
           </button>
+          <button
+            type="button"
+            className={styles.buttonSecondary}
+            onClick={onPasteCopiedBbox}
+            disabled={!hasPdf || !canCreateBbox || !hasCopiedBbox}
+          >
+            Paste
+          </button>
           <button type="button" className={styles.buttonSecondary} onClick={onZoomOut} disabled={!hasPdf}>
             -
           </button>
@@ -107,7 +131,7 @@ function ViewerToolbarComponent({
             +
           </button>
           <button type="button" className={styles.buttonSecondary} onClick={onFitToWidth} disabled={!hasPdf}>
-            Fit Width
+            Fit
           </button>
         </div>
 
@@ -143,3 +167,5 @@ function ViewerToolbarComponent({
 }
 
 export const ViewerToolbar = memo(ViewerToolbarComponent);
+
+

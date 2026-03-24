@@ -1,6 +1,8 @@
 import type { JsonErrorDetails } from "./json";
 
 export interface NormalizedBbox {
+  // OCR/layout bbox coordinates are normalized to the rendered page space:
+  // (0, 0) = top-left, (1, 1) = bottom-right.
   x1: number;
   y1: number;
   x2: number;

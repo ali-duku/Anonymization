@@ -1,5 +1,10 @@
 import type { NormalizedBbox, OverlayDocument } from "../../types/overlay";
-import { BBOX_EPSILON, BBOX_ROUNDING, PATCH_EPSILON } from "./annotation.constants";
+import {
+  BBOX_EPSILON,
+  BBOX_ROUNDING,
+  NORMALIZED_BBOX_TOLERANCE,
+  PATCH_EPSILON
+} from "./annotation.constants";
 
 export function asObject(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null && !Array.isArray(value)
@@ -23,6 +28,22 @@ export function toNormalizedBbox(value: unknown): NormalizedBbox | null {
   }
 
   return { x1, y1, x2, y2 };
+}
+
+function isWithinNormalizedRange(value: number): boolean {
+  return value >= -NORMALIZED_BBOX_TOLERANCE && value <= 1 + NORMALIZED_BBOX_TOLERANCE;
+}
+
+export function assertNormalizedBboxContract(bbox: NormalizedBbox, contextPath: string): void {
+  const values = [bbox.x1, bbox.y1, bbox.x2, bbox.y2];
+  const isValid = values.every((item) => Number.isFinite(item) && isWithinNormalizedRange(item));
+  if (isValid) {
+    return;
+  }
+
+  throw new Error(
+    `${contextPath} bbox must use normalized coordinates in [0..1]. Received x1=${bbox.x1}, y1=${bbox.y1}, x2=${bbox.x2}, y2=${bbox.y2}.`
+  );
 }
 
 export function buildExactBboxKey(bbox: NormalizedBbox): string {

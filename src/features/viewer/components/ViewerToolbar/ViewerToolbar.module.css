@@ -13,6 +13,14 @@
 }
 
 .viewerToolbar {
+  --toolbar-group-gap: 6px;
+  --toolbar-group-padding-block: 5px;
+  --toolbar-group-padding-inline: 8px;
+  --toolbar-group-radius: 12px;
+  --toolbar-control-height: 34px;
+  --toolbar-control-radius: 10px;
+  --toolbar-control-font-size: 0.86rem;
+  --toolbar-control-padding-inline: 11px;
   display: flex;
   gap: 8px;
   flex-wrap: nowrap;
@@ -45,9 +53,9 @@
 .toolbarGroup {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 8px;
-  border-radius: 12px;
+  gap: var(--toolbar-group-gap);
+  padding: var(--toolbar-group-padding-block) var(--toolbar-group-padding-inline);
+  border-radius: var(--toolbar-group-radius);
   border: 1px solid var(--line);
   background: rgba(8, 14, 20, 0.6);
   flex: 0 0 auto;
@@ -56,17 +64,9 @@
 .compactField {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   color: var(--muted);
-  font-size: 0.86rem;
-}
-
-.compactField input {
-  border: 1px solid var(--line);
-  background: #0a1219;
-  color: var(--text);
-  border-radius: 8px;
-  padding: 5px 8px;
+  font-size: var(--toolbar-control-font-size);
 }
 
 .pageInput {
@@ -82,17 +82,54 @@
   font-family: "IBM Plex Mono", monospace;
   color: var(--muted);
   font-size: 0.88rem;
+  line-height: 1;
+}
+
+.buttonPrimary,
+.buttonSecondary,
+.compactField input {
+  font: inherit;
+  box-sizing: border-box;
+  height: var(--toolbar-control-height);
+  border-radius: var(--toolbar-control-radius);
+  font-size: var(--toolbar-control-font-size);
 }
 
 .buttonPrimary,
 .buttonSecondary {
-  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  white-space: nowrap;
   border: 1px solid transparent;
-  border-radius: 10px;
-  padding: 7px 11px;
+  padding: 0 var(--toolbar-control-padding-inline);
   font-weight: 600;
   cursor: pointer;
   transition: transform 140ms ease, filter 140ms ease;
+}
+
+.compactField input {
+  border: 1px solid var(--line);
+  background: #0a1219;
+  color: var(--text);
+  line-height: 1;
+  padding: 0 8px;
+}
+
+.iconButton {
+  width: var(--toolbar-control-height);
+  min-width: var(--toolbar-control-height);
+  height: var(--toolbar-control-height);
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconGlyph {
+  display: block;
+  line-height: 1;
 }
 
 .buttonPrimary {

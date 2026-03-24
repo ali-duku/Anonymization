@@ -58,7 +58,11 @@ function RegionEditorModalComponent({
   onCancelSpanEditor,
   onSave,
   onReset,
-  onDelete
+  onDelete,
+  onCopyRegion,
+  hasCopiedBbox,
+  onPasteRegionFromClipboard,
+  onCopyRegionText
 }: RegionEditorModalProps) {
   const [snippetZoom, setSnippetZoom] = useState(1);
   const {
@@ -344,6 +348,28 @@ function RegionEditorModalComponent({
           </div>
 
           <div className={styles.dialogActions}>
+            <button
+              type="button"
+              className={styles.buttonSecondary}
+              onClick={() => onCopyRegion(activeRegion)}
+            >
+              Copy BBox
+            </button>
+            <button
+              type="button"
+              className={styles.buttonSecondary}
+              onClick={onPasteRegionFromClipboard}
+              disabled={!hasCopiedBbox}
+            >
+              Paste BBox
+            </button>
+            <button
+              type="button"
+              className={styles.buttonSecondary}
+              onClick={() => onCopyRegionText(activeRegion)}
+            >
+              Copy Text
+            </button>
             <button type="button" className={styles.buttonSecondary} onClick={onSave}>
               Save
             </button>

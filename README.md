@@ -11,10 +11,25 @@ Every functional/UI update must include both:
 
 ## Latest Update
 
-- **v0.6.6 (2026-03-24)**
-  - Added a global top-header `Font size` dropdown (Small / Medium / Large).
-  - Added canonical app-level display settings state with persistent restore across reloads/sessions.
-  - Applied font-size updates globally through root CSS scaling so text sizing changes consistently across the app.
+- **v0.6.10 (2026-03-24)**
+  - Fixed bbox render-basis drift by keeping PDF canvas and overlay stage on the same pixel dimensions (no responsive stage/canvas max-width clamping).
+  - Centralized bbox projection helpers so overlay placement and canvas snippet crops use one canonical normalized-bbox conversion path.
+  - Enforced normalized bbox input contract (`x1/y1/x2/y2` in `[0..1]`) during parse with explicit error messaging for invalid upstream data.
+
+- **v0.6.9 (2026-03-24)**
+  - Added `Paste BBox` in the Edit Region dialog to apply copied bbox payload into the currently edited bbox draft (in-place update, no new bbox creation).
+  - Reused the same canonical full-bbox clipboard payload mapping for both toolbar paste (new bbox) and dialog paste (current bbox overwrite).
+  - Preserved existing save flow: pasted dialog changes persist through the standard `Save` path.
+
+- **v0.6.8 (2026-03-24)**
+  - Updated toolbar labels/icons: `Fit Width` is now `Fit`, and page navigation uses arrow controls.
+  - Added full bbox copy from overlay and region dialog, plus toolbar paste beside `Add BBox`.
+  - Added separate text-only copy actions from overlay and region dialog.
+
+- **v0.6.7 (2026-03-24)**
+  - Updated on-bbox controls to compact translucent icon buttons (pen edit + trash delete).
+  - Added direct delete action on each bbox overlay using the same canonical delete behavior as the region dialog.
+  - Preserved existing overlay edit/delete interaction flow while reducing on-canvas visual footprint.
 
 ## Core Features
 
@@ -23,13 +38,18 @@ Every functional/UI update must include both:
 - `Setup` tab for JSON input, generation, copy, and loading overlays into Viewer.
 - Viewer supports:
   - Secure retrieval by ID through simulated backend contract (`api/getfile?id=<id>`).
-  - Page navigation, zoom, and fit-width.
+  - Optional manual local PDF upload bypass from the same toolbar/empty state.
+  - Page navigation, zoom, and fit.
   - Overlay drag/resize/create.
+  - On-canvas bbox action controls (icon-only edit/delete/full-copy/text-copy) with dialog-equivalent delete behavior.
+  - Toolbar paste action beside `Add BBox` to create a new bbox from copied bbox payload on the current page.
   - Region dialog editing (label/text/entities), span anonymization, and delete.
+  - Region dialog full bbox copy, in-place `Paste BBox` into the currently edited bbox draft, and separate text-only copy actions.
   - Searchable entity-label dropdown for both new anonymization spans and span-editor updates.
   - Draggable outer dialog pane separator with session-scoped width persistence.
   - Current-page bbox Previous/Next navigation while editing.
   - Region snippet zoom controls with right-click/drag-save prevention.
+  - Optional bbox diagnostics logs in development via `VITE_VIEWER_BBOX_DEBUG=1`.
 - Setup supports:
   - Uncontrolled input/output textareas for large JSON payloads.
   - Pretty-printed generation output.

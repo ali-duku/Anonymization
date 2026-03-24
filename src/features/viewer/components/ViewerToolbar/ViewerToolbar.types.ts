@@ -7,6 +7,7 @@ export interface ViewerToolbarProps {
   zoom: number;
   isCreateMode: boolean;
   canCreateBbox: boolean;
+  hasCopiedBbox: boolean;
   recordSummary: string;
   overlayCount: number;
   showOverlayCount: boolean;
@@ -23,6 +24,7 @@ export interface ViewerToolbarProps {
   onMovePage: (direction: -1 | 1) => void;
   onPageInput: (nextPage: number) => void;
   onToggleCreateMode: () => void;
+  onPasteCopiedBbox: () => void;
   onZoomOut: () => void;
   onZoomIn: () => void;
   onFitToWidth: () => void;

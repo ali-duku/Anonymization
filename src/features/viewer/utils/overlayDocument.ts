@@ -133,6 +133,13 @@ export function addRegionToDocument(
   pageNumber: number,
   region: OverlayRegion
 ): OverlayDocument {
+  const hasPage = document.pages.some((page) => page.pageNumber === pageNumber);
+  if (!hasPage) {
+    return {
+      pages: [...document.pages, { pageNumber, regions: [region] }].sort((left, right) => left.pageNumber - right.pageNumber)
+    };
+  }
+
   const nextPages = document.pages.map((page) =>
     page.pageNumber === pageNumber
       ? {

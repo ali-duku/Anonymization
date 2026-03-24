@@ -21,10 +21,16 @@
   - `utils`: identifier validation and backend response/payload guards.
 - `src/features/viewer`
   - `components`: `PdfViewerTab` plus focused UI blocks (`ViewerToolbar`, `ViewerCanvasStage`, `OverlayLayer`, `OverlayBox`, `RegionEditorModal`, `EntityPicker`, `SearchableEntityField`, `SpanEditorPopover`, `ViewerStatus`).
-  - `hooks`: PDF rendering lifecycle, overlay interactions, bbox creation, region editor state, region-dialog layout splitter state/persistence (`useRegionDialogLayout`).
+  - `hooks`: PDF rendering lifecycle, overlay interactions, bbox creation, bbox clipboard copy/paste (`useBboxClipboard`), region editor state, region-dialog layout splitter state/persistence (`useRegionDialogLayout`).
   - `utils`: pure geometry/status/text/document helpers.
   - `constants`: viewer interaction constants.
   - `RegionEditorModal` owns viewport-aware dialog UX, snippet zoom/protection controls, current-page previous/next bbox navigation wiring, and the outer-pane resize separator render integration (including shared width-clamp constants for drag/keyboard resize limits).
+  - `utils/bboxProjection.ts` is the canonical normalized-bbox projection module used for overlay CSS placement and pixel-space crops.
+  - `utils/previewModel.ts` owns table-preview detection/projection (` ```html ` table-only), including raw-offset entity mapping and markup-overlap warnings.
+  - `usePdfDocument` is the rendering basis authority: PDF canvas intrinsic/CSS dimensions and overlay stage dimensions are kept identical so pointer normalization and overlay positioning share one coordinate frame.
+  - `OverlayBox` owns direct on-canvas bbox actions (compact translucent icon edit/delete/full-copy/text-copy controls), with delete routed through the same canonical region-editor delete pipeline.
+  - `ViewerToolbar` keeps canonical page/zoom/create controls and includes bbox paste beside `Add BBox`, using the shared bbox clipboard state in `PdfViewerTab` to create a new region.
+  - `RegionEditorModal` includes bbox full-copy, in-place paste into the active region draft, and text-only copy actions; dialog and toolbar paste reuse the same canonical clipboard payload mapping with different apply targets.
   - `SearchableEntityField` is the shared searchable dropdown input used by both `EntityPicker` and `SpanEditorPopover` for canonical entity-label selection.
   - `SpanEditorPopover` is viewport-positioned and anchored from preview-span geometry emitted by the dialog.
 - `src/features/settings`
@@ -34,7 +40,7 @@
 - `src/services`
   - `jsonService.ts`
   - `annotationService.ts` (orchestrator)
-  - `annotation/*` (parsing, matching, patching, shared helpers, json error parsing).
+  - `annotation/*` (parsing, matching, patching, shared helpers, json error parsing), including normalized bbox contract validation for overlay inputs.
 - `src/types`: contracts for app meta, history, JSON, overlay, PDF, and service APIs.
 - `src/utils/history.ts`: generic undo/redo state engine.
 

@@ -1,19 +1,11 @@
 import type { OverlayDocument } from "../../../types/overlay";
 import type { BboxClipboardPayload } from "../utils/bboxClipboard";
 
-export type TextDirection = "rtl" | "ltr";
+export type { BboxClipboardPayload };
 
-export interface SpanEditorDraft {
-  index: number;
-  entity: string;
-  anchorX: number;
-  anchorY: number;
-}
-
-export interface UseRegionEditorOptions {
+export interface UseBboxClipboardOptions {
   overlayDocument: OverlayDocument | null;
   currentPage: number;
-  copiedBbox: BboxClipboardPayload | null;
   onOverlayEditStarted?: () => void;
   onOverlayDocumentSaved?: (document: OverlayDocument) => void;
 }

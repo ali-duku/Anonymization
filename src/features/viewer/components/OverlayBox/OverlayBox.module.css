@@ -58,26 +58,47 @@
   transform: scale(1.05);
 }
 
-.overlayEditButton {
+.overlayActionGroup {
   position: absolute;
   top: 3px;
   right: 3px;
+  display: flex;
+  gap: 4px;
+  z-index: 3;
+}
+
+.overlayActionButton {
   border: 1px solid;
-  border-radius: 7px;
+  border-radius: 6px;
   color: #08111a;
   font-size: 0.68rem;
   font-weight: 700;
   line-height: 1;
-  padding: 4px 7px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  opacity: 0.96;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(7, 14, 22, 0.35);
+  opacity: 0.7;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(7, 14, 22, 0.2);
   transition: opacity 130ms ease, filter 130ms ease, transform 130ms ease;
-  z-index: 3;
 }
 
-.overlayBox:hover .overlayEditButton,
-.overlayBox:focus-within .overlayEditButton {
+.overlayDeleteButton {
+  background: rgba(175, 34, 34, 0.45);
+  color: rgba(255, 240, 240, 0.95);
+}
+
+.overlayActionIcon {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+
+.overlayBox:hover .overlayActionButton,
+.overlayBox:focus-within .overlayActionButton {
   opacity: 1;
   filter: brightness(1.08);
   transform: translateY(-1px);
