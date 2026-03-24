@@ -11,10 +11,10 @@ Every functional/UI update must include both:
 
 ## Latest Update
 
-- **v0.6.5 (2026-03-24)**
-  - Replaced fixed entity `<select>` inputs with a searchable entity dropdown field in both anonymization entity pickers.
-  - Updated anonymize flow so pressing `Anonymize` opens entity input in an empty state until a valid catalog label is selected.
-  - Added stricter entity apply validation so unknown/free-typed labels are rejected with clear warning feedback.
+- **v0.6.6 (2026-03-24)**
+  - Added a global top-header `Font size` dropdown (Small / Medium / Large).
+  - Added canonical app-level display settings state with persistent restore across reloads/sessions.
+  - Applied font-size updates globally through root CSS scaling so text sizing changes consistently across the app.
 
 ## Core Features
 
@@ -36,6 +36,7 @@ Every functional/UI update must include both:
   - Copy-to-clipboard.
   - Load-to-Viewer with confirmation guards.
 - App-level Save / Undo / Redo with keyboard shortcuts.
+- App-level display settings with persistent global font-size control.
 
 ## Stack
 

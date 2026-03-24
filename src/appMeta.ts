@@ -2,8 +2,17 @@ import type { AppMeta } from "./types/appMeta";
 
 export const APP_META: AppMeta = {
   name: "Anonymizer",
-  version: "0.6.5",
+  version: "0.6.6",
   releaseNotes: [
+    {
+      version: "0.6.6",
+      date: "2026-03-24",
+      highlights: [
+        "Added a global `Font size` dropdown in the top header bar with Small, Medium, and Large options.",
+        "Implemented canonical app-level display settings state with localStorage persistence and automatic restore on startup.",
+        "Applied font size globally through root CSS scaling so text updates consistently across the app without one-off component patches."
+      ]
+    },
     {
       version: "0.6.5",
       date: "2026-03-24",
