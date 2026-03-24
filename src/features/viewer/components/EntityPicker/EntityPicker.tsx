@@ -1,6 +1,7 @@
 import { memo } from "react";
 import styles from "./EntityPicker.module.css";
 import type { EntityPickerProps } from "./EntityPicker.types";
+import { SearchableEntityField } from "../SearchableEntityField/SearchableEntityField";
 
 function EntityPickerComponent({
   selection,
@@ -23,18 +24,14 @@ function EntityPickerComponent({
       <label className={styles.textLabel} htmlFor="overlay-entity-select">
         Entity
       </label>
-      <select
+      <SearchableEntityField
         id="overlay-entity-select"
-        className={styles.select}
         value={coerceEntityLabel(pendingEntity)}
-        onChange={(event) => onPendingEntityChange(coerceEntityLabel(event.currentTarget.value))}
-      >
-        {entityLabels.map((entity) => (
-          <option key={entity} value={entity}>
-            {entity}
-          </option>
-        ))}
-      </select>
+        entityLabels={entityLabels}
+        coerceEntityLabel={coerceEntityLabel}
+        onChange={onPendingEntityChange}
+        className={styles.select}
+      />
 
       <div className={styles.actions}>
         <button type="button" className={styles.buttonSecondary} onClick={onApply}>

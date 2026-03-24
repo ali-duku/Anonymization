@@ -1,6 +1,7 @@
 import { memo, useMemo } from "react";
 import styles from "./SpanEditorPopover.module.css";
 import type { SpanEditorPopoverProps } from "./SpanEditorPopover.types";
+import { SearchableEntityField } from "../SearchableEntityField/SearchableEntityField";
 
 function SpanEditorPopoverComponent({
   spanEditor,
@@ -43,20 +44,14 @@ function SpanEditorPopoverComponent({
       <label className={styles.textLabel} htmlFor="overlay-span-entity">
         Entity
       </label>
-      <select
+      <SearchableEntityField
         id="overlay-span-entity"
-        className={styles.select}
         value={coerceEntityLabel(spanEditor.entity)}
-        onChange={(event) => {
-          onEntityChange(coerceEntityLabel(event.currentTarget.value));
-        }}
-      >
-        {entityLabels.map((entity) => (
-          <option key={entity} value={entity}>
-            {entity}
-          </option>
-        ))}
-      </select>
+        entityLabels={entityLabels}
+        coerceEntityLabel={coerceEntityLabel}
+        onChange={onEntityChange}
+        className={styles.select}
+      />
 
       <div className={styles.actions}>
         <button type="button" className={styles.buttonSecondary} onClick={onSave}>
