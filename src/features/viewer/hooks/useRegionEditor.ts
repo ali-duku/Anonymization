@@ -77,7 +77,21 @@ export function useRegionEditor({
   useEffect(() => {
     setActiveRegionId(null);
     resetDraftState();
-  }, [currentPage, overlayDocument, resetDraftState, setActiveRegionId]);
+  }, [currentPage, resetDraftState, setActiveRegionId]);
+
+  useEffect(() => {
+    if (!activeRegionId) {
+      return;
+    }
+
+    const regionStillExists = resolveActiveRegion(overlayDocument, activeRegionId);
+    if (regionStillExists) {
+      return;
+    }
+
+    setActiveRegionId(null);
+    resetDraftState();
+  }, [activeRegionId, overlayDocument, resetDraftState, setActiveRegionId]);
 
   const closeAndResetEditor = useCallback(() => {
     setActiveRegionId(null);
@@ -186,11 +200,8 @@ export function useRegionEditor({
       });
       onOverlayDocumentSaved(nextDocument);
     }
-
-    closeAndResetEditor();
   }, [
     activeRegion,
-    closeAndResetEditor,
     dialogDraftEntities,
     dialogDraftLabel,
     dialogDraftText,
