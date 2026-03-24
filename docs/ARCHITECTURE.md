@@ -21,10 +21,10 @@
   - `utils`: identifier validation and backend response/payload guards.
 - `src/features/viewer`
   - `components`: `PdfViewerTab` plus focused UI blocks (`ViewerToolbar`, `ViewerCanvasStage`, `OverlayLayer`, `OverlayBox`, `RegionEditorModal`, `EntityPicker`, `SpanEditorPopover`, `ViewerStatus`).
-  - `hooks`: PDF rendering lifecycle, overlay interactions, bbox creation, region editor state.
+  - `hooks`: PDF rendering lifecycle, overlay interactions, bbox creation, region editor state, region-dialog layout splitter state/persistence (`useRegionDialogLayout`).
   - `utils`: pure geometry/status/text/document helpers.
   - `constants`: viewer interaction constants.
-  - `RegionEditorModal` owns viewport-aware dialog UX, snippet zoom/protection controls, and current-page previous/next bbox navigation wiring.
+  - `RegionEditorModal` owns viewport-aware dialog UX, snippet zoom/protection controls, current-page previous/next bbox navigation wiring, and the outer-pane resize separator render integration (including shared width-clamp constants for drag/keyboard resize limits).
   - `SpanEditorPopover` is viewport-positioned and anchored from preview-span geometry emitted by the dialog.
 - `src/constants`: shared catalogs (`anonymizationEntities`, `regionLabelOptions`).
 - `src/services`

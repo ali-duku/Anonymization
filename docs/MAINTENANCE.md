@@ -9,9 +9,12 @@
 
 ## Current Baseline
 
-- Latest shipped version: `0.6.1`.
+- Latest shipped version: `0.6.3`.
 - Latest viewer baseline includes:
   - viewport-aware region editor scrolling,
+  - draggable outer region-dialog separator with keyboard resize support,
+  - widened region-dialog separator resize envelope (further-left drag allowed),
+  - per-tab session persistence for outer dialog pane width,
   - snippet zoom + save-prevention UX controls,
   - current-page bbox previous/next navigation,
   - viewport-anchored span editor popover.

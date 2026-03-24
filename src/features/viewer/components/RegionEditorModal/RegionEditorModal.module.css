@@ -8,15 +8,21 @@
 }
 
 .modalShell {
+  --region-dialog-right-pane-width: 620px;
+  --region-dialog-separator-width: 10px;
   width: 100%;
   max-width: 100%;
   height: 100%;
   max-height: 100%;
   box-sizing: border-box;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(460px, 44vw, 760px);
+  grid-template-columns: minmax(0, 1fr) var(--region-dialog-separator-width) minmax(0, var(--region-dialog-right-pane-width));
   align-items: stretch;
   overflow: hidden;
+}
+
+.modalShellDragging {
+  user-select: none;
 }
 
 .snippetPane {
@@ -26,8 +32,41 @@
   grid-template-rows: auto auto minmax(0, 1fr);
   gap: 8px;
   padding: 16px;
-  border-right: 1px solid var(--line);
   background: linear-gradient(160deg, rgba(10, 18, 28, 0.96), rgba(8, 14, 23, 0.98));
+}
+
+.paneSeparator {
+  position: relative;
+  width: var(--region-dialog-separator-width);
+  min-width: var(--region-dialog-separator-width);
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
+  border: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+}
+
+.paneSeparator::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 2px;
+  height: calc(100% - 18px);
+  border-radius: 999px;
+  background: rgba(121, 152, 184, 0.26);
+  transition: background 120ms ease, box-shadow 120ms ease;
+}
+
+.paneSeparator:hover::before,
+.paneSeparator:focus-visible::before {
+  background: rgba(128, 252, 226, 0.85);
+  box-shadow: 0 0 0 2px rgba(128, 252, 226, 0.2);
+}
+
+.paneSeparatorDragging::before {
+  background: rgba(128, 252, 226, 1);
+  box-shadow: 0 0 0 3px rgba(128, 252, 226, 0.24);
 }
 
 .snippetHeader {
@@ -120,6 +159,7 @@
   padding: 14px;
   gap: 10px;
   background: linear-gradient(150deg, #111d29, #0d151f);
+  border-left: 1px solid var(--line);
   overflow: hidden;
 }
 
@@ -408,13 +448,13 @@
 
 @media (max-width: 1400px) {
   .modalShell {
-    grid-template-columns: minmax(0, 1fr) clamp(420px, 46vw, 680px);
+    --region-dialog-right-pane-width: 560px;
   }
 }
 
 @media (max-width: 1280px) {
   .modalShell {
-    grid-template-columns: minmax(0, 1fr) clamp(380px, 48vw, 620px);
+    --region-dialog-right-pane-width: 500px;
   }
 }
 
@@ -427,8 +467,15 @@
   }
 
   .snippetPane {
-    border-right: 0;
     border-bottom: 1px solid var(--line);
+  }
+
+  .paneSeparator {
+    display: none;
+  }
+
+  .modalCard {
+    border-left: 0;
   }
 
   .editorGrid {

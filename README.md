@@ -11,10 +11,10 @@ Every functional/UI update must include both:
 
 ## Latest Update
 
-- **v0.6.1 (2026-03-18)**
-  - Made the Edit Region dialog viewport-aware so metadata and action buttons are always reachable.
-  - Added region-context snippet zoom controls, plus blocked context-menu/drag-save behavior on snippet images.
-  - Added previous/next bbox navigation for the current page, fixed span-popover anchoring to selected preview spans, and restored reliable anonymize action behavior.
+- **v0.6.3 (2026-03-24)**
+  - Expanded the Edit Region dialog splitter resize range so the separator can move further left.
+  - Reduced the left-pane minimum-width clamp and increased the right-pane maximum-width clamp.
+  - Kept drag/keyboard/ARIA/session-persistence behavior aligned with the new pane-width limits.
 
 ## Core Features
 
@@ -26,6 +26,7 @@ Every functional/UI update must include both:
   - Page navigation, zoom, and fit-width.
   - Overlay drag/resize/create.
   - Region dialog editing (label/text/entities), span anonymization, and delete.
+  - Draggable outer dialog pane separator with session-scoped width persistence.
   - Current-page bbox Previous/Next navigation while editing.
   - Region snippet zoom controls with right-click/drag-save prevention.
 - Setup supports:
