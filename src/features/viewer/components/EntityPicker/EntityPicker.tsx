@@ -8,8 +8,8 @@ function EntityPickerComponent({
   pendingEntity,
   entityLabels,
   coerceEntityLabel,
+  containerRef,
   onPendingEntityChange,
-  onApply,
   onCancel
 }: EntityPickerProps) {
   if (!selection) {
@@ -17,7 +17,7 @@ function EntityPickerComponent({
   }
 
   return (
-    <div className={styles.entityPicker}>
+    <div ref={containerRef} className={styles.entityPicker}>
       <span className={styles.textLabel}>
         Selected [{selection.start}, {selection.end}): "{selection.text}"
       </span>
@@ -34,9 +34,6 @@ function EntityPickerComponent({
       />
 
       <div className={styles.actions}>
-        <button type="button" className={styles.buttonSecondary} onClick={onApply}>
-          Apply Entity
-        </button>
         <button type="button" className={styles.buttonPrimary} onClick={onCancel}>
           Cancel
         </button>

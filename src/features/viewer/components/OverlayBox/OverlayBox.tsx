@@ -1,4 +1,5 @@
 import { memo, useMemo } from "react";
+import { buildRegionLabelOptions } from "../../../../constants/regionLabelOptions";
 import { buildPalette } from "../../utils/viewerPalette";
 import styles from "./OverlayBox.module.css";
 import type { OverlayBoxProps } from "./OverlayBox.types";
@@ -19,11 +20,13 @@ function OverlayBoxComponent({
   resizeHandles,
   onBeginInteraction,
   onOpenRegionEditor,
+  onChangeRegionLabel,
   onDeleteRegion,
   onCopyRegion,
   onCopyRegionText
 }: OverlayBoxProps) {
   const palette = useMemo(() => buildPalette(region.label), [region.label]);
+  const labelOptions = useMemo(() => buildRegionLabelOptions(region.label), [region.label]);
 
   return (
     <div
@@ -55,6 +58,27 @@ function OverlayBoxComponent({
             />
           ))}
           <div className={styles.overlayActionGroup}>
+            <select
+              className={styles.overlayLabelSelect}
+              style={{
+                borderColor: palette.border,
+                background: palette.buttonBackground,
+                color: palette.buttonText
+              }}
+              value={region.label}
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={(event) => event.stopPropagation()}
+              onChange={(event) => onChangeRegionLabel(region, event.currentTarget.value)}
+              disabled={isCreateMode}
+              aria-label={`Change ${region.label} region label`}
+              title="Change label"
+            >
+              {labelOptions.map((label) => (
+                <option key={label} value={label}>
+                  {label}
+                </option>
+              ))}
+            </select>
             <button
               type="button"
               className={styles.overlayActionButton}

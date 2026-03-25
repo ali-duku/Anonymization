@@ -19,6 +19,7 @@ export interface ViewerCanvasStageProps {
     mode: "drag" | ResizeHandle
   ) => void;
   onOpenRegionEditor: (region: OverlayRegion) => void;
+  onChangeRegionLabel: (region: OverlayRegion, nextLabel: string) => void;
   onDeleteRegion: (region: OverlayRegion) => void;
   onCopyRegion: (region: OverlayRegion) => void;
   onCopyRegionText: (region: OverlayRegion) => void;

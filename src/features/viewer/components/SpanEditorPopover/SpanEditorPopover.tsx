@@ -7,8 +7,8 @@ function SpanEditorPopoverComponent({
   spanEditor,
   entityLabels,
   coerceEntityLabel,
+  containerRef,
   onEntityChange,
-  onSave,
   onRemove,
   onCancel
 }: SpanEditorPopoverProps) {
@@ -34,6 +34,7 @@ function SpanEditorPopoverComponent({
 
   return (
     <div
+      ref={containerRef}
       className={styles.spanEditor}
       style={{
         left: `${clampedPosition.left}px`,
@@ -54,9 +55,6 @@ function SpanEditorPopoverComponent({
       />
 
       <div className={styles.actions}>
-        <button type="button" className={styles.buttonSecondary} onClick={onSave}>
-          Save Span
-        </button>
         <button type="button" className={styles.buttonDanger} onClick={onRemove}>
           Remove Span
         </button>

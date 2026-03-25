@@ -9,7 +9,7 @@
 
 ## Current Baseline
 
-- Latest shipped version: `0.6.10`.
+- Latest shipped version: `0.7.0`.
 - Latest viewer baseline includes:
   - retrieval-by-ID as the primary PDF flow,
   - session-only manual upload bypass as secondary flow,
@@ -17,9 +17,11 @@
   - draggable outer region-dialog separator with keyboard resize support,
   - per-tab session persistence for outer dialog pane width,
   - searchable entity dropdown field for anonymization entity selection (entity picker + span editor),
-  - empty-default anonymization entity input after pressing `Anonymize`, requiring a valid catalog label before apply,
+  - immediate entity auto-apply for both new anonymized-span and edit-span dialogs (no explicit span `Apply`/`Save` buttons),
+  - topmost-first nested dialog dismissal for span dialogs (`Escape` and outside-click close the active span dialog first, keeping the parent region dialog open),
   - app-level persistent display settings with global top-header font-size control (Small/Medium/Large),
   - compact translucent on-canvas bbox icon controls (pen edit + trash delete),
+  - compact inline on-canvas bbox label selector beside existing overlay action icons (copy/text-copy/edit/delete),
   - on-canvas bbox full-copy and text-only copy controls,
   - toolbar bbox paste action beside `Add BBox`,
   - region-dialog `Paste BBox` action to apply copied full-bbox payload into the active region draft (in-place update),
@@ -30,6 +32,9 @@
   - direct on-canvas delete routed through the same canonical delete behavior used by the region dialog,
   - snippet zoom + save-prevention UX controls,
   - current-page bbox previous/next navigation,
+  - Save-in-dialog auto-advance to next bbox on successful save only, routed through canonical page-region next navigation logic,
+  - region dialog split-pane sizing guardrails with one canonical runtime constraint solver (interaction clamp + grid/pane `min-width` enforcement), anchored to the dialog shell inner coordinate space so separator drag is always container-bounded while preserving intrinsic protected-row minima plus pane chrome with runtime remeasurement on resize/font/content changes (no compact/stacked fallback path and no protected-row `min-width` feedback-loop constraints),
+  - region context snippet zoom that initializes/resets at 50% while preserving explicit zoom-driven scaling behavior,
   - viewport-anchored span editor popover,
   - fenced HTML table rendering in Region Editor Preview with raw-offset span projection.
 

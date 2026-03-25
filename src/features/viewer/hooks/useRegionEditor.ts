@@ -14,7 +14,7 @@ import {
   normalizeEntitySpansForText,
   sortEntitySpans
 } from "../../../constants/anonymizationEntities";
-import { REGION_LABEL_OPTIONS } from "../../../constants/regionLabelOptions";
+import { buildRegionLabelOptions } from "../../../constants/regionLabelOptions";
 import type { OverlayDocument, OverlayRegion } from "../../../types/overlay";
 import { buildRegionEditsFromBboxClipboardPayload } from "../utils/bboxClipboard";
 import { applyRegionEdits, hasBboxChanged, removeRegionFromDocument } from "../utils/overlayDocument";
@@ -158,13 +158,10 @@ export function useRegionEditor({
     ).valid;
   }, [normalizedDraftEntities, pendingSelection, previewModel]);
 
-  const dialogLabelOptions = useMemo(() => {
-    const known = REGION_LABEL_OPTIONS.includes(dialogDraftLabel as (typeof REGION_LABEL_OPTIONS)[number]);
-    if (!dialogDraftLabel || known) {
-      return REGION_LABEL_OPTIONS;
-    }
-    return [dialogDraftLabel, ...REGION_LABEL_OPTIONS];
-  }, [dialogDraftLabel]);
+  const dialogLabelOptions = useMemo(
+    () => buildRegionLabelOptions(dialogDraftLabel),
+    [dialogDraftLabel]
+  );
 
   const openRegionEditor = useCallback((region: OverlayRegion) => {
     setActiveRegionId(region.id);
@@ -218,9 +215,9 @@ export function useRegionEditor({
     setEntityWarning(null);
   }, [activeRegion]);
 
-  const handleSaveRegionEditor = useCallback(() => {
+  const handleSaveRegionEditor = useCallback((): boolean => {
     if (!activeRegion) {
-      return;
+      return false;
     }
 
     const nextLabel = dialogDraftLabel.trim() || activeRegion.label;
@@ -228,16 +225,19 @@ export function useRegionEditor({
     const nextText = dialogDraftText;
     const nextEntities = normalizeEntitySpansForText(dialogDraftEntities, nextText);
 
-    if (overlayDocument && onOverlayDocumentSaved) {
-      onOverlayEditStarted?.();
-      const nextDocument = applyRegionEdits(overlayDocument, activeRegion.pageNumber, activeRegion.id, {
-        bbox: nextBbox,
-        label: nextLabel,
-        text: nextText,
-        entities: nextEntities
-      });
-      onOverlayDocumentSaved(nextDocument);
+    if (!overlayDocument || !onOverlayDocumentSaved) {
+      return false;
     }
+
+    onOverlayEditStarted?.();
+    const nextDocument = applyRegionEdits(overlayDocument, activeRegion.pageNumber, activeRegion.id, {
+      bbox: nextBbox,
+      label: nextLabel,
+      text: nextText,
+      entities: nextEntities
+    });
+    onOverlayDocumentSaved(nextDocument);
+    return true;
   }, [
     activeRegion,
     dialogDraftBbox,
@@ -248,6 +248,37 @@ export function useRegionEditor({
     onOverlayEditStarted,
     overlayDocument
   ]);
+
+  const updateRegionLabelWithCanonicalFlow = useCallback(
+    (region: OverlayRegion, nextLabelRaw: string) => {
+      if (!overlayDocument || !onOverlayDocumentSaved) {
+        return;
+      }
+
+      const nextLabel = nextLabelRaw.trim() || region.label;
+      if (nextLabel === region.label) {
+        if (activeRegionId === region.id) {
+          setDialogDraftLabel(nextLabel);
+        }
+        return;
+      }
+
+      const nextDocument = applyRegionEdits(overlayDocument, region.pageNumber, region.id, {
+        label: nextLabel
+      });
+      if (nextDocument === overlayDocument) {
+        return;
+      }
+
+      onOverlayEditStarted?.();
+      onOverlayDocumentSaved(nextDocument);
+
+      if (activeRegionId === region.id) {
+        setDialogDraftLabel(nextLabel);
+      }
+    },
+    [activeRegionId, onOverlayDocumentSaved, onOverlayEditStarted, overlayDocument, setDialogDraftLabel]
+  );
 
   const canPasteCopiedBboxIntoRegion = useMemo(
     () => Boolean(activeRegion && copiedBbox),
@@ -377,52 +408,72 @@ export function useRegionEditor({
     setEntityWarning(null);
   }, [dialogDraftText, normalizedDraftEntities, pendingSelection, previewModel]);
 
-  const handleApplyPickerEntity = useCallback(() => {
-    if (!pickerSelection) {
-      setEntityWarning("Select a continuous text range before anonymizing.");
-      return;
-    }
-
-    const selectionValidation = canApplySelectionToTablePreview(
-      previewModel,
-      pickerSelection.start,
-      pickerSelection.end
-    );
-    if (!selectionValidation.valid) {
-      setEntityWarning(selectionValidation.warning.message);
-      return;
-    }
-
-    const pendingEntityTrimmed = pendingEntity.trim();
-    if (!pendingEntityTrimmed) {
-      setEntityWarning("Choose an entity label.");
-      return;
-    }
-    const nextEntity = coerceEntityLabel(pendingEntityTrimmed);
-    if (nextEntity !== pendingEntityTrimmed) {
-      setEntityWarning("Choose an entity label.");
-      return;
-    }
-
-    if (hasEntityOverlap(normalizedDraftEntities, pickerSelection.start, pickerSelection.end)) {
-      setEntityWarning("Overlapping anonymized spans are not allowed.");
-      return;
-    }
-
-    const nextSpans = sortEntitySpans([
-      ...normalizedDraftEntities,
-      {
-        start: pickerSelection.start,
-        end: pickerSelection.end,
-        entity: nextEntity
+  const handleApplyPickerEntity = useCallback(
+    (entityOverride?: string) => {
+      if (!pickerSelection) {
+        setEntityWarning("Select a continuous text range before anonymizing.");
+        return;
       }
-    ]);
 
-    setDialogDraftEntities(nextSpans);
+      const selectionValidation = canApplySelectionToTablePreview(
+        previewModel,
+        pickerSelection.start,
+        pickerSelection.end
+      );
+      if (!selectionValidation.valid) {
+        setEntityWarning(selectionValidation.warning.message);
+        return;
+      }
+
+      const pendingEntityTrimmed = (entityOverride ?? pendingEntity).trim();
+      if (!pendingEntityTrimmed) {
+        setEntityWarning("Choose an entity label.");
+        return;
+      }
+      const nextEntity = coerceEntityLabel(pendingEntityTrimmed);
+      if (nextEntity !== pendingEntityTrimmed) {
+        setEntityWarning("Choose an entity label.");
+        return;
+      }
+
+      if (hasEntityOverlap(normalizedDraftEntities, pickerSelection.start, pickerSelection.end)) {
+        setEntityWarning("Overlapping anonymized spans are not allowed.");
+        return;
+      }
+
+      const nextSpans = sortEntitySpans([
+        ...normalizedDraftEntities,
+        {
+          start: pickerSelection.start,
+          end: pickerSelection.end,
+          entity: nextEntity
+        }
+      ]);
+
+      setDialogDraftEntities(nextSpans);
+      setPendingSelection(null);
+      setPickerSelection(null);
+      setEntityWarning(null);
+    },
+    [normalizedDraftEntities, pendingEntity, pickerSelection, previewModel]
+  );
+
+  const handlePendingEntityChange = useCallback(
+    (nextEntity: string) => {
+      setPendingEntity(nextEntity);
+      if (!pickerSelection) {
+        return;
+      }
+      handleApplyPickerEntity(nextEntity);
+    },
+    [handleApplyPickerEntity, pickerSelection]
+  );
+
+  const handleCancelPicker = useCallback(() => {
     setPendingSelection(null);
     setPickerSelection(null);
     setEntityWarning(null);
-  }, [normalizedDraftEntities, pendingEntity, pickerSelection, previewModel]);
+  }, []);
 
   const handleOpenSpanEditor = useCallback(
     (index: number, anchorX: number, anchorY: number) => {
@@ -443,37 +494,63 @@ export function useRegionEditor({
     [normalizedDraftEntities]
   );
 
-  const handleApplySpanEditor = useCallback(() => {
-    if (!spanEditor) {
-      return;
-    }
+  const handleApplySpanEditor = useCallback(
+    (entityOverride?: string) => {
+      if (!spanEditor) {
+        return;
+      }
 
-    if (!normalizedDraftEntities[spanEditor.index]) {
-      setEntityWarning("This span no longer exists.");
+      if (!normalizedDraftEntities[spanEditor.index]) {
+        setEntityWarning("This span no longer exists.");
+        setSpanEditor(null);
+        return;
+      }
+
+      const nextEntity = coerceEntityLabel((entityOverride ?? spanEditor.entity).trim());
+      if (!nextEntity) {
+        setEntityWarning("Choose an entity for the highlighted range.");
+        return;
+      }
+
+      const nextSpans = normalizedDraftEntities.map((span, index) =>
+        index === spanEditor.index
+          ? {
+              start: span.start,
+              end: span.end,
+              entity: nextEntity
+            }
+          : span
+      );
+
+      setDialogDraftEntities(sortEntitySpans(nextSpans));
       setSpanEditor(null);
-      return;
-    }
+      setEntityWarning(null);
+    },
+    [normalizedDraftEntities, spanEditor]
+  );
 
-    const nextEntity = coerceEntityLabel(spanEditor.entity);
-    if (!nextEntity) {
-      setEntityWarning("Choose an entity for the highlighted range.");
-      return;
-    }
+  const handleSpanEditorEntityChange = useCallback(
+    (nextEntity: string) => {
+      setSpanEditor((previous) =>
+        previous
+          ? {
+              ...previous,
+              entity: nextEntity
+            }
+          : previous
+      );
+      if (!spanEditor) {
+        return;
+      }
+      handleApplySpanEditor(nextEntity);
+    },
+    [handleApplySpanEditor, spanEditor]
+  );
 
-    const nextSpans = normalizedDraftEntities.map((span, index) =>
-      index === spanEditor.index
-        ? {
-            start: span.start,
-            end: span.end,
-            entity: nextEntity
-          }
-        : span
-    );
-
-    setDialogDraftEntities(sortEntitySpans(nextSpans));
+  const handleCancelSpanEditor = useCallback(() => {
     setSpanEditor(null);
     setEntityWarning(null);
-  }, [normalizedDraftEntities, spanEditor]);
+  }, []);
 
   const handleRemoveSpan = useCallback(() => {
     if (!spanEditor) {
@@ -500,25 +577,6 @@ export function useRegionEditor({
       setSpanEditor(null);
     }
   }, [normalizedDraftEntities, spanEditor]);
-
-  useEffect(() => {
-    if (!activeRegionId) {
-      return;
-    }
-
-    const onWindowKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") {
-        return;
-      }
-      event.preventDefault();
-      closeRegionEditor();
-    };
-
-    window.addEventListener("keydown", onWindowKeyDown);
-    return () => {
-      window.removeEventListener("keydown", onWindowKeyDown);
-    };
-  }, [activeRegionId, closeRegionEditor]);
 
   return {
     dialogTextareaRef,
@@ -548,13 +606,18 @@ export function useRegionEditor({
     handlePasteCopiedBboxIntoRegion,
     handleDeleteRegionEditor,
     deleteRegionWithCanonicalFlow,
+    updateRegionLabelWithCanonicalFlow,
     refreshPendingSelection,
     handleEditorInput,
     handleEditorKeyUp,
     handleAnonymizeSelection,
+    handlePendingEntityChange,
     handleApplyPickerEntity,
+    handleCancelPicker,
     handleOpenSpanEditor,
+    handleSpanEditorEntityChange,
     handleApplySpanEditor,
+    handleCancelSpanEditor,
     handleRemoveSpan,
     setDialogDraftLabel,
     setDialogTextDirection,

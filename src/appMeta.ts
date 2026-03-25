@@ -2,8 +2,35 @@ import type { AppMeta } from "./types/appMeta";
 
 export const APP_META: AppMeta = {
   name: "Anonymizer",
-  version: "0.6.10",
+  version: "0.7.0",
   releaseNotes: [
+    {
+      version: "0.7.0",
+      date: "2026-03-25",
+      highlights: [
+        "Added compact inline bbox label editing directly on the outer viewer overlay, next to existing bbox action icons, with the current label shown in-place.",
+        "Wired inline label changes into the canonical region edit/save flow and shared label catalog so no parallel label state/path is introduced.",
+        "Preserved existing overlay interactions, dialog-based editing, color-coded bbox visuals, and generated JSON/save behavior while enabling faster on-canvas label switching."
+      ]
+    },
+    {
+      version: "0.6.12",
+      date: "2026-03-25",
+      highlights: [
+        "Updated Edit Region `Save` so a successful save now auto-advances to the next bbox on the same page when one exists, reusing the canonical Next navigation flow.",
+        "Kept save safety intact: failed/invalid save paths do not navigate, and when no next bbox exists the dialog stays on the current region as before.",
+        "Fixed region dialog split constraints by protecting the right pane with a content-safe minimum width and allowing the left pane to shrink more, preventing bottom actions from being cut off."
+      ]
+    },
+    {
+      version: "0.6.11",
+      date: "2026-03-25",
+      highlights: [
+        "Removed explicit span confirmation buttons by dropping `Save` from edit-span and `Apply` from new anonymized-span flows.",
+        "Updated span entity selection so choosing an entity now applies immediately in both new and edit span dialogs.",
+        "Improved nested modal behavior so `Escape` and outside-click dismiss the active (topmost) span dialog first while keeping the parent region dialog open."
+      ]
+    },
     {
       version: "0.6.10",
       date: "2026-03-24",

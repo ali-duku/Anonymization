@@ -8,7 +8,9 @@
 }
 
 .modalShell {
-  --region-dialog-right-pane-width: 620px;
+  --region-dialog-right-pane-width: 700px;
+  --region-dialog-right-pane-min-width: 700px;
+  --region-dialog-left-pane-min-width: 340px;
   --region-dialog-separator-width: 10px;
   width: 100%;
   max-width: 100%;
@@ -16,7 +18,10 @@
   max-height: 100%;
   box-sizing: border-box;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) var(--region-dialog-separator-width) minmax(0, var(--region-dialog-right-pane-width));
+  grid-template-columns:
+    minmax(var(--region-dialog-left-pane-min-width), 1fr)
+    var(--region-dialog-separator-width)
+    minmax(var(--region-dialog-right-pane-min-width), var(--region-dialog-right-pane-width));
   align-items: stretch;
   overflow: hidden;
 }
@@ -26,13 +31,19 @@
 }
 
 .snippetPane {
-  min-width: 0;
+  min-width: var(--region-dialog-left-pane-min-width);
   min-height: 0;
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 8px;
   padding: 16px;
   background: linear-gradient(160deg, rgba(10, 18, 28, 0.96), rgba(8, 14, 23, 0.98));
+}
+
+.snippetProtected {
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 8px;
 }
 
 .paneSeparator {
@@ -74,12 +85,15 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
+  min-width: 0;
 }
 
 .snippetHeader h2 {
   margin: 0;
   font-size: 0.95rem;
   letter-spacing: 0.01em;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .snippetMeta {
@@ -98,8 +112,6 @@
   flex-wrap: nowrap;
   min-width: 0;
   padding-top: 1px;
-  overflow-x: auto;
-  overflow-y: hidden;
 }
 
 .snippetNavButtons,
@@ -152,7 +164,7 @@
 }
 
 .modalCard {
-  min-width: 0;
+  min-width: var(--region-dialog-right-pane-min-width);
   min-height: 0;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
@@ -168,11 +180,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  min-width: 0;
 }
 
 .modalHeader h3 {
   margin: 0;
   font-size: 1rem;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .dialogBody {
@@ -202,7 +217,7 @@
 
 .select {
   width: 100%;
-  min-width: 0;
+  min-width: 128px;
   min-height: 34px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -340,10 +355,11 @@
   justify-content: flex-end;
   flex-wrap: nowrap;
   flex-shrink: 0;
-  min-width: 0;
   padding-top: 1px;
-  overflow-x: auto;
-  overflow-y: hidden;
+}
+
+.dialogActions > * {
+  flex: 0 0 auto;
 }
 
 .statusLineError {
@@ -414,6 +430,7 @@
   min-height: 34px;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
   transition: transform 120ms ease, filter 120ms ease;
 }
 
@@ -464,45 +481,4 @@
     radial-gradient(circle at 14% 22%, rgba(255, 255, 255, 0.5) 0 1px, transparent 2px),
     radial-gradient(circle at 80% 27%, rgba(255, 255, 255, 0.45) 0 1px, transparent 2px),
     linear-gradient(145deg, #0b1028, #1a1750 55%, #2e1e67);
-}
-
-@media (max-width: 1400px) {
-  .modalShell {
-    --region-dialog-right-pane-width: 560px;
-  }
-}
-
-@media (max-width: 1280px) {
-  .modalShell {
-    --region-dialog-right-pane-width: 500px;
-  }
-}
-
-@media (max-width: 1024px) {
-  .modalShell {
-    grid-template-columns: 1fr;
-    grid-template-rows: 36dvh minmax(0, 1fr);
-    height: 100dvh;
-    max-height: 100dvh;
-  }
-
-  .snippetPane {
-    border-bottom: 1px solid var(--line);
-  }
-
-  .paneSeparator {
-    display: none;
-  }
-
-  .modalCard {
-    border-left: 0;
-  }
-
-  .editorGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .controlsRow {
-    grid-template-columns: auto minmax(0, 1fr) auto auto;
-  }
 }

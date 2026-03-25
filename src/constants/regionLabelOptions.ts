@@ -14,3 +14,11 @@ export const REGION_LABEL_OPTIONS = [
 ] as const;
 
 export type RegionLabelOption = (typeof REGION_LABEL_OPTIONS)[number];
+
+export function buildRegionLabelOptions(currentLabel: string): readonly string[] {
+  const isKnownOption = REGION_LABEL_OPTIONS.includes(currentLabel as RegionLabelOption);
+  if (!currentLabel || isKnownOption) {
+    return REGION_LABEL_OPTIONS;
+  }
+  return [currentLabel, ...REGION_LABEL_OPTIONS];
+}
