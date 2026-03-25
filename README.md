@@ -11,6 +11,11 @@ Every functional/UI update must include both:
 
 ## Latest Update
 
+- **v0.7.4 (2026-03-25)**
+  - Extended the global top-header `BBox structure` toggle so OFF now also blocks raw text/content editing and text-only copy actions.
+  - Kept anonymization management enabled while OFF: users can still add/edit/delete anonymized spans over existing text.
+  - Enforced this in both UI affordances and underlying handlers/save paths.
+
 - **v0.7.3 (2026-03-25)**
   - Changed default PDF zoom after load to `150%`.
   - Removed automatic fit-to-width on initial PDF load so the default zoom is applied consistently.
@@ -74,7 +79,9 @@ Every functional/UI update must include both:
   - Overlay drag/resize/create.
   - On-canvas bbox action controls (compact inline label selector + icon-only edit/delete/full-copy/text-copy) with dialog-equivalent delete behavior.
   - Toolbar paste action beside `Add BBox` to create a new bbox from copied bbox payload on the current page.
-  - Global top-header `BBox structure` toggle to enable/disable structural bbox editing operations (move/resize/add/delete/full-copy/paste).
+  - Global top-header `BBox structure` toggle as the canonical capability gate:
+    - OFF blocks structural bbox editing (move/resize/add/delete/full-copy/paste), raw text editing, and text-only copy actions.
+    - OFF still allows anonymization operations over existing text (add/edit/delete anonymized spans/entities).
   - Region dialog editing (label/text/entities), span anonymization, and delete.
   - Span dialogs use immediate entity auto-apply (no explicit `Save`/`Apply` buttons).
   - Span dialogs dismiss topmost-first on `Escape` or outside-click while keeping the parent region dialog open.

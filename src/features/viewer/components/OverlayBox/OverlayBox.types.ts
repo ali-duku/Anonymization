@@ -9,6 +9,7 @@ export interface OverlayBoxProps {
   isCreateDraftRegion: boolean;
   isCreateMode: boolean;
   isBboxStructuralEditingEnabled: boolean;
+  isTextCopyEnabled: boolean;
   resizeHandles: ResizeHandle[];
   onBeginInteraction: (
     event: ReactPointerEvent<HTMLElement>,

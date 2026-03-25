@@ -10,6 +10,7 @@ function OverlayLayerComponent({
   interactionRegionId,
   isCreateMode,
   isBboxStructuralEditingEnabled,
+  isTextCopyEnabled,
   onBeginCreateBBox,
   onBeginInteraction,
   onOpenRegionEditor,
@@ -42,6 +43,7 @@ function OverlayLayerComponent({
             isCreateDraftRegion={isCreateDraftRegion}
             isCreateMode={isCreateMode}
             isBboxStructuralEditingEnabled={isBboxStructuralEditingEnabled}
+            isTextCopyEnabled={isTextCopyEnabled}
             resizeHandles={[...RESIZE_HANDLES]}
             onBeginInteraction={onBeginInteraction}
             onOpenRegionEditor={onOpenRegionEditor}

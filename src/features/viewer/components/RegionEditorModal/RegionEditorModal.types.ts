@@ -54,6 +54,8 @@ export interface RegionEditorModalProps {
   onReset: () => void;
   onDelete: () => void;
   onCopyRegion: (region: OverlayRegion) => void;
+  isRawTextEditingEnabled: boolean;
+  isTextCopyEnabled: boolean;
   isBboxStructuralEditingEnabled: boolean;
   hasCopiedBbox: boolean;
   onPasteRegionFromClipboard: () => void;

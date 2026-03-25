@@ -9,6 +9,7 @@ export function useBboxClipboard({
   overlayDocument,
   currentPage,
   isBboxStructuralEditingEnabled,
+  isTextCopyEnabled,
   onOverlayEditStarted,
   onOverlayDocumentSaved
 }: UseBboxClipboardOptions) {
@@ -24,8 +25,11 @@ export function useBboxClipboard({
   }, [isBboxStructuralEditingEnabled]);
 
   const copyTextOnly = useCallback(async (region: OverlayRegion) => {
+    if (!isTextCopyEnabled) {
+      return;
+    }
     await writeTextToClipboard(region.text || "");
-  }, []);
+  }, [isTextCopyEnabled]);
 
   const pasteCopiedBbox = useCallback(() => {
     if (!isBboxStructuralEditingEnabled || !copiedBbox || !overlayDocument || !onOverlayDocumentSaved) {

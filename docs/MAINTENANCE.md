@@ -9,7 +9,7 @@
 
 ## Current Baseline
 
-- Latest shipped version: `0.7.3`.
+- Latest shipped version: `0.7.4`.
 - Latest viewer baseline includes:
   - retrieval-by-ID as the primary PDF flow,
   - session-only manual upload bypass as secondary flow,
@@ -23,6 +23,7 @@
   - app-level persistent top-header entity-profile selector with canonical profile catalog wiring for anonymization entity options,
   - app-level persistent top-header default text-direction toggle (`RTL`/`LTR`) used as the region-editor session default while preserving local editor direction toggle behavior,
   - app-level persistent top-header structural bbox editing toggle (`BBox structure`) that canonically gates move/resize/add/delete/full-bbox copy/paste operations across toolbar, overlay controls, and region dialog handler paths,
+  - extended capability semantics where `BBox structure` OFF also blocks raw text editing and text-only copy actions while still allowing anonymization add/edit/delete over existing text,
   - default PDF load zoom set to 150% (without implicit auto-fit on initial load),
   - region-context snippet zoom default/reset set to 75%,
   - compact translucent on-canvas bbox icon controls (pen edit + trash delete),
