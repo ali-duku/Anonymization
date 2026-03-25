@@ -1,5 +1,8 @@
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { useRegionDialogContainerBounds } from "../../hooks/useRegionDialogContainerBounds";
 import { useRegionDialogLayout } from "../../hooks/useRegionDialogLayout";
+import { useRegionDialogPaneMinimums } from "../../hooks/useRegionDialogPaneMinimums";
+import { useTopmostDialogDismissal } from "../../hooks/useTopmostDialogDismissal";
 import { createPortal } from "react-dom";
 import { EntityPicker } from "../EntityPicker/EntityPicker";
 import { SpanEditorPopover } from "../SpanEditorPopover/SpanEditorPopover";
@@ -9,6 +12,7 @@ import type { RegionEditorModalProps } from "./RegionEditorModal.types";
 const MIN_SNIPPET_ZOOM = 0.5;
 const MAX_SNIPPET_ZOOM = 4;
 const SNIPPET_ZOOM_STEP = 0.25;
+const DEFAULT_SNIPPET_ZOOM = 0.5;
 
 function clampSnippetZoom(value: number): number {
   return Math.min(MAX_SNIPPET_ZOOM, Math.max(MIN_SNIPPET_ZOOM, value));
@@ -45,7 +49,6 @@ function RegionEditorModalComponent({
   onGoPreviousRegion,
   onGoNextRegion,
   onPendingEntityChange,
-  onApplyPickerEntity,
   onCancelPicker,
   onEditorInput,
   onEditorSelect,
@@ -53,7 +56,6 @@ function RegionEditorModalComponent({
   onEditorKeyUp,
   onOpenSpanEditor,
   onSpanEditorEntityChange,
-  onApplySpanEditor,
   onRemoveSpan,
   onCancelSpanEditor,
   onSave,
@@ -64,23 +66,62 @@ function RegionEditorModalComponent({
   onPasteRegionFromClipboard,
   onCopyRegionText
 }: RegionEditorModalProps) {
-  const [snippetZoom, setSnippetZoom] = useState(1);
+  const [snippetZoom, setSnippetZoom] = useState(DEFAULT_SNIPPET_ZOOM);
+  const pickerRef = useRef<HTMLDivElement>(null);
+  const spanEditorRef = useRef<HTMLDivElement>(null);
+  const modalShellRef = useRef<HTMLDivElement>(null);
+  const snippetPaneRef = useRef<HTMLElement>(null);
+  const snippetProtectedRef = useRef<HTMLDivElement>(null);
+  const modalCardRef = useRef<HTMLElement>(null);
+  const dialogActionsRef = useRef<HTMLDivElement>(null);
+
+  const { availableWidth } = useRegionDialogContainerBounds({
+    containerRef: modalShellRef,
+    isEnabled: Boolean(activeRegion)
+  });
+
+  const {
+    minLeftPaneWidth,
+    minRightPaneWidth
+  } = useRegionDialogPaneMinimums({
+    leftPaneRef: snippetPaneRef,
+    leftProtectedRef: snippetProtectedRef,
+    rightPaneRef: modalCardRef,
+    rightProtectedRef: dialogActionsRef,
+    isEnabled: Boolean(activeRegion)
+  });
+
   const {
     modalShellStyle,
     rightPaneWidth,
-    isCompactLayout,
     isDragging,
     separatorAriaMin,
     separatorAriaMax,
     onSeparatorPointerDown,
     onSeparatorKeyDown
-  } = useRegionDialogLayout();
+  } = useRegionDialogLayout({
+    minRightPaneWidth,
+    minLeftPaneWidth,
+    availableWidth,
+    containerRef: modalShellRef
+  });
 
   useEffect(() => {
-    setSnippetZoom(1);
+    setSnippetZoom(DEFAULT_SNIPPET_ZOOM);
   }, [activeRegion?.id, snippet?.imageUrl]);
 
   const snippetZoomPercent = useMemo(() => Math.round(snippetZoom * 100), [snippetZoom]);
+
+  useTopmostDialogDismissal({
+    isParentOpen: Boolean(activeRegion),
+    isSpanEditorOpen: Boolean(spanEditor),
+    isPickerOpen: Boolean(pickerSelection),
+    spanEditorRef,
+    pickerRef,
+    onDismissSpanEditor: onCancelSpanEditor,
+    onDismissPicker: onCancelPicker,
+    onDismissParent: onClose
+  });
 
   if (!activeRegion) {
     return null;
@@ -88,76 +129,79 @@ function RegionEditorModalComponent({
   const modalContent = (
     <div className={styles.modalOverlay} role="dialog" aria-modal="true" aria-labelledby="region-editor-title">
       <div
+        ref={modalShellRef}
         className={`${styles.modalShell} ${isDragging ? styles.modalShellDragging : ""}`}
         style={modalShellStyle}
       >
-        <aside className={styles.snippetPane}>
-          <header className={styles.snippetHeader}>
-            <h2 id="region-editor-title">Region Context</h2>
-            <div className={styles.snippetMeta}>
-              <span>P{activeRegion.metadata.pageNumber ?? "?"}</span>
-              <span>R{activeRegion.metadata.regionId ?? "?"}</span>
-              <span>
-                {currentRegionOrder && totalRegionsOnPage > 0
-                  ? `${currentRegionOrder}/${totalRegionsOnPage}`
-                  : "-"}
-              </span>
-            </div>
-          </header>
+        <aside ref={snippetPaneRef} className={styles.snippetPane}>
+          <div ref={snippetProtectedRef} className={styles.snippetProtected}>
+            <header className={styles.snippetHeader}>
+              <h2 id="region-editor-title">Region Context</h2>
+              <div className={styles.snippetMeta}>
+                <span>P{activeRegion.metadata.pageNumber ?? "?"}</span>
+                <span>R{activeRegion.metadata.regionId ?? "?"}</span>
+                <span>
+                  {currentRegionOrder && totalRegionsOnPage > 0
+                    ? `${currentRegionOrder}/${totalRegionsOnPage}`
+                    : "-"}
+                </span>
+              </div>
+            </header>
 
-          <div className={styles.snippetControls}>
-            <div className={styles.snippetNavButtons}>
-              <button
-                type="button"
-                className={styles.buttonGhost}
-                onClick={onGoPreviousRegion}
-                disabled={!hasPreviousRegion}
-              >
-                Previous
-              </button>
-              <button
-                type="button"
-                className={styles.buttonGhost}
-                onClick={onGoNextRegion}
-                disabled={!hasNextRegion}
-              >
-                Next
-              </button>
-            </div>
-            <div className={styles.snippetZoomControls}>
-              <button
-                type="button"
-                className={styles.buttonGhost}
-                onClick={() => {
-                  setSnippetZoom((previous) => clampSnippetZoom(previous - SNIPPET_ZOOM_STEP));
-                }}
-                disabled={snippetZoom <= MIN_SNIPPET_ZOOM}
-                aria-label="Zoom out snippet"
-              >
-                -
-              </button>
-              <span className={styles.snippetZoomValue}>{snippetZoomPercent}%</span>
-              <button
-                type="button"
-                className={styles.buttonGhost}
-                onClick={() => {
-                  setSnippetZoom((previous) => clampSnippetZoom(previous + SNIPPET_ZOOM_STEP));
-                }}
-                disabled={snippetZoom >= MAX_SNIPPET_ZOOM}
-                aria-label="Zoom in snippet"
-              >
-                +
-              </button>
-              <button
-                type="button"
-                className={styles.buttonGhost}
-                onClick={() => {
-                  setSnippetZoom(1);
-                }}
-                disabled={snippetZoom === 1}
-              >
-                Reset
-              </button>
+            <div className={styles.snippetControls}>
+              <div className={styles.snippetNavButtons}>
+                <button
+                  type="button"
+                  className={styles.buttonGhost}
+                  onClick={onGoPreviousRegion}
+                  disabled={!hasPreviousRegion}
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  className={styles.buttonGhost}
+                  onClick={onGoNextRegion}
+                  disabled={!hasNextRegion}
+                >
+                  Next
+                </button>
+              </div>
+              <div className={styles.snippetZoomControls}>
+                <button
+                  type="button"
+                  className={styles.buttonGhost}
+                  onClick={() => {
+                    setSnippetZoom((previous) => clampSnippetZoom(previous - SNIPPET_ZOOM_STEP));
+                  }}
+                  disabled={snippetZoom <= MIN_SNIPPET_ZOOM}
+                  aria-label="Zoom out snippet"
+                >
+                  -
+                </button>
+                <span className={styles.snippetZoomValue}>{snippetZoomPercent}%</span>
+                <button
+                  type="button"
+                  className={styles.buttonGhost}
+                  onClick={() => {
+                    setSnippetZoom((previous) => clampSnippetZoom(previous + SNIPPET_ZOOM_STEP));
+                  }}
+                  disabled={snippetZoom >= MAX_SNIPPET_ZOOM}
+                  aria-label="Zoom in snippet"
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  className={styles.buttonGhost}
+                  onClick={() => {
+                    setSnippetZoom(DEFAULT_SNIPPET_ZOOM);
+                  }}
+                  disabled={snippetZoom === DEFAULT_SNIPPET_ZOOM}
+                >
+                  Reset
+                </button>
+              </div>
             </div>
           </div>
 
@@ -187,22 +231,20 @@ function RegionEditorModalComponent({
           </div>
         </aside>
 
-        {!isCompactLayout ? (
-          <div
-            className={`${styles.paneSeparator} ${isDragging ? styles.paneSeparatorDragging : ""}`}
-            role="separator"
-            tabIndex={0}
-            aria-label="Resize region dialog columns"
-            aria-orientation="vertical"
-            aria-valuemin={separatorAriaMin}
-            aria-valuemax={separatorAriaMax}
-            aria-valuenow={rightPaneWidth}
-            onPointerDown={onSeparatorPointerDown}
-            onKeyDown={onSeparatorKeyDown}
-          />
-        ) : null}
+        <div
+          className={`${styles.paneSeparator} ${isDragging ? styles.paneSeparatorDragging : ""}`}
+          role="separator"
+          tabIndex={0}
+          aria-label="Resize region dialog columns"
+          aria-orientation="vertical"
+          aria-valuemin={separatorAriaMin}
+          aria-valuemax={separatorAriaMax}
+          aria-valuenow={rightPaneWidth}
+          onPointerDown={onSeparatorPointerDown}
+          onKeyDown={onSeparatorKeyDown}
+        />
 
-        <section className={styles.modalCard}>
+        <section ref={modalCardRef} className={styles.modalCard}>
           <header className={styles.modalHeader}>
             <h3>Edit Region</h3>
             <button
@@ -250,12 +292,12 @@ function RegionEditorModalComponent({
                 Anonymize
               </button>
               <EntityPicker
+                containerRef={pickerRef}
                 selection={pickerSelection}
                 pendingEntity={pendingEntity}
                 entityLabels={anonymizationEntityLabels}
                 coerceEntityLabel={coerceEntityLabel}
                 onPendingEntityChange={onPendingEntityChange}
-                onApply={onApplyPickerEntity}
                 onCancel={onCancelPicker}
               />
             </div>
@@ -347,7 +389,7 @@ function RegionEditorModalComponent({
             {entityWarning && <p className={styles.statusLineError}>{entityWarning}</p>}
           </div>
 
-          <div className={styles.dialogActions}>
+          <div ref={dialogActionsRef} className={styles.dialogActions}>
             <button
               type="button"
               className={styles.buttonSecondary}
@@ -387,11 +429,11 @@ function RegionEditorModalComponent({
       </div>
 
       <SpanEditorPopover
+        containerRef={spanEditorRef}
         spanEditor={spanEditor}
         entityLabels={anonymizationEntityLabels}
         coerceEntityLabel={coerceEntityLabel}
         onEntityChange={onSpanEditorEntityChange}
-        onSave={onApplySpanEditor}
         onRemove={onRemoveSpan}
         onCancel={onCancelSpanEditor}
       />

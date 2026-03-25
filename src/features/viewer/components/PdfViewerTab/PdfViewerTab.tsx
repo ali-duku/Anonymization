@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo } from "react";
+import { memo, useCallback, useEffect, useMemo } from "react";
 import { useCreateBBox } from "../../hooks/useCreateBBox";
 import { useBboxClipboard } from "../../hooks/useBboxClipboard";
 import { useOverlayInteractions } from "../../hooks/useOverlayInteractions";
@@ -119,6 +119,18 @@ function PdfViewerTabComponent({
     onOpenRegionEditor: regionEditor.openRegionEditor
   });
 
+  const handleSaveRegionEditorAndGoNext = useCallback(() => {
+    const didSave = regionEditor.handleSaveRegionEditor();
+    if (!didSave || !regionNavigation.hasNextRegion) {
+      return;
+    }
+    regionNavigation.goNextRegionAfterSave();
+  }, [
+    regionEditor.handleSaveRegionEditor,
+    regionNavigation.goNextRegionAfterSave,
+    regionNavigation.hasNextRegion
+  ]);
+
   const visiblePageOverlays = useMemo(() => {
     return buildVisiblePageOverlays(currentPageOverlays, pdfState.currentPage, draft, createDraft);
   }, [createDraft, currentPageOverlays, draft, pdfState.currentPage]);
@@ -214,6 +226,7 @@ function PdfViewerTabComponent({
         onBeginCreateBBox={beginCreateBBox}
         onBeginInteraction={beginInteraction}
         onOpenRegionEditor={regionEditor.openRegionEditor}
+        onChangeRegionLabel={regionEditor.updateRegionLabelWithCanonicalFlow}
         onDeleteRegion={regionEditor.deleteRegionWithCanonicalFlow}
         onCopyRegion={bboxClipboard.copyBbox}
         onCopyRegionText={(region) => {
@@ -253,31 +266,17 @@ function PdfViewerTabComponent({
         onAnonymize={regionEditor.handleAnonymizeSelection}
         onGoPreviousRegion={regionNavigation.goPreviousRegion}
         onGoNextRegion={regionNavigation.goNextRegion}
-        onPendingEntityChange={regionEditor.setPendingEntity}
-        onApplyPickerEntity={regionEditor.handleApplyPickerEntity}
-        onCancelPicker={() => {
-          regionEditor.setPickerSelection(null);
-          regionEditor.setEntityWarning(null);
-        }}
+        onPendingEntityChange={regionEditor.handlePendingEntityChange}
+        onCancelPicker={regionEditor.handleCancelPicker}
         onEditorInput={regionEditor.handleEditorInput}
         onEditorSelect={regionEditor.refreshPendingSelection}
         onEditorMouseUp={regionEditor.refreshPendingSelection}
         onEditorKeyUp={regionEditor.handleEditorKeyUp}
         onOpenSpanEditor={regionEditor.handleOpenSpanEditor}
-        onSpanEditorEntityChange={(nextEntity) => {
-          regionEditor.setSpanEditor((previous) =>
-            previous
-              ? {
-                  ...previous,
-                  entity: nextEntity
-                }
-              : previous
-          );
-        }}
-        onApplySpanEditor={regionEditor.handleApplySpanEditor}
+        onSpanEditorEntityChange={regionEditor.handleSpanEditorEntityChange}
         onRemoveSpan={regionEditor.handleRemoveSpan}
-        onCancelSpanEditor={() => regionEditor.setSpanEditor(null)}
-        onSave={regionEditor.handleSaveRegionEditor}
+        onCancelSpanEditor={regionEditor.handleCancelSpanEditor}
+        onSave={handleSaveRegionEditorAndGoNext}
         onReset={regionEditor.handleResetRegionEditor}
         onDelete={regionEditor.handleDeleteRegionEditor}
         onCopyRegion={bboxClipboard.copyBbox}

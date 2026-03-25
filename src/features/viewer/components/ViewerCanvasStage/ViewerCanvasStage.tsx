@@ -16,6 +16,7 @@ function ViewerCanvasStageComponent({
   onBeginCreateBBox,
   onBeginInteraction,
   onOpenRegionEditor,
+  onChangeRegionLabel,
   onDeleteRegion,
   onCopyRegion,
   onCopyRegionText
@@ -52,6 +53,7 @@ function ViewerCanvasStageComponent({
             onBeginCreateBBox={onBeginCreateBBox}
             onBeginInteraction={onBeginInteraction}
             onOpenRegionEditor={onOpenRegionEditor}
+            onChangeRegionLabel={onChangeRegionLabel}
             onDeleteRegion={onDeleteRegion}
             onCopyRegion={onCopyRegion}
             onCopyRegionText={onCopyRegionText}

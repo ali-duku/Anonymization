@@ -14,6 +14,7 @@ interface UsePageRegionNavigationResult {
   hasNextRegion: boolean;
   goPreviousRegion: () => void;
   goNextRegion: () => void;
+  goNextRegionAfterSave: () => void;
 }
 
 export function usePageRegionNavigation({
@@ -33,7 +34,7 @@ export function usePageRegionNavigation({
   const hasNextRegion = activeRegionIndex >= 0 && activeRegionIndex < regions.length - 1;
 
   const navigateRegionByOffset = useCallback(
-    (offset: number) => {
+    (offset: number, options?: { skipUnsavedChangesGuard?: boolean }) => {
       if (activeRegionIndex < 0) {
         return;
       }
@@ -43,7 +44,7 @@ export function usePageRegionNavigation({
         return;
       }
 
-      if (hasDialogChanges) {
+      if (!options?.skipUnsavedChangesGuard && hasDialogChanges) {
         const shouldDiscard = window.confirm(
           "You have unsaved changes in this region. Discard them and navigate?"
         );
@@ -70,11 +71,16 @@ export function usePageRegionNavigation({
     navigateRegionByOffset(1);
   }, [navigateRegionByOffset]);
 
+  const goNextRegionAfterSave = useCallback(() => {
+    navigateRegionByOffset(1, { skipUnsavedChangesGuard: true });
+  }, [navigateRegionByOffset]);
+
   return {
     activeRegionIndex,
     hasPreviousRegion,
     hasNextRegion,
     goPreviousRegion,
-    goNextRegion
+    goNextRegion,
+    goNextRegionAfterSave
   };
 }

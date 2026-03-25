@@ -40,7 +40,6 @@ export interface RegionEditorModalProps {
   onGoPreviousRegion: () => void;
   onGoNextRegion: () => void;
   onPendingEntityChange: (nextEntity: string) => void;
-  onApplyPickerEntity: () => void;
   onCancelPicker: () => void;
   onEditorInput: ChangeEventHandler<HTMLTextAreaElement>;
   onEditorSelect: () => void;
@@ -48,7 +47,6 @@ export interface RegionEditorModalProps {
   onEditorKeyUp: (event: ReactKeyboardEvent<HTMLTextAreaElement>) => void;
   onOpenSpanEditor: (index: number, anchorX: number, anchorY: number) => void;
   onSpanEditorEntityChange: (nextEntity: string) => void;
-  onApplySpanEditor: () => void;
   onRemoveSpan: () => void;
   onCancelSpanEditor: () => void;
   onSave: () => void;

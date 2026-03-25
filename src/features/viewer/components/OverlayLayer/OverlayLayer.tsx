@@ -12,6 +12,7 @@ function OverlayLayerComponent({
   onBeginCreateBBox,
   onBeginInteraction,
   onOpenRegionEditor,
+  onChangeRegionLabel,
   onDeleteRegion,
   onCopyRegion,
   onCopyRegionText
@@ -42,6 +43,7 @@ function OverlayLayerComponent({
             resizeHandles={[...RESIZE_HANDLES]}
             onBeginInteraction={onBeginInteraction}
             onOpenRegionEditor={onOpenRegionEditor}
+            onChangeRegionLabel={onChangeRegionLabel}
             onDeleteRegion={onDeleteRegion}
             onCopyRegion={onCopyRegion}
             onCopyRegionText={onCopyRegionText}

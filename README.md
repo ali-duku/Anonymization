@@ -11,6 +11,22 @@ Every functional/UI update must include both:
 
 ## Latest Update
 
+- **v0.7.0 (2026-03-25)**
+  - Added compact inline bbox label editing directly on the outer viewer overlay beside existing bbox action icons.
+  - Inline label changes now use the canonical region edit/save flow and shared label catalog (no parallel label path).
+  - Preserved existing overlay controls, dialog editing flow, color-coding behavior, and generated JSON/save behavior.
+
+- **v0.6.12 (2026-03-25)**
+  - Updated Edit Region `Save` to auto-advance to the next bbox on the same page after a successful save, using the same canonical flow as `Next`.
+  - Preserved save safety: no auto-navigation on failed/invalid save, and no navigation when there is no next bbox.
+  - Fixed region dialog split constraints so the right pane no longer shrinks below action-button usability while the left pane can shrink further.
+
+- **v0.6.11 (2026-03-25)**
+  - Removed explicit span confirmation buttons: `Save` is removed from edit-span and `Apply` is removed from new anonymized-span.
+  - Updated span entity selection to auto-apply immediately in both span flows.
+  - Improved nested dialog dismissal behavior: `Escape` and outside-click now dismiss the active (topmost) span dialog first.
+  - Preserved parent region dialog continuity when dismissing a span dialog.
+
 - **v0.6.10 (2026-03-24)**
   - Fixed bbox render-basis drift by keeping PDF canvas and overlay stage on the same pixel dimensions (no responsive stage/canvas max-width clamping).
   - Centralized bbox projection helpers so overlay placement and canvas snippet crops use one canonical normalized-bbox conversion path.
@@ -41,14 +57,17 @@ Every functional/UI update must include both:
   - Optional manual local PDF upload bypass from the same toolbar/empty state.
   - Page navigation, zoom, and fit.
   - Overlay drag/resize/create.
-  - On-canvas bbox action controls (icon-only edit/delete/full-copy/text-copy) with dialog-equivalent delete behavior.
+  - On-canvas bbox action controls (compact inline label selector + icon-only edit/delete/full-copy/text-copy) with dialog-equivalent delete behavior.
   - Toolbar paste action beside `Add BBox` to create a new bbox from copied bbox payload on the current page.
   - Region dialog editing (label/text/entities), span anonymization, and delete.
+  - Span dialogs use immediate entity auto-apply (no explicit `Save`/`Apply` buttons).
+  - Span dialogs dismiss topmost-first on `Escape` or outside-click while keeping the parent region dialog open.
   - Region dialog full bbox copy, in-place `Paste BBox` into the currently edited bbox draft, and separate text-only copy actions.
   - Searchable entity-label dropdown for both new anonymization spans and span-editor updates.
-  - Draggable outer dialog pane separator with session-scoped width persistence.
+  - Draggable outer dialog pane separator with session-scoped width persistence and container-bound split clamp enforcement.
+  - Fenced HTML table preview rendering in region dialog Preview (table-only).
   - Current-page bbox Previous/Next navigation while editing.
-  - Region snippet zoom controls with right-click/drag-save prevention.
+  - Region snippet zoom controls with right-click/drag-save prevention (default/reset at 50%).
   - Optional bbox diagnostics logs in development via `VITE_VIEWER_BBOX_DEBUG=1`.
 - Setup supports:
   - Uncontrolled input/output textareas for large JSON payloads.
@@ -104,7 +123,7 @@ npm run build
 - `src/components/general`: reusable shell UI (`Header`, `TabNav`, `WhatsNewModal`).
 - `src/features/setup`: Setup domain components/hooks/utils.
 - `src/features/viewer`: Viewer domain components/hooks/utils/constants.
-- `src/features/pdf`: secure retrieval UI/hooks/services/utils for backend-driven PDF loading.
+- `src/features/pdf`: retrieval-first PDF workspace plus session-only manual upload bypass, with source orchestration and backend-driven services.
 - `src/constants`: shared static catalogs and label constants.
 - `src/services`: shared API/domain services (`annotation`, `json`).
 - `src/types`: shared contracts.
