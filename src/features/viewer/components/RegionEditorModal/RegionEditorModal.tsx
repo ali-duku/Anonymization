@@ -62,6 +62,8 @@ function RegionEditorModalComponent({
   onReset,
   onDelete,
   onCopyRegion,
+  isRawTextEditingEnabled,
+  isTextCopyEnabled,
   isBboxStructuralEditingEnabled,
   hasCopiedBbox,
   onPasteRegionFromClipboard,
@@ -314,6 +316,8 @@ function RegionEditorModalComponent({
                   value={dialogDraftText}
                   role="textbox"
                   aria-label="Text"
+                  aria-readonly={!isRawTextEditingEnabled}
+                  readOnly={!isRawTextEditingEnabled}
                   onChange={onEditorInput}
                   onSelect={onEditorSelect}
                   onMouseUp={onEditorMouseUp}
@@ -411,6 +415,8 @@ function RegionEditorModalComponent({
               type="button"
               className={styles.buttonSecondary}
               onClick={() => onCopyRegionText(activeRegion)}
+              disabled={!isTextCopyEnabled}
+              title={!isTextCopyEnabled ? "Text copy is disabled." : undefined}
             >
               Copy Text
             </button>

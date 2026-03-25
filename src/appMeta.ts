@@ -2,8 +2,17 @@ import type { AppMeta } from "./types/appMeta";
 
 export const APP_META: AppMeta = {
   name: "Anonymizer",
-  version: "0.7.3",
+  version: "0.7.4",
   releaseNotes: [
+    {
+      version: "0.7.4",
+      date: "2026-03-25",
+      highlights: [
+        "Extended the global `BBox structure` capability so disabling it now also blocks raw text editing and text-only copy actions in overlay and region dialog flows.",
+        "Kept anonymization management available while disabled: users can still add/edit/remove anonymized spans over existing text without changing raw text content.",
+        "Enforced the extended gate in both UI state and handler/save paths so blocked text-changing/copy actions cannot execute through non-visual paths."
+      ]
+    },
     {
       version: "0.7.3",
       date: "2026-03-25",

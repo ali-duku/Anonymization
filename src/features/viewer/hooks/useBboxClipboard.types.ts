@@ -7,6 +7,7 @@ export interface UseBboxClipboardOptions {
   overlayDocument: OverlayDocument | null;
   currentPage: number;
   isBboxStructuralEditingEnabled: boolean;
+  isTextCopyEnabled: boolean;
   onOverlayEditStarted?: () => void;
   onOverlayDocumentSaved?: (document: OverlayDocument) => void;
 }

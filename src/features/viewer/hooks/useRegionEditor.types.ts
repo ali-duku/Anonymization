@@ -16,6 +16,7 @@ export interface UseRegionEditorOptions {
   currentPage: number;
   copiedBbox: BboxClipboardPayload | null;
   isBboxStructuralEditingEnabled: boolean;
+  isRawTextEditingEnabled: boolean;
   anonymizationEntityLabels: readonly string[];
   defaultAnonymizationEntityLabel: string;
   defaultTextDirection: TextDirection;

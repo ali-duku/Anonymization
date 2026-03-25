@@ -18,6 +18,7 @@ function OverlayBoxComponent({
   isCreateDraftRegion,
   isCreateMode,
   isBboxStructuralEditingEnabled,
+  isTextCopyEnabled,
   resizeHandles,
   onBeginInteraction,
   onOpenRegionEditor,
@@ -127,8 +128,9 @@ function OverlayBoxComponent({
                 }
                 onCopyRegionText(region);
               }}
+              disabled={!isTextCopyEnabled}
               aria-label={`Copy text from ${region.label} region`}
-              title="Copy text"
+              title={!isTextCopyEnabled ? "Text copy is disabled." : "Copy text"}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.overlayActionIcon}>
                 <path

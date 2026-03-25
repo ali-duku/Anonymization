@@ -46,6 +46,7 @@ export function useRegionEditor({
   currentPage,
   copiedBbox,
   isBboxStructuralEditingEnabled,
+  isRawTextEditingEnabled,
   anonymizationEntityLabels,
   defaultAnonymizationEntityLabel,
   defaultTextDirection,
@@ -129,13 +130,14 @@ export function useRegionEditor({
     const nextDraftBbox = isBboxStructuralEditingEnabled
       ? dialogDraftBbox ?? activeRegion.bbox
       : activeRegion.bbox;
+    const nextDraftText = isRawTextEditingEnabled ? dialogDraftText : activeRegion.text || "";
 
     return (
       dialogDraftLabel !== activeRegion.label ||
       hasBboxChanged(activeRegion.bbox, nextDraftBbox, 0) ||
-      dialogDraftText !== (activeRegion.text || "") ||
+      nextDraftText !== (activeRegion.text || "") ||
       !areEntitySpansEqual(
-        normalizeEntitySpansForText(dialogDraftEntities, dialogDraftText),
+        normalizeEntitySpansForText(dialogDraftEntities, nextDraftText),
         normalizeEntitySpansForText(activeRegion.entities || [], activeRegion.text || "")
       )
     );
@@ -145,7 +147,8 @@ export function useRegionEditor({
     dialogDraftEntities,
     dialogDraftLabel,
     dialogDraftText,
-    isBboxStructuralEditingEnabled
+    isBboxStructuralEditingEnabled,
+    isRawTextEditingEnabled
   ]);
 
   const canAnonymizeSelection = useMemo(() => {
@@ -221,7 +224,7 @@ export function useRegionEditor({
     const nextBbox = isBboxStructuralEditingEnabled
       ? dialogDraftBbox ?? activeRegion.bbox
       : activeRegion.bbox;
-    const nextText = dialogDraftText;
+    const nextText = isRawTextEditingEnabled ? dialogDraftText : activeRegion.text || "";
     const nextEntities = normalizeEntitySpansForText(dialogDraftEntities, nextText);
 
     if (!overlayDocument || !onOverlayDocumentSaved) {
@@ -244,6 +247,7 @@ export function useRegionEditor({
     dialogDraftLabel,
     dialogDraftText,
     isBboxStructuralEditingEnabled,
+    isRawTextEditingEnabled,
     onOverlayDocumentSaved,
     onOverlayEditStarted,
     overlayDocument
@@ -360,6 +364,9 @@ export function useRegionEditor({
 
   const handleEditorInput: ChangeEventHandler<HTMLTextAreaElement> = useCallback(
     (event) => {
+      if (!isRawTextEditingEnabled) {
+        return;
+      }
       const nextText = event.currentTarget.value.replace(/\r/g, "");
       const remapResult = remapEntitySpansAfterTextChange(
         dialogDraftText,
@@ -380,7 +387,7 @@ export function useRegionEditor({
         setEntityWarning(null);
       }
     },
-    [dialogDraftEntities, dialogDraftText]
+    [dialogDraftEntities, dialogDraftText, isRawTextEditingEnabled]
   );
 
   const handleEditorKeyUp = useCallback((_event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
@@ -585,6 +592,7 @@ export function useRegionEditor({
     normalizedDraftEntities,
     textSegments,
     canAnonymizeSelection,
+    isRawTextEditingEnabled,
     dialogLabelOptions,
     hasDialogChanges,
     canPasteCopiedBboxIntoRegion,

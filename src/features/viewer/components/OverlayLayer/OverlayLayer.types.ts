@@ -7,6 +7,7 @@ export interface OverlayLayerProps {
   interactionRegionId: string | null;
   isCreateMode: boolean;
   isBboxStructuralEditingEnabled: boolean;
+  isTextCopyEnabled: boolean;
   onBeginCreateBBox: (event: ReactPointerEvent<HTMLDivElement>) => void;
   onBeginInteraction: (
     event: ReactPointerEvent<HTMLElement>,

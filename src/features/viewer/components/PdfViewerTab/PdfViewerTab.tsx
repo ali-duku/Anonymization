@@ -6,6 +6,7 @@ import { usePageRegionNavigation } from "../../hooks/usePageRegionNavigation";
 import { usePdfDocument } from "../../hooks/usePdfDocument";
 import { useRegionEditor } from "../../hooks/useRegionEditor";
 import { useRegionSnippet } from "../../hooks/useRegionSnippet";
+import { resolveViewerEditCapabilities } from "../../utils/viewerEditCapabilities";
 import { buildVisiblePageOverlays } from "../../utils/visiblePageOverlays";
 import {
   buildRecordSummary,
@@ -38,6 +39,11 @@ function PdfViewerTabComponent({
   onOverlayEditStarted,
   onOverlayDocumentSaved
 }: PdfViewerTabProps) {
+  const editCapabilities = useMemo(
+    () => resolveViewerEditCapabilities(isBboxStructuralEditingEnabled),
+    [isBboxStructuralEditingEnabled]
+  );
+
   const pdfState = usePdfDocument({ retrievedPdfDocument });
 
   const {
@@ -78,7 +84,8 @@ function PdfViewerTabComponent({
   const bboxClipboard = useBboxClipboard({
     overlayDocument,
     currentPage: pdfState.currentPage,
-    isBboxStructuralEditingEnabled,
+    isBboxStructuralEditingEnabled: editCapabilities.isBboxStructuralEditingEnabled,
+    isTextCopyEnabled: editCapabilities.isTextCopyEnabled,
     onOverlayEditStarted,
     onOverlayDocumentSaved
   });
@@ -87,7 +94,8 @@ function PdfViewerTabComponent({
     overlayDocument,
     currentPage: pdfState.currentPage,
     copiedBbox: bboxClipboard.copiedBbox,
-    isBboxStructuralEditingEnabled,
+    isBboxStructuralEditingEnabled: editCapabilities.isBboxStructuralEditingEnabled,
+    isRawTextEditingEnabled: editCapabilities.isRawTextEditingEnabled,
     anonymizationEntityLabels,
     defaultAnonymizationEntityLabel,
     defaultTextDirection,
@@ -224,7 +232,8 @@ function PdfViewerTabComponent({
         pageHeight={pdfState.pageHeight}
         visiblePageOverlays={visiblePageOverlays}
         isCreateMode={isCreateMode}
-        isBboxStructuralEditingEnabled={isBboxStructuralEditingEnabled}
+        isBboxStructuralEditingEnabled={editCapabilities.isBboxStructuralEditingEnabled}
+        isTextCopyEnabled={editCapabilities.isTextCopyEnabled}
         interactionRegionId={interaction?.regionId ?? null}
         canvasContainerRef={pdfState.canvasContainerRef}
         pageStageRef={pdfState.pageStageRef}
@@ -286,6 +295,8 @@ function PdfViewerTabComponent({
         onReset={regionEditor.handleResetRegionEditor}
         onDelete={regionEditor.handleDeleteRegionEditor}
         onCopyRegion={bboxClipboard.copyBbox}
+        isRawTextEditingEnabled={regionEditor.isRawTextEditingEnabled}
+        isTextCopyEnabled={editCapabilities.isTextCopyEnabled}
         isBboxStructuralEditingEnabled={isBboxStructuralEditingEnabled}
         hasCopiedBbox={bboxClipboard.hasCopiedBbox}
         onPasteRegionFromClipboard={regionEditor.handlePasteCopiedBboxIntoRegion}

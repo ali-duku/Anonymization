@@ -38,7 +38,9 @@
   - `usePdfDocument` is the rendering basis authority: PDF canvas intrinsic/CSS dimensions and overlay stage dimensions are kept identical so pointer normalization and overlay positioning share one coordinate frame.
   - `OverlayBox` owns direct on-canvas bbox actions (compact inline label selector plus translucent icon edit/delete/full-copy/text-copy controls), with label updates/delete routed through canonical region edit flows.
   - `ViewerToolbar` keeps canonical page/zoom/create controls and includes bbox paste beside `Add BBox`, using the shared bbox clipboard state in `PdfViewerTab` to create a new region.
-  - Structural bbox operations (move/resize/add/delete/full-copy/paste) are gated by one app-level capability flag and must be enforced in both UI controls and handler paths.
+  - One app-level capability flag (`BBox structure`) is the single source of truth for viewer edit permissions and must be enforced in both UI controls and handler paths.
+  - When disabled, structural bbox operations (move/resize/add/delete/full-copy/paste), raw text editing, and text-only copy actions are blocked.
+  - Anonymization operations over existing text (add/edit/remove spans/entities) remain enabled when this flag is disabled.
   - `RegionEditorModal` includes bbox full-copy, in-place paste into the active region draft, and text-only copy actions; dialog and toolbar paste reuse the same canonical clipboard payload mapping with different apply targets.
   - `SearchableEntityField` is the shared searchable dropdown input used by both `EntityPicker` and `SpanEditorPopover` for canonical entity-label selection.
   - `SpanEditorPopover` is viewport-positioned and anchored from preview-span geometry emitted by the dialog.
@@ -69,7 +71,7 @@ This pattern is applied consistently to general, setup, pdf, and viewer componen
 ## Data Flow
 
 1. `AppPage` owns overlay session history (`past/present/future`) and global actions (Save/Undo/Redo/Generate trigger).
-2. `DisplaySettingsProvider` wraps the app and owns persistent global settings (`fontSize`, active entity profile, default text direction, structural bbox editing capability); `fontSize` is applied through root CSS variables and the other settings are consumed by Header controls + Viewer/editor capability guards.
+2. `DisplaySettingsProvider` wraps the app and owns persistent global settings (`fontSize`, active entity profile, default text direction, structural bbox editing capability); `fontSize` is applied through root CSS variables and the other settings are consumed by Header controls + Viewer/editor capability guards (including derived raw-text edit and text-copy gating from the structural toggle).
 3. `SetupTab` parses input JSON and emits overlay load payloads into App session state.
 4. `PdfWorkspaceTab` manages retrieval + manual bypass sources and passes the active document into `PdfViewerTab`, which emits overlay edits back to App.
 5. `annotationService` transforms between OCR snapshot JSON and normalized overlay document model.
