@@ -23,6 +23,43 @@ const MOJ_SHOUR_HUMAN_POC_ENTITY_LABELS = [
   "صورة جواز السفر"
 ] as const;
 
+const MOJ_SHOUR_HUMAN_POC_ORIGINAL_ENTITY_LABELS = [
+  "المدّعى عليه",
+  "المدّعي",
+  "المحامي",
+  "الرقم الشخصي للمدعي",
+  "رقم الجوال للمدعي",
+  "رقم وظيفي للمدعي",
+  "موظفين من الجهة المدعى عليها",
+  "رقم المؤسسة للمدعى عليها",
+  "رقم حساب المدعي",
+  "البريد الإلكتروني للمدعية",
+  "عنوان المدعي",
+  "البريد الإلكتروني للمحامي",
+  "عنوان المحامي",
+  "رقم هاتف المحامي",
+  "رقم منشأة المحامي",
+  "رقم هاتف المدعى عليه",
+  "البريد الإلكتروني للمدعى عليه",
+  "عنوان المدعى عليه",
+  "رقم منشأة المدعى عليه",
+  "الرقم الشخصي للمحامي",
+  "كاتب العدل",
+  "موظف حكومي",
+  "القاضي (1)",
+  "القاضي (2)",
+  "برئاسة القاضي",
+  "أمين سر الدائرة",
+  "موظف قضايا الدولة",
+  "تاريخ ميلاد المدّعي",
+  "رقم جواز سفر المُدّعي",
+  "محامي قضايا دولة",
+  "توقيع محامي قضايا الدولة",
+  "توقيع المدعي",
+  "صورة المدعي",
+  "جهة حكومية"
+] as const;
+
 const HMC_ANONYMISATION_HANDOFF_ENTITY_LABELS = [
   "Patient Name",
   "Qatar ID",
@@ -38,6 +75,11 @@ export const ENTITY_PROFILES: Record<EntityProfileId, EntityProfileConfig> = {
     id: "moj-shour_human-poc",
     displayName: "MoJ Shour Human Review",
     entityLabels: MOJ_SHOUR_HUMAN_POC_ENTITY_LABELS
+  },
+  "moj-shour_human-poc-original": {
+    id: "moj-shour_human-poc-original",
+    displayName: "MoJ Shour Human Review (Original)",
+    entityLabels: MOJ_SHOUR_HUMAN_POC_ORIGINAL_ENTITY_LABELS
   },
   HMC_anonymisation_handoff: {
     id: "HMC_anonymisation_handoff",
@@ -57,6 +99,7 @@ const FALLBACK_ENTITY_LABEL = "???";
 
 export const ALL_ANONYMIZATION_ENTITY_LABELS = [
   ...MOJ_SHOUR_HUMAN_POC_ENTITY_LABELS,
+  ...MOJ_SHOUR_HUMAN_POC_ORIGINAL_ENTITY_LABELS,
   ...HMC_ANONYMISATION_HANDOFF_ENTITY_LABELS
 ] as const;
 
