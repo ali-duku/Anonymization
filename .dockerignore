@@ -1,0 +1,11 @@
+node_modules
+dist
+.git
+.github
+*.md
+docs
+.DS_Store
+*.log
+*.tsbuildinfo
+moj-shour_human-poc
+HMC_anonymisation_handoff
