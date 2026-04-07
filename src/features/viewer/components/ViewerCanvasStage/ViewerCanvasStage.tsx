@@ -50,6 +50,8 @@ function ViewerCanvasStageComponent({
         {hasPdf && (visiblePageOverlays.length > 0 || isCreateMode) && (
           <OverlayLayer
             visiblePageOverlays={visiblePageOverlays}
+            pageWidth={pageWidth}
+            pageHeight={pageHeight}
             interactionRegionId={interactionRegionId}
             isCreateMode={isCreateMode}
             isBboxStructuralEditingEnabled={isBboxStructuralEditingEnabled}

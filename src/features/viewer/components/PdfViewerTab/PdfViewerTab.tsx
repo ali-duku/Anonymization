@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo } from "react";
+import { memo, useEffect, useMemo } from "react";
 import { useCreateBBox } from "../../hooks/useCreateBBox";
 import { useBboxClipboard } from "../../hooks/useBboxClipboard";
 import { useOverlayInteractions } from "../../hooks/useOverlayInteractions";
@@ -8,18 +8,13 @@ import { useRegionEditor } from "../../hooks/useRegionEditor";
 import { useRegionSnippet } from "../../hooks/useRegionSnippet";
 import { resolveViewerEditCapabilities } from "../../utils/viewerEditCapabilities";
 import { buildVisiblePageOverlays } from "../../utils/visiblePageOverlays";
-import {
-  buildRecordSummary,
-  buildSaveIndicatorText,
-  buildStatusText
-} from "../../utils/viewerStatus";
+import { buildRecordSummary, buildSaveIndicatorText, buildStatusText } from "../../utils/viewerStatus";
 import { RegionEditorModal } from "../RegionEditorModal/RegionEditorModal";
 import { ViewerCanvasStage } from "../ViewerCanvasStage/ViewerCanvasStage";
 import { ViewerStatus } from "../ViewerStatus/ViewerStatus";
 import { ViewerToolbar } from "../ViewerToolbar/ViewerToolbar";
 import styles from "./PdfViewerTab.module.css";
 import type { PdfViewerTabProps } from "./PdfViewerTab.types";
-
 function PdfViewerTabComponent({
   retrievedPdfDocument,
   retrievalInputValue,
@@ -48,9 +43,7 @@ function PdfViewerTabComponent({
     () => resolveViewerEditCapabilities(isBboxStructuralEditingEnabled),
     [isBboxStructuralEditingEnabled]
   );
-
   const pdfState = usePdfDocument({ retrievedPdfDocument });
-
   const {
     isCreateMode,
     createDraft,
@@ -69,7 +62,6 @@ function PdfViewerTabComponent({
     onOverlayEditStarted,
     onOverlayDocumentSaved
   });
-
   const {
     interaction,
     draft,
@@ -85,7 +77,6 @@ function PdfViewerTabComponent({
     onOverlayEditStarted,
     onOverlayDocumentSaved
   });
-
   const bboxClipboard = useBboxClipboard({
     overlayDocument,
     currentPage: pdfState.currentPage,
@@ -94,7 +85,6 @@ function PdfViewerTabComponent({
     onOverlayEditStarted,
     onOverlayDocumentSaved
   });
-
   const regionEditor = useRegionEditor({
     overlayDocument,
     currentPage: pdfState.currentPage,
@@ -107,7 +97,6 @@ function PdfViewerTabComponent({
     onOverlayEditStarted,
     onOverlayDocumentSaved
   });
-
   const regionSnippet = useRegionSnippet({
     activeRegion: regionEditor.activeRegion,
     canvasRef: pdfState.canvasRef,
@@ -115,81 +104,60 @@ function PdfViewerTabComponent({
     pageWidth: pdfState.pageWidth,
     pageHeight: pdfState.pageHeight
   });
-
   useEffect(() => {
     resetOverlayInteractionState();
     setIsCreateMode(false);
     resetCreateState();
   }, [overlayDocument, pdfState.currentPage, resetCreateState, resetOverlayInteractionState, setIsCreateMode]);
-
   const statusText = buildStatusText(pdfState.loadStatus, pdfState.errorMessage);
-
-  const currentPageOverlays = useMemo(
-    () => overlayDocument?.pages.find((page) => page.pageNumber === pdfState.currentPage)?.regions ?? [],
-    [overlayDocument, pdfState.currentPage]
-  );
-
+  const currentPageOverlays =
+    overlayDocument?.pages.find((page) => page.pageNumber === pdfState.currentPage)?.regions ?? [];
   const regionNavigation = usePageRegionNavigation({
     regions: currentPageOverlays,
     activeRegionId: regionEditor.activeRegion?.id,
     hasDialogChanges: regionEditor.hasDialogChanges,
     onOpenRegionEditor: regionEditor.openRegionEditor
   });
-
-  const handleSaveRegionEditorAndGoNext = useCallback(() => {
+  const handleSaveRegionEditorAndGoNext = () => {
     const didSave = regionEditor.handleSaveRegionEditor();
     if (!didSave || !regionNavigation.hasNextRegion) {
       return;
     }
     regionNavigation.goNextRegionAfterSave();
-  }, [
-    regionEditor.handleSaveRegionEditor,
-    regionNavigation.goNextRegionAfterSave,
-    regionNavigation.hasNextRegion
-  ]);
-
-  const visiblePageOverlays = useMemo(() => {
-    return buildVisiblePageOverlays(currentPageOverlays, pdfState.currentPage, draft, createDraft);
-  }, [createDraft, currentPageOverlays, draft, pdfState.currentPage]);
-
-  const saveIndicatorText = useMemo(() => {
-    if (!overlayDocument || !overlaySaveState) {
-      return "";
-    }
-    return buildSaveIndicatorText(
-      overlaySaveState.isSaving,
-      overlaySaveState.isSaved,
-      overlaySaveState.lastSavedAt
-    );
-  }, [overlayDocument, overlaySaveState]);
-
-  const recordSummary = useMemo(() => {
-    if (!pdfState.documentMeta) {
-      return "";
-    }
-    return buildRecordSummary(
-      pdfState.documentMeta.fileName,
-      pdfState.documentMeta.fileSize,
-      pdfState.documentMeta.updatedAt
-    );
-  }, [pdfState.documentMeta]);
-
-  const retrievalStatusText = useMemo(() => {
-    if (retrievalStatus === "loading") {
-      return "Retrieving...";
-    }
-
-    if (retrievalStatus === "error") {
-      return retrievalErrorMessage ?? "Request failed.";
-    }
-
-    if (retrievalStatus === "success" && pdfState.documentMeta) {
-      return `Loaded ID ${pdfState.documentMeta.id}`;
-    }
-
-    return "";
-  }, [pdfState.documentMeta, retrievalErrorMessage, retrievalStatus]);
-
+  };
+  const visiblePageOverlays = buildVisiblePageOverlays(
+    currentPageOverlays,
+    pdfState.currentPage,
+    draft,
+    createDraft
+  );
+  const anonymizedEntityCount = currentPageOverlays.reduce(
+    (count, region) => count + (region.entities?.length ?? 0),
+    0
+  );
+  const saveIndicatorText =
+    overlayDocument && overlaySaveState
+      ? buildSaveIndicatorText(
+          overlaySaveState.isSaving,
+          overlaySaveState.isSaved,
+          overlaySaveState.lastSavedAt
+        )
+      : "";
+  const recordSummary = pdfState.documentMeta
+    ? buildRecordSummary(
+        pdfState.documentMeta.fileName,
+        pdfState.documentMeta.fileSize,
+        pdfState.documentMeta.updatedAt
+      )
+    : "";
+  let retrievalStatusText = "";
+  if (retrievalStatus === "loading") {
+    retrievalStatusText = "Retrieving...";
+  } else if (retrievalStatus === "error") {
+    retrievalStatusText = retrievalErrorMessage ?? "Request failed.";
+  } else if (retrievalStatus === "success" && pdfState.documentMeta) {
+    retrievalStatusText = `Loaded ID ${pdfState.documentMeta.id}`;
+  }
   return (
     <section className={styles.panel} aria-label="Viewer tab">
       <ViewerToolbar
@@ -204,6 +172,8 @@ function PdfViewerTabComponent({
         recordSummary={recordSummary}
         overlayCount={visiblePageOverlays.length}
         showOverlayCount={Boolean(overlayDocument && pdfState.hasPdf)}
+        anonymizedEntityCount={anonymizedEntityCount}
+        showAnonymizedEntityCount={Boolean(overlayDocument && pdfState.hasPdf)}
         saveIndicatorText={saveIndicatorText}
         isSaving={Boolean(overlaySaveState?.isSaving)}
         retrievalInputValue={retrievalInputValue}
@@ -229,14 +199,12 @@ function PdfViewerTabComponent({
           void pdfState.handleFitToWidth();
         }}
       />
-
       <ViewerStatus
         hasPdf={pdfState.hasPdf}
         loadStatus={pdfState.loadStatus}
         statusText={statusText}
         onManualFilePick={onManualFilePick}
       />
-
       <ViewerCanvasStage
         hasPdf={pdfState.hasPdf}
         pageWidth={pdfState.pageWidth}
@@ -259,7 +227,6 @@ function PdfViewerTabComponent({
           void bboxClipboard.copyTextOnly(region);
         }}
       />
-
       <RegionEditorModal
         activeRegion={regionEditor.activeRegion}
         snippet={regionSnippet}
@@ -285,7 +252,7 @@ function PdfViewerTabComponent({
         buildEntityPalette={regionEditor.buildEntityPalette}
         coerceEntityLabel={regionEditor.coerceEntityLabel}
         onClose={regionEditor.closeRegionEditor}
-        onLabelChange={regionEditor.setDialogDraftLabel}
+        onLabelChange={regionEditor.handleDialogDraftLabelChange}
         onToggleDirection={() => {
           regionEditor.setDialogTextDirection((previous: "rtl" | "ltr") => (previous === "rtl" ? "ltr" : "rtl"));
         }}

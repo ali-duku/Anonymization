@@ -14,6 +14,8 @@ function ViewerToolbarComponent({
   recordSummary,
   overlayCount,
   showOverlayCount,
+  anonymizedEntityCount,
+  showAnonymizedEntityCount,
   saveIndicatorText,
   isSaving,
   retrievalInputValue,
@@ -160,6 +162,11 @@ function ViewerToolbarComponent({
         {recordSummary && <span className={styles.viewerInlineMeta}>{recordSummary}</span>}
         {showOverlayCount && (
           <span className={styles.viewerInlineMeta}>Page {currentPage}: {overlayCount} overlays</span>
+        )}
+        {showAnonymizedEntityCount && (
+          <span className={styles.viewerInlineMeta}>
+            Page {currentPage}: {anonymizedEntityCount} anonymized entities
+          </span>
         )}
         {retrievalStatusText && (
           <span

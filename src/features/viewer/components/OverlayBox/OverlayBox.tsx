@@ -14,6 +14,8 @@ const HANDLE_CLASS_MAP = {
 function OverlayBoxComponent({
   region,
   overlayStyle,
+  pageWidth,
+  pageHeight,
   isEditing,
   isCreateDraftRegion,
   isCreateMode,
@@ -29,6 +31,23 @@ function OverlayBoxComponent({
 }: OverlayBoxProps) {
   const palette = useMemo(() => buildPalette(region.label), [region.label]);
   const labelOptions = useMemo(() => buildRegionLabelOptions(region.label), [region.label]);
+  const regionPixelWidth = useMemo(
+    () => Math.max(0, (region.bbox.x2 - region.bbox.x1) * Math.max(pageWidth, 1)),
+    [pageWidth, region.bbox.x1, region.bbox.x2]
+  );
+  const regionPixelHeight = useMemo(
+    () => Math.max(0, (region.bbox.y2 - region.bbox.y1) * Math.max(pageHeight, 1)),
+    [pageHeight, region.bbox.y1, region.bbox.y2]
+  );
+  const shouldFloatActionsOutside = regionPixelWidth < 144 || regionPixelHeight < 34;
+  const shouldFloatActionsBelow = shouldFloatActionsOutside && region.bbox.y1 < 0.05;
+  const actionGroupClassName = `${styles.overlayActionGroup} ${
+    shouldFloatActionsOutside
+      ? shouldFloatActionsBelow
+        ? styles.overlayActionGroupFloatingBelow
+        : styles.overlayActionGroupFloatingAbove
+      : ""
+  }`;
 
   return (
     <div
@@ -65,7 +84,7 @@ function OverlayBoxComponent({
               aria-label={`Resize ${region.label} region (${handle.toUpperCase()})`}
             />
           ))}
-          <div className={styles.overlayActionGroup}>
+          <div className={actionGroupClassName}>
             <select
               className={styles.overlayLabelSelect}
               style={{
@@ -77,9 +96,13 @@ function OverlayBoxComponent({
               onPointerDown={(event) => event.stopPropagation()}
               onClick={(event) => event.stopPropagation()}
               onChange={(event) => onChangeRegionLabel(region, event.currentTarget.value)}
-              disabled={isCreateMode}
+              disabled={isCreateMode || !isBboxStructuralEditingEnabled}
               aria-label={`Change ${region.label} region label`}
-              title="Change label"
+              title={
+                !isBboxStructuralEditingEnabled
+                  ? "BBox structural editing is disabled."
+                  : "Change label"
+              }
             >
               {labelOptions.map((label) => (
                 <option key={label} value={label}>

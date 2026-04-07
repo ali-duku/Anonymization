@@ -4,6 +4,8 @@ import type { ResizeHandle } from "../../utils/viewerGeometry";
 
 export interface OverlayLayerProps {
   visiblePageOverlays: OverlayRegion[];
+  pageWidth: number;
+  pageHeight: number;
   interactionRegionId: string | null;
   isCreateMode: boolean;
   isBboxStructuralEditingEnabled: boolean;

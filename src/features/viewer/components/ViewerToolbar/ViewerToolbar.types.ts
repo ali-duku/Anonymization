@@ -13,6 +13,8 @@ export interface ViewerToolbarProps {
   recordSummary: string;
   overlayCount: number;
   showOverlayCount: boolean;
+  anonymizedEntityCount: number;
+  showAnonymizedEntityCount: boolean;
   saveIndicatorText: string;
   isSaving: boolean;
   retrievalInputValue: string;

@@ -7,6 +7,8 @@ import type { OverlayLayerProps } from "./OverlayLayer.types";
 
 function OverlayLayerComponent({
   visiblePageOverlays,
+  pageWidth,
+  pageHeight,
   interactionRegionId,
   isCreateMode,
   isBboxStructuralEditingEnabled,
@@ -39,6 +41,8 @@ function OverlayLayerComponent({
             key={region.id}
             region={region}
             overlayStyle={toOverlayStyle(region, region.bbox)}
+            pageWidth={pageWidth}
+            pageHeight={pageHeight}
             isEditing={isEditing}
             isCreateDraftRegion={isCreateDraftRegion}
             isCreateMode={isCreateMode}

@@ -7,6 +7,11 @@ import {
   type MutableRefObject
 } from "react";
 import type { RetrievedPdfDocument, RetrievedPdfMeta } from "../../../types/pdfRetrieval";
+import {
+  buildManualPdfIdentityKeyFallback,
+  buildManualPdfIdentityKeyFromHash,
+  computePdfContentHash
+} from "../utils/pdfWorkspaceIdentity";
 
 export type ManualPdfBypassStatus = "idle" | "success" | "error";
 
@@ -32,8 +37,12 @@ function isPdfFile(file: File): boolean {
   return file.type.toLowerCase().startsWith("application/pdf") || file.name.toLowerCase().endsWith(".pdf");
 }
 
-function buildManualMeta(file: File): RetrievedPdfMeta {
+async function buildManualMeta(file: File): Promise<RetrievedPdfMeta> {
   const now = new Date().toISOString();
+  const contentHash = await computePdfContentHash(file).catch(() => null);
+  const identityKey = contentHash
+    ? buildManualPdfIdentityKeyFromHash(contentHash)
+    : buildManualPdfIdentityKeyFallback(file);
 
   return {
     id: `manual-${Date.now()}`,
@@ -43,7 +52,8 @@ function buildManualMeta(file: File): RetrievedPdfMeta {
     fileSize: file.size,
     updatedAt: now,
     requestUrl: "manual://local-upload",
-    retrievedAt: now
+    retrievedAt: now,
+    identityKey
   };
 }
 
@@ -79,17 +89,28 @@ export function useManualPdfBypass({
         return;
       }
 
-      const nextDocument: RetrievedPdfDocument = {
-        blob: file,
-        meta: buildManualMeta(file)
-      };
+      void buildManualMeta(file)
+        .then((meta) => {
+          const nextDocument: RetrievedPdfDocument = {
+            blob: file,
+            meta
+          };
 
-      setState({
-        status: "success",
-        errorMessage: null,
-        document: nextDocument
-      });
-      onDocumentLoaded?.(nextDocument);
+          setState({
+            status: "success",
+            errorMessage: null,
+            document: nextDocument
+          });
+          onDocumentLoaded?.(nextDocument);
+        })
+        .catch(() => {
+          setState((previous) => ({
+            ...previous,
+            status: "error",
+            errorMessage: "Could not generate a stable identity for this PDF."
+          }));
+        });
+
       event.currentTarget.value = "";
     },
     [onDocumentLoaded]

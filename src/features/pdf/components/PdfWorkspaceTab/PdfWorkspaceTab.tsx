@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { PdfViewerTab } from "../../../viewer/components/PdfViewerTab/PdfViewerTab";
 import { useManualPdfBypass } from "../../hooks/useManualPdfBypass";
 import { usePdfRetrieval } from "../../hooks/usePdfRetrieval";
@@ -15,7 +15,7 @@ function PdfWorkspaceTabComponent({
   isBboxStructuralEditingEnabled,
   onOverlayEditStarted,
   onOverlayDocumentSaved,
-  onClearOverlaySessionForDocumentSwitch
+  onActivePdfIdentityChange
 }: PdfWorkspaceTabProps) {
   const [activeSource, setActiveSource] = useState<"none" | "retrieval" | "manual">("none");
   const [inputValue, setInputValue] = useState("");
@@ -23,7 +23,6 @@ function PdfWorkspaceTabComponent({
     pdfRetrievalService,
     onDocumentRetrieved: () => {
       setActiveSource("retrieval");
-      onClearOverlaySessionForDocumentSwitch?.();
     },
     onDocumentCleared: () => {
       setActiveSource((previous) => (previous === "retrieval" ? "none" : previous));
@@ -32,7 +31,6 @@ function PdfWorkspaceTabComponent({
   const manualBypass = useManualPdfBypass({
     onDocumentLoaded: () => {
       setActiveSource("manual");
-      onClearOverlaySessionForDocumentSwitch?.();
     },
     onDocumentCleared: () => {
       setActiveSource((previous) => (previous === "manual" ? "none" : previous));
@@ -52,8 +50,7 @@ function PdfWorkspaceTabComponent({
     resetRetrieval();
     manualBypass.resetManualDocument();
     setActiveSource("none");
-    onClearOverlaySessionForDocumentSwitch?.();
-  }, [manualBypass, onClearOverlaySessionForDocumentSwitch, resetRetrieval]);
+  }, [manualBypass, resetRetrieval]);
 
   const activeDocument = useMemo(() => {
     if (activeSource === "manual") {
@@ -77,6 +74,10 @@ function PdfWorkspaceTabComponent({
 
   const manualUploadStatusTone =
     manualBypass.status === "error" ? "error" : manualBypass.status === "success" ? "success" : "neutral";
+
+  useEffect(() => {
+    onActivePdfIdentityChange?.(activeDocument?.meta.identityKey ?? null);
+  }, [activeDocument?.meta.identityKey, onActivePdfIdentityChange]);
 
   return (
     <section className={styles.panel} aria-label="Viewer tab">

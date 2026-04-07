@@ -51,6 +51,7 @@ export interface RetrievedPdfMeta {
   updatedAt: string;
   requestUrl: string;
   retrievedAt: string;
+  identityKey: string;
 }
 
 export interface RetrievedPdfDocument {

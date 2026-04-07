@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   canRedoHistory,
   canUndoHistory,
@@ -10,15 +10,21 @@ import {
 } from "../../utils/history";
 import type { HistoryState } from "../../types/history";
 import type { OverlayDocument, OverlayEditSession, OverlayLoadPayload } from "../../types/overlay";
+import {
+  loadPersistedOverlaySession,
+  persistOverlaySession,
+  removePersistedOverlaySession
+} from "./overlaySessionStorage";
 
 interface UseOverlaySessionHistoryResult {
   overlaySession: OverlayEditSession | null;
   canUndoOverlay: boolean;
   canRedoOverlay: boolean;
   canManualSaveOverlay: boolean;
+  activePdfIdentityKey: string | null;
+  setActivePdfIdentityKey: (nextPdfIdentityKey: string | null) => void;
   loadOverlayPayload: (payload: OverlayLoadPayload) => void;
   clearOverlaySession: () => void;
-  resetOverlaySessionForDocumentSwitch: () => void;
   saveOverlayDocument: (nextDocument: OverlayDocument) => void;
   markOverlayEditStarted: () => void;
   undoOverlay: () => void;
@@ -52,6 +58,8 @@ function markPresentOverlaySaved(
 }
 
 export function useOverlaySessionHistory(): UseOverlaySessionHistoryResult {
+  const activePdfIdentityKeyRef = useRef<string | null>(null);
+  const [activePdfIdentityKey, setActivePdfIdentityKeyState] = useState<string | null>(null);
   const [overlayHistory, setOverlayHistory] = useState(() =>
     createHistoryState<OverlayEditSession | null>(null, {
       meta: { action: "init" }
@@ -62,6 +70,23 @@ export function useOverlaySessionHistory(): UseOverlaySessionHistoryResult {
   const canUndoOverlay = canUndoHistory(overlayHistory);
   const canRedoOverlay = canRedoHistory(overlayHistory);
   const canManualSaveOverlay = Boolean(overlaySession);
+
+  const setOverlayHistoryWithPersistence = useCallback(
+    (updater: (previous: HistoryState<OverlayEditSession | null>) => HistoryState<OverlayEditSession | null>) => {
+      setOverlayHistory((previous) => {
+        const next = updater(previous);
+        const activeIdentity = activePdfIdentityKeyRef.current;
+        const persistedSession = next.present.state;
+        if (activeIdentity && persistedSession) {
+          persistOverlaySession(activeIdentity, persistedSession);
+        } else if (activeIdentity && !persistedSession) {
+          removePersistedOverlaySession(activeIdentity);
+        }
+        return next;
+      });
+    },
+    []
+  );
 
   const areOverlaySessionsEqual = useCallback(
     (left: OverlayEditSession | null, right: OverlayEditSession | null): boolean => {
@@ -88,11 +113,38 @@ export function useOverlaySessionHistory(): UseOverlaySessionHistoryResult {
 
   const commitOverlaySession = useCallback(
     (nextSession: OverlayEditSession | null, action: string) => {
-      setOverlayHistory((previous) =>
+      setOverlayHistoryWithPersistence((previous) =>
         commitHistory(previous, nextSession, { action }, areOverlaySessionsEqual)
       );
     },
-    [areOverlaySessionsEqual]
+    [areOverlaySessionsEqual, setOverlayHistoryWithPersistence]
+  );
+
+  const setActivePdfIdentityKey = useCallback(
+    (nextPdfIdentityKey: string | null) => {
+      if (activePdfIdentityKeyRef.current === nextPdfIdentityKey) {
+        return;
+      }
+
+      activePdfIdentityKeyRef.current = nextPdfIdentityKey;
+      setActivePdfIdentityKeyState(nextPdfIdentityKey);
+
+      setOverlayHistoryWithPersistence(() => {
+        if (!nextPdfIdentityKey) {
+          return createHistoryState<OverlayEditSession | null>(null, {
+            meta: { action: "viewer-document-switch-reset" }
+          });
+        }
+
+        const restoredSession = loadPersistedOverlaySession(nextPdfIdentityKey);
+        return createHistoryState<OverlayEditSession | null>(restoredSession, {
+          meta: {
+            action: restoredSession ? "viewer-document-switch-restore" : "viewer-document-switch-reset"
+          }
+        });
+      });
+    },
+    [setOverlayHistoryWithPersistence]
   );
 
   const loadOverlayPayload = useCallback(
@@ -117,17 +169,9 @@ export function useOverlaySessionHistory(): UseOverlaySessionHistoryResult {
     commitOverlaySession(null, "setup-clear-overlays");
   }, [commitOverlaySession]);
 
-  const resetOverlaySessionForDocumentSwitch = useCallback(() => {
-    setOverlayHistory(
-      createHistoryState<OverlayEditSession | null>(null, {
-        meta: { action: "viewer-document-switch-reset" }
-      })
-    );
-  }, []);
-
   const saveOverlayDocument = useCallback(
     (nextDocument: OverlayDocument) => {
-      setOverlayHistory((previousHistory) => {
+      setOverlayHistoryWithPersistence((previousHistory) => {
         const previous = previousHistory.present.state;
         if (!previous) {
           return previousHistory;
@@ -149,11 +193,11 @@ export function useOverlaySessionHistory(): UseOverlaySessionHistoryResult {
         );
       });
     },
-    [areOverlaySessionsEqual]
+    [areOverlaySessionsEqual, setOverlayHistoryWithPersistence]
   );
 
   const markOverlayEditStarted = useCallback(() => {
-    setOverlayHistory((previousHistory) => {
+    setOverlayHistoryWithPersistence((previousHistory) => {
       const previous = previousHistory.present.state;
       if (!previous) {
         return previousHistory;
@@ -172,25 +216,25 @@ export function useOverlaySessionHistory(): UseOverlaySessionHistoryResult {
         areOverlaySessionsEqual
       );
     });
-  }, [areOverlaySessionsEqual]);
+  }, [areOverlaySessionsEqual, setOverlayHistoryWithPersistence]);
 
   const undoOverlay = useCallback(() => {
-    setOverlayHistory((previous) =>
+    setOverlayHistoryWithPersistence((previous) =>
       markPresentOverlaySaved(undoHistory(previous), "history-undo-autosave", areOverlaySessionsEqual)
     );
-  }, [areOverlaySessionsEqual]);
+  }, [areOverlaySessionsEqual, setOverlayHistoryWithPersistence]);
 
   const redoOverlay = useCallback(() => {
-    setOverlayHistory((previous) =>
+    setOverlayHistoryWithPersistence((previous) =>
       markPresentOverlaySaved(redoHistory(previous), "history-redo-autosave", areOverlaySessionsEqual)
     );
-  }, [areOverlaySessionsEqual]);
+  }, [areOverlaySessionsEqual, setOverlayHistoryWithPersistence]);
 
   const manualSaveOverlay = useCallback(() => {
-    setOverlayHistory((previous) =>
+    setOverlayHistoryWithPersistence((previous) =>
       markPresentOverlaySaved(previous, "header-manual-save", areOverlaySessionsEqual)
     );
-  }, [areOverlaySessionsEqual]);
+  }, [areOverlaySessionsEqual, setOverlayHistoryWithPersistence]);
 
   return useMemo(
     () => ({
@@ -198,9 +242,10 @@ export function useOverlaySessionHistory(): UseOverlaySessionHistoryResult {
       canUndoOverlay,
       canRedoOverlay,
       canManualSaveOverlay,
+      activePdfIdentityKey,
+      setActivePdfIdentityKey,
       loadOverlayPayload,
       clearOverlaySession,
-      resetOverlaySessionForDocumentSwitch,
       saveOverlayDocument,
       markOverlayEditStarted,
       undoOverlay,
@@ -212,13 +257,14 @@ export function useOverlaySessionHistory(): UseOverlaySessionHistoryResult {
       canRedoOverlay,
       canUndoOverlay,
       clearOverlaySession,
+      activePdfIdentityKey,
       loadOverlayPayload,
       manualSaveOverlay,
       markOverlayEditStarted,
       overlaySession,
       redoOverlay,
-      resetOverlaySessionForDocumentSwitch,
       saveOverlayDocument,
+      setActivePdfIdentityKey,
       undoOverlay
     ]
   );

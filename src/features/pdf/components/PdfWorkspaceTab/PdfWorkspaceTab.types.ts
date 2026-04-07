@@ -12,5 +12,5 @@ export interface PdfWorkspaceTabProps {
   isBboxStructuralEditingEnabled: boolean;
   onOverlayEditStarted?: () => void;
   onOverlayDocumentSaved?: (document: OverlayDocument) => void;
-  onClearOverlaySessionForDocumentSwitch?: () => void;
+  onActivePdfIdentityChange?: (nextPdfIdentityKey: string | null) => void;
 }

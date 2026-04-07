@@ -6,6 +6,7 @@ import type {
 } from "../../../types/pdfRetrieval";
 import type { PdfRetrievalService } from "../../../types/services";
 import { validatePdfIdentifier } from "../utils/pdfIdentifier";
+import { buildRetrievedPdfIdentityKey } from "../utils/pdfWorkspaceIdentity";
 
 export type PdfRetrievalStatus = "idle" | "loading" | "success" | "error";
 
@@ -47,6 +48,13 @@ function buildRetrievedMeta(
     pdfBlob: Blob;
   }
 ): RetrievedPdfMeta {
+  const identityKey = buildRetrievedPdfIdentityKey({
+    id: data.id,
+    bucketKey: data.bucketKey,
+    updatedAt: data.updatedAt,
+    fileSize: data.pdfBlob.size
+  });
+
   return {
     id: data.id,
     fileName: data.fileName,
@@ -55,7 +63,8 @@ function buildRetrievedMeta(
     fileSize: data.pdfBlob.size,
     updatedAt: data.updatedAt,
     requestUrl,
-    retrievedAt: new Date().toISOString()
+    retrievedAt: new Date().toISOString(),
+    identityKey
   };
 }
 

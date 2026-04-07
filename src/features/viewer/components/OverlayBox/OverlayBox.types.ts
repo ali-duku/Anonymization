@@ -5,6 +5,8 @@ import type { ResizeHandle } from "../../utils/viewerGeometry";
 export interface OverlayBoxProps {
   region: OverlayRegion;
   overlayStyle: CSSProperties;
+  pageWidth: number;
+  pageHeight: number;
   isEditing: boolean;
   isCreateDraftRegion: boolean;
   isCreateMode: boolean;

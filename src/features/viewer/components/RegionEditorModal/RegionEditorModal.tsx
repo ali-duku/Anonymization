@@ -1,11 +1,12 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRegionDialogContainerBounds } from "../../hooks/useRegionDialogContainerBounds";
 import { useRegionDialogLayout } from "../../hooks/useRegionDialogLayout";
 import { useRegionDialogPaneMinimums } from "../../hooks/useRegionDialogPaneMinimums";
 import { useTopmostDialogDismissal } from "../../hooks/useTopmostDialogDismissal";
-import { createPortal } from "react-dom";
-import { EntityPicker } from "../EntityPicker/EntityPicker";
 import { SpanEditorPopover } from "../SpanEditorPopover/SpanEditorPopover";
+import { RegionEditorFormSection } from "./RegionEditorFormSection";
+import { RegionEditorSnippetPane } from "./RegionEditorSnippetPane";
 import styles from "./RegionEditorModal.module.css";
 import type { RegionEditorModalProps } from "./RegionEditorModal.types";
 
@@ -83,10 +84,7 @@ function RegionEditorModalComponent({
     isEnabled: Boolean(activeRegion)
   });
 
-  const {
-    minLeftPaneWidth,
-    minRightPaneWidth
-  } = useRegionDialogPaneMinimums({
+  const { minLeftPaneWidth, minRightPaneWidth } = useRegionDialogPaneMinimums({
     leftPaneRef: snippetPaneRef,
     leftProtectedRef: snippetProtectedRef,
     rightPaneRef: modalCardRef,
@@ -129,6 +127,7 @@ function RegionEditorModalComponent({
   if (!activeRegion) {
     return null;
   }
+
   const modalContent = (
     <div className={styles.modalOverlay} role="dialog" aria-modal="true" aria-labelledby="region-editor-title">
       <div
@@ -136,103 +135,27 @@ function RegionEditorModalComponent({
         className={`${styles.modalShell} ${isDragging ? styles.modalShellDragging : ""}`}
         style={modalShellStyle}
       >
-        <aside ref={snippetPaneRef} className={styles.snippetPane}>
-          <div ref={snippetProtectedRef} className={styles.snippetProtected}>
-            <header className={styles.snippetHeader}>
-              <h2 id="region-editor-title">Region Context</h2>
-              <div className={styles.snippetMeta}>
-                <span>P{activeRegion.metadata.pageNumber ?? "?"}</span>
-                <span>R{activeRegion.metadata.regionId ?? "?"}</span>
-                <span>
-                  {currentRegionOrder && totalRegionsOnPage > 0
-                    ? `${currentRegionOrder}/${totalRegionsOnPage}`
-                    : "-"}
-                </span>
-              </div>
-            </header>
-
-            <div className={styles.snippetControls}>
-              <div className={styles.snippetNavButtons}>
-                <button
-                  type="button"
-                  className={styles.buttonGhost}
-                  onClick={onGoPreviousRegion}
-                  disabled={!hasPreviousRegion}
-                >
-                  Previous
-                </button>
-                <button
-                  type="button"
-                  className={styles.buttonGhost}
-                  onClick={onGoNextRegion}
-                  disabled={!hasNextRegion}
-                >
-                  Next
-                </button>
-              </div>
-              <div className={styles.snippetZoomControls}>
-                <button
-                  type="button"
-                  className={styles.buttonGhost}
-                  onClick={() => {
-                    setSnippetZoom((previous) => clampSnippetZoom(previous - SNIPPET_ZOOM_STEP));
-                  }}
-                  disabled={snippetZoom <= MIN_SNIPPET_ZOOM}
-                  aria-label="Zoom out snippet"
-                >
-                  -
-                </button>
-                <span className={styles.snippetZoomValue}>{snippetZoomPercent}%</span>
-                <button
-                  type="button"
-                  className={styles.buttonGhost}
-                  onClick={() => {
-                    setSnippetZoom((previous) => clampSnippetZoom(previous + SNIPPET_ZOOM_STEP));
-                  }}
-                  disabled={snippetZoom >= MAX_SNIPPET_ZOOM}
-                  aria-label="Zoom in snippet"
-                >
-                  +
-                </button>
-                <button
-                  type="button"
-                  className={styles.buttonGhost}
-                  onClick={() => {
-                    setSnippetZoom(DEFAULT_SNIPPET_ZOOM);
-                  }}
-                  disabled={snippetZoom === DEFAULT_SNIPPET_ZOOM}
-                >
-                  Reset
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div
-            className={styles.snippetViewport}
-            onContextMenu={(event) => {
-              event.preventDefault();
-            }}
-          >
-            {snippet?.imageUrl ? (
-              <img
-                className={styles.snippetImage}
-                src={snippet.imageUrl}
-                alt="PDF snippet for selected region"
-                draggable={false}
-                onDragStart={(event) => {
-                  event.preventDefault();
-                }}
-                onContextMenu={(event) => {
-                  event.preventDefault();
-                }}
-                style={{ width: `${snippetZoomPercent}%` }}
-              />
-            ) : (
-              <p className={styles.snippetFallback}>Snippet unavailable for this region.</p>
-            )}
-          </div>
-        </aside>
+        <RegionEditorSnippetPane
+          activeRegion={activeRegion}
+          snippet={snippet}
+          currentRegionOrder={currentRegionOrder}
+          totalRegionsOnPage={totalRegionsOnPage}
+          snippetZoom={snippetZoom}
+          snippetZoomPercent={snippetZoomPercent}
+          minSnippetZoom={MIN_SNIPPET_ZOOM}
+          maxSnippetZoom={MAX_SNIPPET_ZOOM}
+          defaultSnippetZoom={DEFAULT_SNIPPET_ZOOM}
+          snippetZoomStep={SNIPPET_ZOOM_STEP}
+          hasPreviousRegion={hasPreviousRegion}
+          hasNextRegion={hasNextRegion}
+          snippetPaneRef={snippetPaneRef}
+          snippetProtectedRef={snippetProtectedRef}
+          onGoPreviousRegion={onGoPreviousRegion}
+          onGoNextRegion={onGoNextRegion}
+          onSnippetZoomChange={(nextZoom) => {
+            setSnippetZoom(clampSnippetZoom(nextZoom));
+          }}
+        />
 
         <div
           className={`${styles.paneSeparator} ${isDragging ? styles.paneSeparatorDragging : ""}`}
@@ -247,257 +170,50 @@ function RegionEditorModalComponent({
           onKeyDown={onSeparatorKeyDown}
         />
 
-        <section ref={modalCardRef} className={styles.modalCard}>
-          <header className={styles.modalHeader}>
-            <h3>Edit Region</h3>
-            <button
-              type="button"
-              className={styles.dialogCloseButton}
-              onClick={onClose}
-              aria-label="Close region editor"
-            >
-              <span className={styles.dialogCloseGlyph} aria-hidden="true" />
-            </button>
-          </header>
-
-          <div className={styles.dialogBody}>
-            <div className={styles.controlsRow}>
-              <label className={styles.inlineLabel} htmlFor="overlay-label-select">
-                Label
-              </label>
-              <select
-                id="overlay-label-select"
-                className={styles.select}
-                value={dialogDraftLabel}
-                onChange={(event) => onLabelChange(event.currentTarget.value)}
-              >
-                {dialogLabelOptions.map((label) => (
-                  <option key={label} value={label}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                className={`${styles.buttonGhost} ${styles.directionToggle}`}
-                onClick={onToggleDirection}
-              >
-                {dialogTextDirection === "rtl" ? "RTL" : "LTR"}
-              </button>
-              <button
-                type="button"
-                className={`${styles.buttonSecondary} ${styles.anonymizeButton}`}
-                onClick={onAnonymize}
-                disabled={false}
-                aria-disabled={Boolean(!pendingSelection && !canAnonymizeSelection)}
-                title={!pendingSelection && !canAnonymizeSelection ? "Select text to anonymize" : undefined}
-              >
-                Anonymize
-              </button>
-              <EntityPicker
-                containerRef={pickerRef}
-                selection={pickerSelection}
-                pendingEntity={pendingEntity}
-                entityLabels={anonymizationEntityLabels}
-                coerceEntityLabel={coerceEntityLabel}
-                onPendingEntityChange={onPendingEntityChange}
-                onCancel={onCancelPicker}
-              />
-            </div>
-
-            <div className={styles.editorGrid}>
-              <div className={styles.editorColumn}>
-                <div className={styles.previewLabel}>Text</div>
-                <textarea
-                  id="overlay-text-content"
-                  className={styles.textInput}
-                  dir={dialogTextDirection}
-                  ref={dialogTextareaRef}
-                  value={dialogDraftText}
-                  role="textbox"
-                  aria-label="Text"
-                  aria-readonly={!isRawTextEditingEnabled}
-                  readOnly={!isRawTextEditingEnabled}
-                  onChange={onEditorInput}
-                  onSelect={onEditorSelect}
-                  onMouseUp={onEditorMouseUp}
-                  onKeyUp={onEditorKeyUp}
-                />
-              </div>
-              <div className={styles.editorColumn}>
-                <div className={styles.previewLabel}>Preview</div>
-                <div ref={dialogPreviewRef} className={styles.textPreview} dir={dialogTextDirection}>
-                  {previewModel.kind === "plain_text"
-                    ? previewModel.segments.map((segment, index) => {
-                        if (segment.entityIndex === null || !segment.entity) {
-                          return (
-                            <span key={`plain-${index}`} className={styles.segment}>
-                              {segment.text}
-                            </span>
-                          );
-                        }
-
-                        const palette = buildEntityPalette(segment.entity);
-                        return (
-                          <span
-                            key={`entity-${segment.entityIndex}-${index}`}
-                            className={styles.entitySpan}
-                            style={{
-                              background: palette.background,
-                              color: palette.text,
-                              borderColor: palette.border
-                            }}
-                            title={`${segment.entity} [${segment.start ?? "?"}-${segment.end ?? "?"}]`}
-                            onDoubleClick={(event) => {
-                              if (segment.entityIndex === null) {
-                                return;
-                              }
-                              event.preventDefault();
-                              event.stopPropagation();
-                              const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-                              onOpenSpanEditor(segment.entityIndex, rect.left, rect.bottom + 6);
-                            }}
-                          >
-                            {segment.text}
-                          </span>
-                        );
-                      })
-                    : (
-                        <table className={styles.previewTable}>
-                          <tbody>
-                            {previewModel.rows.map((row, rowIndex) => (
-                              <tr key={`row-${rowIndex}`}>
-                                {row.cells.map((cell, cellIndex) => {
-                                  const CellTag = cell.kind === "th" ? "th" : "td";
-                                  return (
-                                    <CellTag
-                                      key={`cell-${rowIndex}-${cellIndex}`}
-                                      className={styles.previewTableCell}
-                                      colSpan={cell.colSpan > 1 ? cell.colSpan : undefined}
-                                      rowSpan={cell.rowSpan > 1 ? cell.rowSpan : undefined}
-                                    >
-                                      {cell.fragments.map((fragment, fragmentIndex) => {
-                                        if (fragment.entityIndex === null || !fragment.entity) {
-                                          return (
-                                            <span
-                                              key={`fragment-plain-${rowIndex}-${cellIndex}-${fragmentIndex}`}
-                                              className={styles.segment}
-                                            >
-                                              {fragment.text}
-                                            </span>
-                                          );
-                                        }
-                                        const palette = buildEntityPalette(fragment.entity);
-                                        return (
-                                          <span
-                                            key={`fragment-entity-${fragment.entityIndex}-${rowIndex}-${cellIndex}-${fragmentIndex}`}
-                                            className={styles.entitySpan}
-                                            style={{
-                                              background: palette.background,
-                                              color: palette.text,
-                                              borderColor: palette.border
-                                            }}
-                                            title={`${fragment.entity} [${fragment.start ?? "?"}-${fragment.end ?? "?"}]`}
-                                            onDoubleClick={(event) => {
-                                              if (fragment.entityIndex === null) {
-                                                return;
-                                              }
-                                              event.preventDefault();
-                                              event.stopPropagation();
-                                              const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-                                              onOpenSpanEditor(fragment.entityIndex, rect.left, rect.bottom + 6);
-                                            }}
-                                          >
-                                            {fragment.text}
-                                          </span>
-                                        );
-                                      })}
-                                    </CellTag>
-                                  );
-                                })}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      )}
-                </div>
-              </div>
-            </div>
-
-            <details className={styles.metadata}>
-              <summary>Metadata</summary>
-              <dl>
-                <div>
-                  <dt>Page</dt>
-                  <dd>{activeRegion.metadata.pageNumber ?? "N/A"}</dd>
-                </div>
-                <div>
-                  <dt>Region ID</dt>
-                  <dd>{activeRegion.metadata.regionId ?? "N/A"}</dd>
-                </div>
-                <div>
-                  <dt>Entities</dt>
-                  <dd>{normalizedDraftEntities.length}</dd>
-                </div>
-                {snippet?.width && snippet?.height ? (
-                  <div>
-                    <dt>Snippet</dt>
-                    <dd>
-                      {snippet.width}x{snippet.height}
-                    </dd>
-                  </div>
-                ) : null}
-              </dl>
-            </details>
-
-            {entityWarning && <p className={styles.statusLineError}>{entityWarning}</p>}
-          </div>
-
-          <div ref={dialogActionsRef} className={styles.dialogActions}>
-            <button
-              type="button"
-              className={styles.buttonSecondary}
-              onClick={() => onCopyRegion(activeRegion)}
-              disabled={!isBboxStructuralEditingEnabled}
-            >
-              Copy BBox
-            </button>
-            <button
-              type="button"
-              className={styles.buttonSecondary}
-              onClick={onPasteRegionFromClipboard}
-              disabled={!isBboxStructuralEditingEnabled || !hasCopiedBbox}
-            >
-              Paste BBox
-            </button>
-            <button
-              type="button"
-              className={styles.buttonSecondary}
-              onClick={() => onCopyRegionText(activeRegion)}
-              disabled={!isTextCopyEnabled}
-              title={!isTextCopyEnabled ? "Text copy is disabled." : undefined}
-            >
-              Copy Text
-            </button>
-            <button type="button" className={styles.buttonSecondary} onClick={onSave}>
-              Save
-            </button>
-            <button type="button" className={styles.buttonSecondary} onClick={onReset}>
-              Reset
-            </button>
-            <button
-              type="button"
-              className={styles.buttonDanger}
-              onClick={onDelete}
-              disabled={!isBboxStructuralEditingEnabled}
-            >
-              Delete
-            </button>
-            <button type="button" className={styles.buttonPrimary} onClick={onClose}>
-              Close
-            </button>
-          </div>
-        </section>
+        <RegionEditorFormSection
+          activeRegion={activeRegion}
+          snippet={snippet}
+          dialogDraftLabel={dialogDraftLabel}
+          dialogDraftText={dialogDraftText}
+          dialogTextDirection={dialogTextDirection}
+          dialogLabelOptions={dialogLabelOptions}
+          pendingSelection={pendingSelection}
+          pendingEntity={pendingEntity}
+          pickerSelection={pickerSelection}
+          entityWarning={entityWarning}
+          previewModel={previewModel}
+          normalizedDraftEntities={normalizedDraftEntities}
+          anonymizationEntityLabels={anonymizationEntityLabels}
+          canAnonymizeSelection={canAnonymizeSelection}
+          dialogTextareaRef={dialogTextareaRef}
+          dialogPreviewRef={dialogPreviewRef}
+          modalCardRef={modalCardRef}
+          dialogActionsRef={dialogActionsRef}
+          pickerRef={pickerRef}
+          buildEntityPalette={buildEntityPalette}
+          coerceEntityLabel={coerceEntityLabel}
+          hasCopiedBbox={hasCopiedBbox}
+          isRawTextEditingEnabled={isRawTextEditingEnabled}
+          isTextCopyEnabled={isTextCopyEnabled}
+          isBboxStructuralEditingEnabled={isBboxStructuralEditingEnabled}
+          onClose={onClose}
+          onLabelChange={onLabelChange}
+          onToggleDirection={onToggleDirection}
+          onAnonymize={onAnonymize}
+          onPendingEntityChange={onPendingEntityChange}
+          onCancelPicker={onCancelPicker}
+          onEditorInput={onEditorInput}
+          onEditorSelect={onEditorSelect}
+          onEditorMouseUp={onEditorMouseUp}
+          onEditorKeyUp={onEditorKeyUp}
+          onOpenSpanEditor={onOpenSpanEditor}
+          onCopyRegion={onCopyRegion}
+          onPasteRegionFromClipboard={onPasteRegionFromClipboard}
+          onCopyRegionText={onCopyRegionText}
+          onSave={onSave}
+          onReset={onReset}
+          onDelete={onDelete}
+        />
       </div>
 
       <SpanEditorPopover
@@ -516,5 +232,3 @@ function RegionEditorModalComponent({
 }
 
 export const RegionEditorModal = memo(RegionEditorModalComponent);
-
-

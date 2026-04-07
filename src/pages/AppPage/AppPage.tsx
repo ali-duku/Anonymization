@@ -50,9 +50,9 @@ export function AppPage({ services }: AppPageProps) {
     canUndoOverlay,
     canRedoOverlay,
     canManualSaveOverlay,
+    setActivePdfIdentityKey,
     loadOverlayPayload,
     clearOverlaySession,
-    resetOverlaySessionForDocumentSwitch,
     saveOverlayDocument,
     markOverlayEditStarted,
     undoOverlay,
@@ -162,7 +162,7 @@ export function AppPage({ services }: AppPageProps) {
               isBboxStructuralEditingEnabled={settings.isBboxStructuralEditingEnabled}
               onOverlayEditStarted={markOverlayEditStarted}
               onOverlayDocumentSaved={saveOverlayDocument}
-              onClearOverlaySessionForDocumentSwitch={resetOverlaySessionForDocumentSwitch}
+              onActivePdfIdentityChange={setActivePdfIdentityKey}
             />
           </Suspense>
         </section>

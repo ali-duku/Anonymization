@@ -3,7 +3,7 @@
   border: 1px solid;
   border-radius: 5px;
   pointer-events: auto;
-  overflow: hidden;
+  overflow: visible;
   touch-action: none;
 }
 
@@ -65,6 +65,16 @@
   display: flex;
   gap: 4px;
   z-index: 3;
+}
+
+.overlayActionGroupFloatingAbove {
+  top: -24px;
+  right: -1px;
+}
+
+.overlayActionGroupFloatingBelow {
+  top: calc(100% + 4px);
+  right: -1px;
 }
 
 .overlayActionButton {
