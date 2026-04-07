@@ -16,6 +16,7 @@ interface UseSetupJsonWorkflowOptions {
   overlaySession: OverlayEditSession | null;
   onLoadToViewer: (payload: OverlayLoadPayload) => void;
   onClearOverlaySession: () => void;
+  onOverlayGenerated?: () => void;
   onGenerateJsonRegister?: (handler: (() => void) | null) => void;
 }
 
@@ -41,6 +42,7 @@ export function useSetupJsonWorkflow({
   overlaySession,
   onLoadToViewer,
   onClearOverlaySession,
+  onOverlayGenerated,
   onGenerateJsonRegister
 }: UseSetupJsonWorkflowOptions): SetupJsonWorkflow {
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -76,7 +78,10 @@ export function useSetupJsonWorkflow({
     setOutputLineCount(countLines(result.formattedJson));
     setErrorText(null);
     setSuccessText(overlaySession ? "JSON generated with overlay edits." : "JSON generated successfully.");
-  }, [annotationService, jsonService, overlaySession]);
+    if (overlaySession) {
+      onOverlayGenerated?.();
+    }
+  }, [annotationService, jsonService, onOverlayGenerated, overlaySession]);
 
   useEffect(() => {
     onGenerateJsonRegister?.(handleGenerate);

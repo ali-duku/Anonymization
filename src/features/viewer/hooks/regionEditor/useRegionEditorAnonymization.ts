@@ -29,7 +29,10 @@ interface UseRegionEditorAnonymizationOptions {
   pickerSelection: PendingSelectionRange | null;
   spanEditor: SpanEditorDraft | null;
   isRawTextEditingEnabled: boolean;
-  commitActiveRegionEdits: (edits: { text?: string; entities?: OverlayEntitySpan[] }) => boolean;
+  commitActiveRegionEdits: (
+    edits: { text?: string; entities?: OverlayEntitySpan[] },
+    action?: string
+  ) => boolean;
   setDialogDraftText: (nextText: string) => void;
   setDialogDraftEntities: (nextEntities: OverlayEntitySpan[]) => void;
   setPendingSelection: (nextSelection: PendingSelectionRange | null) => void;
@@ -213,10 +216,13 @@ export function useRegionEditorAnonymization({
       setPendingSelection(null);
       setPickerSelection(null);
       setEntityWarning(null);
-      commitActiveRegionEdits({
-        text: dialogDraftText,
-        entities: nextSpans
-      });
+      commitActiveRegionEdits(
+        {
+          text: dialogDraftText,
+          entities: nextSpans
+        },
+        "viewer-region-entity-add"
+      );
     },
     [
       anonymizationEntityLabels,

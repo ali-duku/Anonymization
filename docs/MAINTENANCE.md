@@ -9,8 +9,13 @@
 
 ## Current Baseline
 
-- Latest shipped version: `0.7.4`.
+- Latest shipped version: `0.7.5`.
 - Latest viewer baseline includes:
+  - region-editor internals split into dedicated snippet/form UI sections plus focused lifecycle/document-mutation/anonymization/span-editing hooks for cleaner ownership,
+  - deterministic per-PDF restore behavior with explicit `Restore`/`Skip` prompt when matching saved overlay edits exist,
+  - browser close/refresh protection warning when overlay work is unsaved or not yet generated,
+  - on-canvas bbox controls and resize anchors hidden by default, revealed on hover, and persisted briefly after hover exit,
+  - dialog-context undo/redo shortcut handling aligned with canonical overlay history while preserving native text-field undo behavior,
   - retrieval-by-ID as the primary PDF flow,
   - session-only manual upload bypass as secondary flow,
   - viewport-aware region editor scrolling,

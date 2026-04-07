@@ -11,6 +11,11 @@ Every functional/UI update must include both:
 
 ## Latest Update
 
+- **v0.7.5 (2026-04-07)**
+  - Refactored Region Editor into dedicated snippet/form sections plus focused hooks for dialog lifecycle, document mutations, anonymization, and span editing.
+  - Strengthened PDF/session continuity with manual PDF content-hash identity support and hardened per-PDF overlay session persistence/restore handling.
+  - Added deterministic safety behavior: close/refresh warnings for unsaved-or-not-generated work, explicit Restore/Skip prompt for matching saved PDF edits, dialog-context undo/redo support, and hover-driven bbox controls/anchors with brief persistence.
+
 - **v0.7.4 (2026-03-25)**
   - Extended the global top-header `BBox structure` toggle so OFF now also blocks raw text/content editing and text-only copy actions.
   - Kept anonymization management enabled while OFF: users can still add/edit/delete anonymized spans over existing text.
@@ -75,9 +80,10 @@ Every functional/UI update must include both:
 - Viewer supports:
   - Secure retrieval by ID through simulated backend contract (`api/getfile?id=<id>`).
   - Optional manual local PDF upload bypass from the same toolbar/empty state.
+  - Deterministic per-PDF overlay restore behavior with explicit Restore/Skip prompt when matching saved edits exist.
   - Page navigation, zoom, and fit.
   - Overlay drag/resize/create.
-  - On-canvas bbox action controls (compact inline label selector + icon-only edit/delete/full-copy/text-copy) with dialog-equivalent delete behavior.
+  - On-canvas bbox action controls and resize anchors are hidden by default, appear on hover, and persist briefly after hover-out for stable interactions.
   - Toolbar paste action beside `Add BBox` to create a new bbox from copied bbox payload on the current page.
   - Global top-header `BBox structure` toggle as the canonical capability gate:
     - OFF blocks structural bbox editing (move/resize/add/delete/full-copy/paste), raw text editing, and text-only copy actions.
@@ -97,7 +103,8 @@ Every functional/UI update must include both:
   - Pretty-printed generation output.
   - Copy-to-clipboard.
   - Load-to-Viewer with confirmation guards.
-- App-level Save / Undo / Redo with keyboard shortcuts.
+- App-level Save / Undo / Redo with keyboard shortcuts, including region-dialog non-text contexts.
+- Browser close/refresh warning when overlay work is unsaved or not yet generated.
 - App-level display settings with persistent global font-size control, active entity profile selection, default text direction, and bbox structural editing capability toggle.
 
 ## Stack

@@ -13,6 +13,7 @@ function SetupTabComponent({
   overlaySession,
   onLoadToViewer,
   onClearOverlaySession,
+  onOverlayGenerated,
   onGenerateJsonRegister
 }: SetupTabProps) {
   const {
@@ -34,6 +35,7 @@ function SetupTabComponent({
     overlaySession,
     onLoadToViewer,
     onClearOverlaySession,
+    onOverlayGenerated,
     onGenerateJsonRegister
   });
 

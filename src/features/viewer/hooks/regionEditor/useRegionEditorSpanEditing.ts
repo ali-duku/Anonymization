@@ -8,7 +8,10 @@ interface UseRegionEditorSpanEditingOptions {
   anonymizationEntityLabels: readonly string[];
   spanEditor: SpanEditorDraft | null;
   dialogDraftText: string;
-  commitActiveRegionEdits: (edits: { text?: string; entities?: OverlayEntitySpan[] }) => boolean;
+  commitActiveRegionEdits: (
+    edits: { text?: string; entities?: OverlayEntitySpan[] },
+    action?: string
+  ) => boolean;
   setDialogDraftEntities: (nextEntities: OverlayEntitySpan[]) => void;
   setPendingSelection: (nextSelection: null) => void;
   setPickerSelection: (nextSelection: null) => void;
@@ -88,10 +91,13 @@ export function useRegionEditorSpanEditing({
       setDialogDraftEntities(sortedNextSpans);
       setSpanEditor(null);
       setEntityWarning(null);
-      commitActiveRegionEdits({
-        text: dialogDraftText,
-        entities: sortedNextSpans
-      });
+      commitActiveRegionEdits(
+        {
+          text: dialogDraftText,
+          entities: sortedNextSpans
+        },
+        "viewer-region-entity-update"
+      );
     },
     [
       anonymizationEntityLabels,
@@ -143,10 +149,13 @@ export function useRegionEditorSpanEditing({
     setDialogDraftEntities(nextEntities);
     setSpanEditor(null);
     setEntityWarning(null);
-    commitActiveRegionEdits({
-      text: dialogDraftText,
-      entities: nextEntities
-    });
+    commitActiveRegionEdits(
+      {
+        text: dialogDraftText,
+        entities: nextEntities
+      },
+      "viewer-region-entity-remove"
+    );
   }, [
     commitActiveRegionEdits,
     dialogDraftText,

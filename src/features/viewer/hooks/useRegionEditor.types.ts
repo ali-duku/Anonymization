@@ -21,5 +21,5 @@ export interface UseRegionEditorOptions {
   defaultAnonymizationEntityLabel: string;
   defaultTextDirection: TextDirection;
   onOverlayEditStarted?: () => void;
-  onOverlayDocumentSaved?: (document: OverlayDocument) => void;
+  onOverlayDocumentSaved?: (document: OverlayDocument, action?: string) => void;
 }

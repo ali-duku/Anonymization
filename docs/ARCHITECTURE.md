@@ -8,7 +8,7 @@
 
 ## Source Layout
 
-- `src/pages/AppPage`: app-shell composition, tab orchestration, history ownership.
+- `src/pages/AppPage`: app-shell composition, tab orchestration, history ownership, and app-level unload safety (`useOverlayBeforeUnloadPrompt`).
 - `src/components/general`: shared shell components (`Header`, `TabNav`, `WhatsNewModal`).
 - `src/features/setup`
   - `components`: Setup UI split into focused pieces.
@@ -22,7 +22,7 @@
   - `utils`: identifier validation and backend response/payload guards.
 - `src/features/viewer`
   - `components`: `PdfViewerTab` plus focused UI blocks (`ViewerToolbar`, `ViewerCanvasStage`, `OverlayLayer`, `OverlayBox`, `RegionEditorModal`, `EntityPicker`, `SearchableEntityField`, `SpanEditorPopover`, `ViewerStatus`).
-  - `hooks`: PDF rendering lifecycle, overlay interactions, bbox creation, bbox clipboard copy/paste (`useBboxClipboard`), region editor state, region-dialog container bounds measurement (`useRegionDialogContainerBounds`), region-dialog layout splitter state/persistence (`useRegionDialogLayout`), region-dialog drag interaction (`useRegionDialogDrag`), region-dialog pane usability minimum measurement (`useRegionDialogPaneMinimums`), and canonical span-dialog handlers/dismissal coordination.
+  - `hooks`: PDF rendering lifecycle, overlay interactions, bbox creation, bbox clipboard copy/paste (`useBboxClipboard`), region editor state, region-dialog container bounds measurement (`useRegionDialogContainerBounds`), region-dialog layout splitter state/persistence (`useRegionDialogLayout`), region-dialog drag interaction (`useRegionDialogDrag`), region-dialog pane usability minimum measurement (`useRegionDialogPaneMinimums`), bbox overlay control visibility timing (`useOverlayBoxControlsVisibility`), and canonical span-dialog handlers/dismissal coordination.
   - PDF load opens at a fixed default zoom (150%) instead of auto-fitting on first render; explicit `Fit` remains user-triggered from toolbar.
   - `usePageRegionNavigation` remains the canonical previous/next bbox navigation path; save-triggered next navigation is routed through this same hook to avoid duplicate navigation logic.
   - `utils`: pure geometry/status/text/document helpers.
@@ -70,7 +70,7 @@ This pattern is applied consistently to general, setup, pdf, and viewer componen
 
 ## Data Flow
 
-1. `AppPage` owns overlay session history (`past/present/future`) and global actions (Save/Undo/Redo/Generate trigger).
+1. `AppPage` owns overlay session history (`past/present/future`) and global actions (Save/Undo/Redo/Generate trigger), including deterministic per-PDF restore/skip decisions and unload-warning state derivation from canonical session fields.
 2. `DisplaySettingsProvider` wraps the app and owns persistent global settings (`fontSize`, active entity profile, default text direction, structural bbox editing capability); `fontSize` is applied through root CSS variables and the other settings are consumed by Header controls + Viewer/editor capability guards (including derived raw-text edit and text-copy gating from the structural toggle).
 3. `SetupTab` parses input JSON and emits overlay load payloads into App session state.
 4. `PdfWorkspaceTab` manages retrieval + manual bypass sources and passes the active document into `PdfViewerTab`, which emits overlay edits back to App.

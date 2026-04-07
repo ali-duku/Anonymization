@@ -17,7 +17,7 @@ interface UseRegionEditorDocumentMutationsOptions {
   dialogDraftEntities: OverlayRegion["entities"];
   dialogDraftBbox: OverlayRegion["bbox"] | null;
   onOverlayEditStarted?: () => void;
-  onOverlayDocumentSaved?: (document: OverlayDocument) => void;
+  onOverlayDocumentSaved?: (document: OverlayDocument, action?: string) => void;
   setDialogDraftLabel: (nextLabel: string) => void;
   setDialogDraftText: (nextText: string) => void;
   setDialogDraftEntities: (nextEntities: OverlayRegion["entities"]) => void;
@@ -36,7 +36,7 @@ interface RegionEditorDocumentMutationsResult {
     label?: string;
     text?: string;
     entities?: OverlayRegion["entities"];
-  }) => boolean;
+  }, action?: string) => boolean;
   handleSaveRegionEditor: () => boolean;
   updateRegionLabelWithCanonicalFlow: (region: OverlayRegion, nextLabelRaw: string) => void;
   handleDialogDraftLabelChange: (nextLabel: string) => void;
@@ -74,7 +74,7 @@ export function useRegionEditorDocumentMutations({
       label?: string;
       text?: string;
       entities?: OverlayRegion["entities"];
-    }) => {
+    }, action = "viewer-region-document-mutation") => {
       if (!activeRegion || !overlayDocument || !onOverlayDocumentSaved) {
         return false;
       }
@@ -85,7 +85,7 @@ export function useRegionEditorDocumentMutations({
       }
 
       onOverlayEditStarted?.();
-      onOverlayDocumentSaved(nextDocument);
+      onOverlayDocumentSaved(nextDocument, action);
       return true;
     },
     [activeRegion, onOverlayDocumentSaved, onOverlayEditStarted, overlayDocument]
@@ -105,12 +105,15 @@ export function useRegionEditorDocumentMutations({
     const nextText = isRawTextEditingEnabled ? dialogDraftText : activeRegion.text || "";
     const nextEntities = normalizeEntitySpansForText(dialogDraftEntities, nextText);
 
-    return commitActiveRegionEdits({
-      bbox: nextBbox,
-      label: nextLabel,
-      text: nextText,
-      entities: nextEntities
-    });
+    return commitActiveRegionEdits(
+      {
+        bbox: nextBbox,
+        label: nextLabel,
+        text: nextText,
+        entities: nextEntities
+      },
+      "viewer-region-editor-save"
+    );
   }, [
     activeRegion,
     commitActiveRegionEdits,
@@ -144,7 +147,7 @@ export function useRegionEditorDocumentMutations({
       }
 
       onOverlayEditStarted?.();
-      onOverlayDocumentSaved(nextDocument);
+      onOverlayDocumentSaved(nextDocument, "viewer-region-label-update");
 
       if (activeRegionId === region.id) {
         setDialogDraftLabel(nextLabel);
@@ -218,7 +221,7 @@ export function useRegionEditorDocumentMutations({
 
       onOverlayEditStarted?.();
       const nextDocument = removeRegionFromDocument(overlayDocument, region.pageNumber, region.id);
-      onOverlayDocumentSaved(nextDocument);
+      onOverlayDocumentSaved(nextDocument, "viewer-region-delete");
 
       if (activeRegionId === region.id) {
         closeAndResetEditor();

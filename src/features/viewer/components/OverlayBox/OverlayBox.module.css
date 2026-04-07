@@ -27,6 +27,9 @@
   border-radius: 3px;
   padding: 0;
   z-index: 2;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 130ms ease, filter 130ms ease, transform 130ms ease;
 }
 
 .overlayResizeHandleNw {
@@ -91,7 +94,8 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  opacity: 0.7;
+  opacity: 0;
+  pointer-events: none;
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(7, 14, 22, 0.2);
   transition: opacity 130ms ease, filter 130ms ease, transform 130ms ease;
 }
@@ -107,7 +111,8 @@
   max-width: 98px;
   padding: 0 4px;
   cursor: pointer;
-  opacity: 0.7;
+  opacity: 0;
+  pointer-events: none;
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(7, 14, 22, 0.2);
   transition: opacity 130ms ease, filter 130ms ease, transform 130ms ease;
 }
@@ -127,16 +132,25 @@
   display: block;
 }
 
-.overlayBox:hover .overlayActionButton,
-.overlayBox:hover .overlayLabelSelect,
-.overlayBox:focus-within .overlayActionButton {
+.overlayBoxControlsVisible .overlayResizeHandle,
+.overlayBoxControlsVisible .overlayActionButton,
+.overlayBoxControlsVisible .overlayLabelSelect,
+.overlayBox:focus-within .overlayResizeHandle,
+.overlayBox:focus-within .overlayActionButton,
+.overlayBox:focus-within .overlayLabelSelect {
   opacity: 1;
+  pointer-events: auto;
+}
+
+.overlayBoxControlsVisible .overlayActionButton,
+.overlayBoxControlsVisible .overlayLabelSelect,
+.overlayBox:focus-within .overlayActionButton,
+.overlayBox:focus-within .overlayLabelSelect {
   filter: brightness(1.08);
   transform: translateY(-1px);
 }
 
-.overlayBox:focus-within .overlayLabelSelect {
-  opacity: 1;
-  filter: brightness(1.08);
-  transform: translateY(-1px);
+.overlayBoxControlsVisible .overlayResizeHandle,
+.overlayBox:focus-within .overlayResizeHandle {
+  transform: scale(1);
 }

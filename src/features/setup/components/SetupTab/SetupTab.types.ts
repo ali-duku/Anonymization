@@ -7,5 +7,6 @@ export interface SetupTabProps {
   overlaySession: OverlayEditSession | null;
   onLoadToViewer: (payload: OverlayLoadPayload) => void;
   onClearOverlaySession: () => void;
+  onOverlayGenerated?: () => void;
   onGenerateJsonRegister?: (handler: (() => void) | null) => void;
 }

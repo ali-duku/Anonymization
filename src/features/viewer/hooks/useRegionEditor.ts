@@ -19,6 +19,7 @@ import { useRegionEditorDraftState } from "./useRegionEditorDraftState";
 import { useRegionEditorAnonymization } from "./regionEditor/useRegionEditorAnonymization";
 import { useRegionEditorDialogLifecycle } from "./regionEditor/useRegionEditorDialogLifecycle";
 import { useRegionEditorDocumentMutations } from "./regionEditor/useRegionEditorDocumentMutations";
+import { useRegionEditorEntityHistorySync } from "./regionEditor/useRegionEditorEntityHistorySync";
 import type { UseRegionEditorOptions } from "./useRegionEditor.types";
 export type { SpanEditorDraft, TextDirection } from "./useRegionEditor.types";
 
@@ -232,6 +233,21 @@ export function useRegionEditor({
     setPendingEntity,
     setPickerSelection,
     setSpanEditor,
+    setEntityWarning
+  });
+
+  useRegionEditorEntityHistorySync({
+    activeRegion,
+    dialogDraftLabel,
+    dialogDraftText,
+    dialogDraftEntities,
+    dialogDraftBbox,
+    isBboxStructuralEditingEnabled,
+    isRawTextEditingEnabled,
+    setDialogDraftEntities,
+    setPendingSelection,
+    setPickerSelection,
+    setSpanEditor: (next) => setSpanEditor(next),
     setEntityWarning
   });
 

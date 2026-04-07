@@ -19,6 +19,7 @@ import { Header } from "../../components/general/Header/Header";
 import type { AppTab } from "../../components/general/TabNav/TabNav.types";
 import type { OverlayLoadPayload } from "../../types/overlay";
 import { useDisplaySettings } from "../../features/settings/hooks/useDisplaySettings";
+import { useOverlayBeforeUnloadPrompt } from "./useOverlayBeforeUnloadPrompt";
 import { useOverlayHistoryShortcuts } from "./useOverlayHistoryShortcuts";
 import { useOverlaySessionHistory } from "./useOverlaySessionHistory";
 import styles from "./AppPage.module.css";
@@ -50,11 +51,14 @@ export function AppPage({ services }: AppPageProps) {
     canUndoOverlay,
     canRedoOverlay,
     canManualSaveOverlay,
+    currentHistoryAction,
+    nextRedoHistoryAction,
     setActivePdfIdentityKey,
     loadOverlayPayload,
     clearOverlaySession,
     saveOverlayDocument,
     markOverlayEditStarted,
+    markOverlayGenerated,
     undoOverlay,
     redoOverlay,
     manualSaveOverlay
@@ -86,9 +90,12 @@ export function AppPage({ services }: AppPageProps) {
   useOverlayHistoryShortcuts({
     canUndo: canUndoOverlay,
     canRedo: canRedoOverlay,
+    currentHistoryAction,
+    nextRedoHistoryAction,
     onUndo: undoOverlay,
     onRedo: redoOverlay
   });
+  useOverlayBeforeUnloadPrompt(overlaySession);
 
   const handleLoadOverlays = useCallback(
     (payload: OverlayLoadPayload) => {
@@ -179,6 +186,7 @@ export function AppPage({ services }: AppPageProps) {
               onLoadToViewer={handleLoadOverlays}
               overlaySession={setupOverlaySession}
               onClearOverlaySession={handleClearOverlaySession}
+              onOverlayGenerated={markOverlayGenerated}
               onGenerateJsonRegister={handleSetupGenerateRegister}
             />
           </Suspense>

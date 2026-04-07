@@ -1,5 +1,6 @@
 import { memo, useMemo } from "react";
 import { buildRegionLabelOptions } from "../../../../constants/regionLabelOptions";
+import { useOverlayBoxControlsVisibility } from "../../hooks/useOverlayBoxControlsVisibility";
 import { buildPalette } from "../../utils/viewerPalette";
 import styles from "./OverlayBox.module.css";
 import type { OverlayBoxProps } from "./OverlayBox.types";
@@ -41,6 +42,10 @@ function OverlayBoxComponent({
   );
   const shouldFloatActionsOutside = regionPixelWidth < 144 || regionPixelHeight < 34;
   const shouldFloatActionsBelow = shouldFloatActionsOutside && region.bbox.y1 < 0.05;
+  const { isControlsVisible, handlePointerEnter, handlePointerLeave } =
+    useOverlayBoxControlsVisibility({
+      isPinned: isEditing
+    });
   const actionGroupClassName = `${styles.overlayActionGroup} ${
     shouldFloatActionsOutside
       ? shouldFloatActionsBelow
@@ -51,8 +56,12 @@ function OverlayBoxComponent({
 
   return (
     <div
-      className={`${styles.overlayBox} ${isEditing ? styles.overlayBoxEditing : ""}`}
+      className={`${styles.overlayBox} ${isEditing ? styles.overlayBoxEditing : ""} ${
+        isControlsVisible ? styles.overlayBoxControlsVisible : ""
+      }`}
       style={overlayStyle}
+      onPointerEnter={handlePointerEnter}
+      onPointerLeave={handlePointerLeave}
     >
       <div
         className={styles.overlayDragSurface}
