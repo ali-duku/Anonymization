@@ -243,10 +243,12 @@ function PdfViewerTabComponent({
         normalizedDraftEntities={regionEditor.normalizedDraftEntities}
         anonymizationEntityLabels={regionEditor.anonymizationEntityLabels}
         canAnonymizeSelection={regionEditor.canAnonymizeSelection}
+        hasFirstRegion={regionNavigation.hasFirstRegion}
+        hasLastRegion={regionNavigation.hasLastRegion}
         hasPreviousRegion={regionNavigation.hasPreviousRegion}
         hasNextRegion={regionNavigation.hasNextRegion}
         currentRegionOrder={regionNavigation.activeRegionIndex >= 0 ? regionNavigation.activeRegionIndex + 1 : null}
-        totalRegionsOnPage={currentPageOverlays.length}
+        totalRegionsOnPage={regionNavigation.totalRegions}
         dialogTextareaRef={regionEditor.dialogTextareaRef}
         dialogPreviewRef={regionEditor.dialogPreviewRef}
         buildEntityPalette={regionEditor.buildEntityPalette}
@@ -257,8 +259,11 @@ function PdfViewerTabComponent({
           regionEditor.setDialogTextDirection((previous: "rtl" | "ltr") => (previous === "rtl" ? "ltr" : "rtl"));
         }}
         onAnonymize={regionEditor.handleAnonymizeSelection}
+        onGoFirstRegion={regionNavigation.goFirstRegion}
+        onGoLastRegion={regionNavigation.goLastRegion}
         onGoPreviousRegion={regionNavigation.goPreviousRegion}
         onGoNextRegion={regionNavigation.goNextRegion}
+        onGoRegionByOrder={regionNavigation.goRegionByOrder}
         onPendingEntityChange={regionEditor.handlePendingEntityChange}
         onCancelPicker={regionEditor.handleCancelPicker}
         onEditorInput={regionEditor.handleEditorInput}

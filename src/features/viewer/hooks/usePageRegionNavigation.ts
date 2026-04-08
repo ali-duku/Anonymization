@@ -10,10 +10,16 @@ interface UsePageRegionNavigationOptions {
 
 interface UsePageRegionNavigationResult {
   activeRegionIndex: number;
+  totalRegions: number;
   hasPreviousRegion: boolean;
   hasNextRegion: boolean;
+  hasFirstRegion: boolean;
+  hasLastRegion: boolean;
+  goFirstRegion: () => void;
+  goLastRegion: () => void;
   goPreviousRegion: () => void;
   goNextRegion: () => void;
+  goRegionByOrder: (order: number) => void;
   goNextRegionAfterSave: () => void;
 }
 
@@ -23,6 +29,8 @@ export function usePageRegionNavigation({
   hasDialogChanges,
   onOpenRegionEditor
 }: UsePageRegionNavigationOptions): UsePageRegionNavigationResult {
+  const totalRegions = regions.length;
+
   const activeRegionIndex = useMemo(() => {
     if (!activeRegionId) {
       return -1;
@@ -31,16 +39,17 @@ export function usePageRegionNavigation({
   }, [activeRegionId, regions]);
 
   const hasPreviousRegion = activeRegionIndex > 0;
-  const hasNextRegion = activeRegionIndex >= 0 && activeRegionIndex < regions.length - 1;
+  const hasNextRegion = activeRegionIndex >= 0 && activeRegionIndex < totalRegions - 1;
+  const hasFirstRegion = activeRegionIndex > 0;
+  const hasLastRegion = activeRegionIndex >= 0 && activeRegionIndex < totalRegions - 1;
 
-  const navigateRegionByOffset = useCallback(
-    (offset: number, options?: { skipUnsavedChangesGuard?: boolean }) => {
+  const navigateToRegionIndex = useCallback(
+    (targetIndex: number, options?: { skipUnsavedChangesGuard?: boolean }) => {
       if (activeRegionIndex < 0) {
         return;
       }
 
-      const nextIndex = activeRegionIndex + offset;
-      if (nextIndex < 0 || nextIndex >= regions.length) {
+      if (targetIndex < 0 || targetIndex >= totalRegions || targetIndex === activeRegionIndex) {
         return;
       }
 
@@ -53,34 +62,59 @@ export function usePageRegionNavigation({
         }
       }
 
-      const targetRegion = regions[nextIndex];
+      const targetRegion = regions[targetIndex];
       if (!targetRegion) {
         return;
       }
 
       onOpenRegionEditor(targetRegion);
     },
-    [activeRegionIndex, hasDialogChanges, onOpenRegionEditor, regions]
+    [activeRegionIndex, hasDialogChanges, onOpenRegionEditor, regions, totalRegions]
   );
 
+  const goFirstRegion = useCallback(() => {
+    navigateToRegionIndex(0);
+  }, [navigateToRegionIndex]);
+
+  const goLastRegion = useCallback(() => {
+    navigateToRegionIndex(totalRegions - 1);
+  }, [navigateToRegionIndex, totalRegions]);
+
   const goPreviousRegion = useCallback(() => {
-    navigateRegionByOffset(-1);
-  }, [navigateRegionByOffset]);
+    navigateToRegionIndex(activeRegionIndex - 1);
+  }, [activeRegionIndex, navigateToRegionIndex]);
 
   const goNextRegion = useCallback(() => {
-    navigateRegionByOffset(1);
-  }, [navigateRegionByOffset]);
+    navigateToRegionIndex(activeRegionIndex + 1);
+  }, [activeRegionIndex, navigateToRegionIndex]);
+
+  const goRegionByOrder = useCallback(
+    (order: number) => {
+      if (!Number.isFinite(order)) {
+        return;
+      }
+      const nextIndex = Math.trunc(order) - 1;
+      navigateToRegionIndex(nextIndex);
+    },
+    [navigateToRegionIndex]
+  );
 
   const goNextRegionAfterSave = useCallback(() => {
-    navigateRegionByOffset(1, { skipUnsavedChangesGuard: true });
-  }, [navigateRegionByOffset]);
+    navigateToRegionIndex(activeRegionIndex + 1, { skipUnsavedChangesGuard: true });
+  }, [activeRegionIndex, navigateToRegionIndex]);
 
   return {
     activeRegionIndex,
+    totalRegions,
     hasPreviousRegion,
     hasNextRegion,
+    hasFirstRegion,
+    hasLastRegion,
+    goFirstRegion,
+    goLastRegion,
     goPreviousRegion,
     goNextRegion,
+    goRegionByOrder,
     goNextRegionAfterSave
   };
 }

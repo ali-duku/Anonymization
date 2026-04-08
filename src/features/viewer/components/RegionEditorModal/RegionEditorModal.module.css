@@ -109,7 +109,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   min-width: 0;
   padding-top: 1px;
 }
@@ -119,8 +119,38 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   flex: 0 0 auto;
+}
+
+.snippetRegionOrderField {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.snippetRegionOrderInput {
+  width: 58px;
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #08121a;
+  color: var(--text);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.82rem;
+  text-align: center;
+  padding: 6px 8px;
+}
+
+.snippetRegionOrderInput:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.snippetRegionOrderTotal {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  color: var(--muted);
 }
 
 .snippetZoomValue {

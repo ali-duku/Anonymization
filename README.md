@@ -11,6 +11,11 @@ Every functional/UI update must include both:
 
 ## Latest Update
 
+- **v0.7.6 (2026-04-08)**
+  - Expanded Edit Region page-local bbox navigation with new `First` and `Last` controls in the existing Region Context navigation row.
+  - Added direct editable region-order navigation (`current / total`) so users can type a target region number and jump deterministically within the current page.
+  - Unified first/last/previous/next/direct-jump behavior on one canonical page-region navigation path with shared unsaved-change guard and boundary handling.
+
 - **v0.7.5 (2026-04-07)**
   - Refactored Region Editor into dedicated snippet/form sections plus focused hooks for dialog lifecycle, document mutations, anonymization, and span editing.
   - Strengthened PDF/session continuity with manual PDF content-hash identity support and hardened per-PDF overlay session persistence/restore handling.
@@ -95,8 +100,8 @@ Every functional/UI update must include both:
   - Searchable entity-label dropdown for both new anonymization spans and span-editor updates.
   - Draggable outer dialog pane separator with session-scoped width persistence and container-bound split clamp enforcement.
   - Fenced HTML table preview rendering in region dialog Preview (table-only).
-  - Current-page bbox Previous/Next navigation while editing.
-  - Region snippet zoom controls with right-click/drag-save prevention (default/reset at 50%).
+  - Current-page bbox navigation while editing (`First`, `Previous`, direct region-number jump, `Next`, `Last`) with visible `current/total` context.
+  - Region snippet zoom controls with right-click/drag-save prevention (default/reset at 75%).
   - Optional bbox diagnostics logs in development via `VITE_VIEWER_BBOX_DEBUG=1`.
 - Setup supports:
   - Uncontrolled input/output textareas for large JSON payloads.

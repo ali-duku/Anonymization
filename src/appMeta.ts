@@ -2,8 +2,17 @@ import type { AppMeta } from "./types/appMeta";
 
 export const APP_META: AppMeta = {
   name: "Anonymizer",
-  version: "0.7.5",
+  version: "0.7.6",
   releaseNotes: [
+    {
+      version: "0.7.6",
+      date: "2026-04-08",
+      highlights: [
+        "Expanded Edit Region page-local bbox navigation with new `First` and `Last` controls in the existing Region Context navigation row.",
+        "Added direct editable region-order navigation (`current / total`) so users can type a target region number and jump deterministically within the current page.",
+        "Unified first/last/previous/next/direct-jump behavior on one canonical page-region navigation path with shared unsaved-change guard and boundary handling.",
+      ],
+    },
     {
       version: "0.7.5",
       date: "2026-04-07",

@@ -24,12 +24,12 @@
   - `components`: `PdfViewerTab` plus focused UI blocks (`ViewerToolbar`, `ViewerCanvasStage`, `OverlayLayer`, `OverlayBox`, `RegionEditorModal`, `EntityPicker`, `SearchableEntityField`, `SpanEditorPopover`, `ViewerStatus`).
   - `hooks`: PDF rendering lifecycle, overlay interactions, bbox creation, bbox clipboard copy/paste (`useBboxClipboard`), region editor state, region-dialog container bounds measurement (`useRegionDialogContainerBounds`), region-dialog layout splitter state/persistence (`useRegionDialogLayout`), region-dialog drag interaction (`useRegionDialogDrag`), region-dialog pane usability minimum measurement (`useRegionDialogPaneMinimums`), bbox overlay control visibility timing (`useOverlayBoxControlsVisibility`), and canonical span-dialog handlers/dismissal coordination.
   - PDF load opens at a fixed default zoom (150%) instead of auto-fitting on first render; explicit `Fit` remains user-triggered from toolbar.
-  - `usePageRegionNavigation` remains the canonical previous/next bbox navigation path; save-triggered next navigation is routed through this same hook to avoid duplicate navigation logic.
+  - `usePageRegionNavigation` remains the canonical current-page bbox navigation path (`First`/`Previous`/direct-order jump/`Next`/`Last`); save-triggered next navigation is routed through this same hook to avoid duplicate navigation logic.
   - `utils`: pure geometry/status/text/document helpers.
   - `utils/bboxProjection.ts` is the canonical normalized-bbox projection module used for overlay CSS placement and pixel-space crops.
   - `utils/previewModel.ts` owns table-preview detection/projection (` ```html ` table-only), including raw-offset entity mapping and markup-overlap warnings.
   - `constants`: viewer interaction constants.
-- `RegionEditorModal` owns viewport-aware dialog UX, snippet zoom/protection controls, current-page previous/next bbox navigation wiring, and outer-pane separator rendering for drag/keyboard resize.
+- `RegionEditorModal` owns viewport-aware dialog UX, snippet zoom/protection controls, current-page bbox navigation wiring (`First`/`Previous`/order input/`Next`/`Last`), and outer-pane separator rendering for drag/keyboard resize.
 - Region dialog split sizing is enforced by one canonical constraint solver shared by interaction and rendering contracts: measured pane minimums and dialog-shell inner width drive splitter clamp bounds, grid-track minimums, and pane `min-width` styles together.
 - Pane minima are measured at runtime from the exact protected containers that the splitter must preserve: the left Region Context top header/control cluster and the right Edit Region bottom action row.
 - Intrinsic max-content probing is used for protected-row width, pane chrome is added once to produce true pane minima, and the same minima are applied to splitter clamp bounds and rendered pane `min-width` styles.

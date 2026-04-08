@@ -28,6 +28,8 @@ export interface RegionEditorModalProps {
   canAnonymizeSelection: boolean;
   hasPreviousRegion: boolean;
   hasNextRegion: boolean;
+  hasFirstRegion: boolean;
+  hasLastRegion: boolean;
   currentRegionOrder: number | null;
   totalRegionsOnPage: number;
   dialogTextareaRef: RefObject<HTMLTextAreaElement>;
@@ -38,8 +40,11 @@ export interface RegionEditorModalProps {
   onLabelChange: (nextLabel: string) => void;
   onToggleDirection: () => void;
   onAnonymize: () => void;
+  onGoFirstRegion: () => void;
+  onGoLastRegion: () => void;
   onGoPreviousRegion: () => void;
   onGoNextRegion: () => void;
+  onGoRegionByOrder: (order: number) => void;
   onPendingEntityChange: (nextEntity: string) => void;
   onCancelPicker: () => void;
   onEditorInput: ChangeEventHandler<HTMLTextAreaElement>;

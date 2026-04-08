@@ -9,7 +9,7 @@
 
 ## Current Baseline
 
-- Latest shipped version: `0.7.5`.
+- Latest shipped version: `0.7.6`.
 - Latest viewer baseline includes:
   - region-editor internals split into dedicated snippet/form UI sections plus focused lifecycle/document-mutation/anonymization/span-editing hooks for cleaner ownership,
   - deterministic per-PDF restore behavior with explicit `Restore`/`Skip` prompt when matching saved overlay edits exist,
@@ -42,10 +42,10 @@
   - toolbar `Fit` label and arrow-based page nav controls (`←`/`→`),
   - direct on-canvas delete routed through the same canonical delete behavior used by the region dialog,
   - snippet zoom + save-prevention UX controls,
-  - current-page bbox previous/next navigation,
+  - current-page bbox navigation in Edit Region (`First`/`Previous`/direct region-number jump/`Next`/`Last`) with visible `current/total` context,
   - Save-in-dialog auto-advance to next bbox on successful save only, routed through canonical page-region next navigation logic,
   - region dialog split-pane sizing guardrails with one canonical runtime constraint solver (interaction clamp + grid/pane `min-width` enforcement), anchored to the dialog shell inner coordinate space so separator drag is always container-bounded while preserving intrinsic protected-row minima plus pane chrome with runtime remeasurement on resize/font/content changes (no compact/stacked fallback path and no protected-row `min-width` feedback-loop constraints),
-  - region context snippet zoom that initializes/resets at 50% while preserving explicit zoom-driven scaling behavior,
+  - region context snippet zoom that initializes/resets at 75% while preserving explicit zoom-driven scaling behavior,
   - viewport-anchored span editor popover,
   - fenced HTML table rendering in Region Editor Preview with raw-offset span projection.
 

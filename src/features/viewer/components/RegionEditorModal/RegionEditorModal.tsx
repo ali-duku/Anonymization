@@ -37,6 +37,8 @@ function RegionEditorModalComponent({
   canAnonymizeSelection,
   hasPreviousRegion,
   hasNextRegion,
+  hasFirstRegion,
+  hasLastRegion,
   currentRegionOrder,
   totalRegionsOnPage,
   dialogTextareaRef,
@@ -47,8 +49,11 @@ function RegionEditorModalComponent({
   onLabelChange,
   onToggleDirection,
   onAnonymize,
+  onGoFirstRegion,
+  onGoLastRegion,
   onGoPreviousRegion,
   onGoNextRegion,
+  onGoRegionByOrder,
   onPendingEntityChange,
   onCancelPicker,
   onEditorInput,
@@ -146,12 +151,17 @@ function RegionEditorModalComponent({
           maxSnippetZoom={MAX_SNIPPET_ZOOM}
           defaultSnippetZoom={DEFAULT_SNIPPET_ZOOM}
           snippetZoomStep={SNIPPET_ZOOM_STEP}
+          hasFirstRegion={hasFirstRegion}
+          hasLastRegion={hasLastRegion}
           hasPreviousRegion={hasPreviousRegion}
           hasNextRegion={hasNextRegion}
           snippetPaneRef={snippetPaneRef}
           snippetProtectedRef={snippetProtectedRef}
+          onGoFirstRegion={onGoFirstRegion}
+          onGoLastRegion={onGoLastRegion}
           onGoPreviousRegion={onGoPreviousRegion}
           onGoNextRegion={onGoNextRegion}
+          onGoRegionByOrder={onGoRegionByOrder}
           onSnippetZoomChange={(nextZoom) => {
             setSnippetZoom(clampSnippetZoom(nextZoom));
           }}
