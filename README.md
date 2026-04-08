@@ -11,6 +11,16 @@ Every functional/UI update must include both:
 
 ## Latest Update
 
+- **v0.7.8 (2026-04-08)**
+  - Fixed canonical entity-color separation by replacing formula-based hue stepping with a deterministic prefix-spread hue-slot order that maximizes early visual distance.
+  - Resolved real-world similarity collisions in the HMC catalog (including `Qatar ID` vs `HC Number`) without introducing label-specific one-off overrides.
+  - Preserved identity-key stability guarantees so the same canonical entity key keeps the same color across reloads, reopenings, and sessions.
+
+- **v0.7.7 (2026-04-08)**
+  - Replaced transient-order-dependent anonymized-entity coloring with a canonical identity-key map so the same entity key keeps the same color across reloads and sessions.
+  - Improved anonymized span legibility on dark surfaces with stronger border/background treatment and stable high-contrast text color.
+  - Centralized anonymized entity color generation in one shared module with deterministic spaced allocation to keep behavior maintainable and visually coherent.
+
 - **v0.7.6 (2026-04-08)**
   - Expanded Edit Region page-local bbox navigation with new `First` and `Last` controls in the existing Region Context navigation row.
   - Added direct editable region-order navigation (`current / total`) so users can type a target region number and jump deterministically within the current page.
@@ -98,6 +108,7 @@ Every functional/UI update must include both:
   - Span dialogs dismiss topmost-first on `Escape` or outside-click while keeping the parent region dialog open.
   - Region dialog full bbox copy, in-place `Paste BBox` into the currently edited bbox draft, and separate text-only copy actions.
   - Searchable entity-label dropdown for both new anonymization spans and span-editor updates.
+  - Canonical identity-key anonymized-entity color assignment so the same entity key always resolves to the same color independent of runtime order/session timing.
   - Draggable outer dialog pane separator with session-scoped width persistence and container-bound split clamp enforcement.
   - Fenced HTML table preview rendering in region dialog Preview (table-only).
   - Current-page bbox navigation while editing (`First`, `Previous`, direct region-number jump, `Next`, `Last`) with visible `current/total` context.

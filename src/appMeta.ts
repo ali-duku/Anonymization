@@ -2,8 +2,26 @@ import type { AppMeta } from "./types/appMeta";
 
 export const APP_META: AppMeta = {
   name: "Anonymizer",
-  version: "0.7.6",
+  version: "0.7.8",
   releaseNotes: [
+    {
+      version: "0.7.8",
+      date: "2026-04-08",
+      highlights: [
+        "Fixed canonical entity-color separation by replacing formula-based hue stepping with a deterministic prefix-spread hue-slot order that maximizes early visual distance.",
+        "Resolved real-world similarity collisions in the HMC catalog (including `Qatar ID` vs `HC Number`) without adding label-specific one-off overrides.",
+        "Preserved identity-key stability guarantees: the same canonical entity key still resolves to the same color across reloads, reopenings, and sessions.",
+      ],
+    },
+    {
+      version: "0.7.7",
+      date: "2026-04-08",
+      highlights: [
+        "Replaced transient-order-dependent anonymized-entity coloring with a canonical identity-key color map so the same entity key keeps the same color across reloads and sessions.",
+        "Improved practical readability of anonymized spans by strengthening border/background treatment and stabilizing high-contrast text color on the existing dark UI surfaces.",
+        "Centralized anonymized-entity color generation into one maintainable module with deterministic spaced palette allocation for consistent, distinguishable rendering.",
+      ],
+    },
     {
       version: "0.7.6",
       date: "2026-04-08",

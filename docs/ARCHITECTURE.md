@@ -43,6 +43,7 @@
   - Anonymization operations over existing text (add/edit/remove spans/entities) remain enabled when this flag is disabled.
   - `RegionEditorModal` includes bbox full-copy, in-place paste into the active region draft, and text-only copy actions; dialog and toolbar paste reuse the same canonical clipboard payload mapping with different apply targets.
   - `SearchableEntityField` is the shared searchable dropdown input used by both `EntityPicker` and `SpanEditorPopover` for canonical entity-label selection.
+  - Anonymized preview-span colors flow through one canonical path: `buildEntityPalette` (identity-key lookup) -> `entityColors.ts` (deterministic high-separation color allocation).
   - `SpanEditorPopover` is viewport-positioned and anchored from preview-span geometry emitted by the dialog.
   - Span entity selection is immediate in both new/edit span flows (no explicit span `Save`/`Apply` buttons).
   - Nested dismissal is topmost-first: `Escape`/outside-click close the active span dialog before the parent region dialog.
@@ -51,6 +52,7 @@
   - `constants/displaySettings.ts`: storage keys/defaults/font-size scale mapping.
 - `src/constants`: shared catalogs (`anonymizationEntities`, `regionLabelOptions`).
   - `anonymizationEntities.ts` is the canonical entity-profile catalog (stable internal profile IDs, friendly display names, and per-profile entity labels).
+  - `entityColors.ts` is the canonical deterministic anonymized-entity color allocator and shared token surface for border/fill/chip/button variants, using a prefix-spread hue-slot order for stronger early distinguishability.
 - `src/services`
   - `jsonService.ts`
   - `annotationService.ts` (orchestrator)

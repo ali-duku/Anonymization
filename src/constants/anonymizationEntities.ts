@@ -1,5 +1,9 @@
 import type { EntityProfileId } from "../types/anonymizationProfiles";
 import type { OverlayEntitySpan } from "../types/overlay";
+import {
+  FALLBACK_CANONICAL_ENTITY_PALETTE,
+  buildCanonicalEntityColorPalette
+} from "./entityColors";
 
 interface EntityProfileConfig {
   id: EntityProfileId;
@@ -120,6 +124,22 @@ export function getDefaultAnonymizationEntityLabel(profileId: EntityProfileId): 
   return ENTITY_PROFILES[profileId].entityLabels[0] ?? FALLBACK_ANONYMIZATION_ENTITY_LABEL;
 }
 
+function compareCanonicalEntityKeys(left: string, right: string): number {
+  if (left === right) {
+    return 0;
+  }
+  return left < right ? -1 : 1;
+}
+
+function buildCanonicalEntityColorIndices(labels: readonly string[]): ReadonlyMap<string, number> {
+  const uniqueLabels = Array.from(new Set(labels.map((label) => label.trim()).filter(Boolean)));
+  uniqueLabels.sort(compareCanonicalEntityKeys);
+
+  return new Map(uniqueLabels.map((label, index) => [label, index] as const));
+}
+
+const CANONICAL_ENTITY_COLOR_INDEX_BY_LABEL = buildCanonicalEntityColorIndices(ALL_ANONYMIZATION_ENTITY_LABELS);
+
 function resolveCatalog(catalog?: readonly string[]): readonly string[] {
   if (!catalog || catalog.length === 0) {
     return ALL_ANONYMIZATION_ENTITY_LABELS;
@@ -212,20 +232,33 @@ export function normalizeEntitySpansForText(
   return normalized;
 }
 
-export function buildEntityPalette(entity: string, catalog?: readonly string[]): {
+export function buildEntityPalette(entity: string, _catalog?: readonly string[]): {
   background: string;
   text: string;
   border: string;
 } {
-  const safeEntity = coerceEntityLabel(entity, catalog);
-  let hash = 0;
-  for (let index = 0; index < safeEntity.length; index += 1) {
-    hash = (hash * 33 + safeEntity.charCodeAt(index)) >>> 0;
+  const safeEntity = coerceEntityLabel(entity);
+  if (safeEntity === FALLBACK_ANONYMIZATION_ENTITY_LABEL) {
+    return {
+      background: FALLBACK_CANONICAL_ENTITY_PALETTE.chipBackground,
+      text: FALLBACK_CANONICAL_ENTITY_PALETTE.chipText,
+      border: FALLBACK_CANONICAL_ENTITY_PALETTE.border
+    };
   }
-  const hue = hash % 360;
+
+  const colorIndex = CANONICAL_ENTITY_COLOR_INDEX_BY_LABEL.get(safeEntity);
+  if (colorIndex === undefined) {
+    return {
+      background: FALLBACK_CANONICAL_ENTITY_PALETTE.chipBackground,
+      text: FALLBACK_CANONICAL_ENTITY_PALETTE.chipText,
+      border: FALLBACK_CANONICAL_ENTITY_PALETTE.border
+    };
+  }
+
+  const palette = buildCanonicalEntityColorPalette(colorIndex);
   return {
-    background: `hsl(${hue} 85% 64% / 0.35)`,
-    text: `hsl(${hue} 70% 86%)`,
-    border: `hsl(${hue} 85% 58% / 0.95)`
+    background: palette.chipBackground,
+    text: palette.chipText,
+    border: palette.border
   };
 }

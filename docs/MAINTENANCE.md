@@ -9,7 +9,7 @@
 
 ## Current Baseline
 
-- Latest shipped version: `0.7.6`.
+- Latest shipped version: `0.7.8`.
 - Latest viewer baseline includes:
   - region-editor internals split into dedicated snippet/form UI sections plus focused lifecycle/document-mutation/anonymization/span-editing hooks for cleaner ownership,
   - deterministic per-PDF restore behavior with explicit `Restore`/`Skip` prompt when matching saved overlay edits exist,
@@ -22,6 +22,7 @@
   - draggable outer region-dialog separator with keyboard resize support,
   - per-tab session persistence for outer dialog pane width,
   - searchable entity dropdown field for anonymization entity selection (entity picker + span editor),
+  - canonical identity-key anonymized-entity color mapping (stable across reloads/sessions and independent of UI/array order) with a deterministic prefix-spread hue-slot sequence in `src/constants/entityColors.ts`,
   - immediate entity auto-apply for both new anonymized-span and edit-span dialogs (no explicit span `Apply`/`Save` buttons),
   - topmost-first nested dialog dismissal for span dialogs (`Escape` and outside-click close the active span dialog first, keeping the parent region dialog open),
   - app-level persistent display settings with global top-header font-size control (Small/Medium/Large),
