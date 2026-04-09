@@ -1,7 +1,7 @@
 import type { ResizeHandle } from "../utils/viewerGeometry";
 
 export const MIN_ZOOM = 0.4;
-export const MAX_ZOOM = 3;
+export const MAX_ZOOM = 6;
 export const ZOOM_STEP = 0.1;
 export const BBOX_CHANGE_EPSILON = 0.0005;
 export const CREATE_DRAFT_REGION_ID = "__create-draft__";

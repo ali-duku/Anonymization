@@ -11,7 +11,7 @@ import styles from "./RegionEditorModal.module.css";
 import type { RegionEditorModalProps } from "./RegionEditorModal.types";
 
 const MIN_SNIPPET_ZOOM = 0.5;
-const MAX_SNIPPET_ZOOM = 4;
+const MAX_SNIPPET_ZOOM = 6;
 const SNIPPET_ZOOM_STEP = 0.25;
 const DEFAULT_SNIPPET_ZOOM = 0.75;
 
