@@ -2,8 +2,17 @@ import type { AppMeta } from "./types/appMeta";
 
 export const APP_META: AppMeta = {
   name: "Anonymizer",
-  version: "0.7.8",
+  version: "0.8.0",
   releaseNotes: [
+    {
+      version: "0.8.0",
+      date: "2026-04-09",
+      highlights: [
+        "Added canonical anonymized-span boundary resizing in Edit Region with both inline start/end handles in Preview and precise start/end controls in the span popover.",
+        "Integrated boundary resizing into the canonical entity edit flow with deterministic clamping (no overlap/collapse), first-class undo/redo history actions, and unchanged save/load/export behavior.",
+        "Fixed Preview text-layout parity so highlighted spans and boundary handles are layout-neutral: left Text and right Preview now keep matching font metrics, spacing, wrapping, and line breaks.",
+      ],
+    },
     {
       version: "0.7.8",
       date: "2026-04-08",

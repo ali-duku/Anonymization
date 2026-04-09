@@ -11,8 +11,8 @@ export interface TextSegment {
   text: string;
   entityIndex: number | null;
   entity: string | null;
-  start: number | null;
-  end: number | null;
+  start: number;
+  end: number;
 }
 
 export function remapEntitySpansAfterTextChange(
@@ -154,8 +154,8 @@ export function buildTextSegments(text: string, entities: OverlayEntitySpan[]): 
         text: text.slice(cursor, entity.start),
         entityIndex: null,
         entity: null,
-        start: null,
-        end: null
+        start: cursor,
+        end: entity.start
       });
     }
     segments.push({
@@ -173,8 +173,8 @@ export function buildTextSegments(text: string, entities: OverlayEntitySpan[]): 
       text: text.slice(cursor),
       entityIndex: null,
       entity: null,
-      start: null,
-      end: null
+      start: cursor,
+      end: text.length
     });
   }
 
@@ -183,8 +183,8 @@ export function buildTextSegments(text: string, entities: OverlayEntitySpan[]): 
       text: "",
       entityIndex: null,
       entity: null,
-      start: null,
-      end: null
+      start: 0,
+      end: 0
     });
   }
 

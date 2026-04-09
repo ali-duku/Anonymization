@@ -3,6 +3,7 @@ import type { OverlayEntitySpan, OverlayRegion } from "../../../../types/overlay
 import type { SpanEditorDraft, TextDirection } from "../../hooks/useRegionEditor.types";
 import type { PendingSelectionRange } from "../../utils/textEntities";
 import type { RegionPreviewModel } from "../../utils/previewModel";
+import type { SpanBoundarySide, SpanBoundaryState } from "../../utils/spanBoundaries";
 
 export interface RegionEditorSnippet {
   imageUrl: string | null;
@@ -21,6 +22,16 @@ export interface RegionEditorModalProps {
   pendingEntity: string;
   pickerSelection: PendingSelectionRange | null;
   spanEditor: SpanEditorDraft | null;
+  spanBoundaryControls: {
+    activeBoundaryDrag: { index: number; side: SpanBoundarySide } | null;
+    spanEditorBoundaryState: SpanBoundaryState | null;
+    getSpanBoundaryStateByIndex: (index: number) => SpanBoundaryState | null;
+    handleStartBoundaryDrag: (index: number, side: SpanBoundarySide) => void;
+    handleUpdateBoundaryDrag: (nextBoundaryValue: number) => void;
+    handleEndBoundaryDragCommit: () => void;
+    handleCancelBoundaryDrag: () => void;
+    handleAdjustBoundaryStep: (index: number, side: SpanBoundarySide, delta: number) => void;
+  };
   entityWarning: string | null;
   previewModel: RegionPreviewModel;
   normalizedDraftEntities: OverlayEntitySpan[];

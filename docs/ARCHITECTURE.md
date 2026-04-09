@@ -23,6 +23,7 @@
 - `src/features/viewer`
   - `components`: `PdfViewerTab` plus focused UI blocks (`ViewerToolbar`, `ViewerCanvasStage`, `OverlayLayer`, `OverlayBox`, `RegionEditorModal`, `EntityPicker`, `SearchableEntityField`, `SpanEditorPopover`, `ViewerStatus`).
   - `hooks`: PDF rendering lifecycle, overlay interactions, bbox creation, bbox clipboard copy/paste (`useBboxClipboard`), region editor state, region-dialog container bounds measurement (`useRegionDialogContainerBounds`), region-dialog layout splitter state/persistence (`useRegionDialogLayout`), region-dialog drag interaction (`useRegionDialogDrag`), region-dialog pane usability minimum measurement (`useRegionDialogPaneMinimums`), bbox overlay control visibility timing (`useOverlayBoxControlsVisibility`), and canonical span-dialog handlers/dismissal coordination.
+  - `hooks/regionEditor/useRegionEditorSpanEditing.ts` is the canonical anonymized-span boundary editing controller (start/end resize, invariant clamping, drag lifecycle, and undo/redo-safe commit integration).
   - PDF load opens at a fixed default zoom (150%) instead of auto-fitting on first render; explicit `Fit` remains user-triggered from toolbar.
   - `usePageRegionNavigation` remains the canonical current-page bbox navigation path (`First`/`Previous`/direct-order jump/`Next`/`Last`); save-triggered next navigation is routed through this same hook to avoid duplicate navigation logic.
   - `utils`: pure geometry/status/text/document helpers.
@@ -45,6 +46,7 @@
   - `SearchableEntityField` is the shared searchable dropdown input used by both `EntityPicker` and `SpanEditorPopover` for canonical entity-label selection.
   - Anonymized preview-span colors flow through one canonical path: `buildEntityPalette` (identity-key lookup) -> `entityColors.ts` (deterministic high-separation color allocation).
   - `SpanEditorPopover` is viewport-positioned and anchored from preview-span geometry emitted by the dialog.
+  - `RegionEditorPreviewPane` keeps text-metric parity with source text while rendering anonymized highlight/handles as layout-neutral decorations, so span UI does not alter wrapping or line flow.
   - Span entity selection is immediate in both new/edit span flows (no explicit span `Save`/`Apply` buttons).
   - Nested dismissal is topmost-first: `Escape`/outside-click close the active span dialog before the parent region dialog.
 - `src/features/settings`

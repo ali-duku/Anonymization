@@ -11,6 +11,11 @@ Every functional/UI update must include both:
 
 ## Latest Update
 
+- **v0.8.0 (2026-04-09)**
+  - Added canonical anonymized-span boundary resizing in Edit Region with both inline Preview start/end handles and span-popover start/end controls.
+  - Integrated span-boundary resizing into canonical overlay history/save flows with deterministic clamping and undo/redo coherence.
+  - Fixed Preview text-metric parity so highlighted spans/handles are layout-neutral and no longer alter text size, spacing, wrapping, or line breaks.
+
 - **v0.7.8 (2026-04-08)**
   - Fixed canonical entity-color separation by replacing formula-based hue stepping with a deterministic prefix-spread hue-slot order that maximizes early visual distance.
   - Resolved real-world similarity collisions in the HMC catalog (including `Qatar ID` vs `HC Number`) without introducing label-specific one-off overrides.
@@ -104,6 +109,8 @@ Every functional/UI update must include both:
     - OFF blocks structural bbox editing (move/resize/add/delete/full-copy/paste), raw text editing, and text-only copy actions.
     - OFF still allows anonymization operations over existing text (add/edit/delete anonymized spans/entities).
   - Region dialog editing (label/text/entities), span anonymization, and delete.
+  - Existing anonymized spans can be resized from both boundaries via inline Preview handles and span-popover start/end controls, using canonical character-offset updates with deterministic clamping.
+  - Preview highlighting and boundary handles are layout-neutral so Preview text keeps the same font metrics, spacing, wrapping, and line breaks as source Text.
   - Span dialogs use immediate entity auto-apply (no explicit `Save`/`Apply` buttons).
   - Span dialogs dismiss topmost-first on `Escape` or outside-click while keeping the parent region dialog open.
   - Region dialog full bbox copy, in-place `Paste BBox` into the currently edited bbox draft, and separate text-only copy actions.

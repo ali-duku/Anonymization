@@ -40,6 +40,28 @@
   flex-wrap: wrap;
 }
 
+.boundarySection {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(12, 21, 30, 0.86);
+  padding: 8px;
+}
+
+.boundarySummary {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.boundaryActions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .buttonPrimary,
 .buttonSecondary,
 .buttonDanger {

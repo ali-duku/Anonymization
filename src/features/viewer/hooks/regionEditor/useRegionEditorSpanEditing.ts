@@ -1,13 +1,28 @@
-import { useCallback, type Dispatch, type SetStateAction } from "react";
+import { useCallback, useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { coerceEntityLabel, sortEntitySpans } from "../../../../constants/anonymizationEntities";
 import type { OverlayEntitySpan } from "../../../../types/overlay";
+import { canApplySelectionToTablePreview, type RegionPreviewModel } from "../../utils/previewModel";
+import { areEntitySpansEqual } from "../../utils/textEntities";
+import {
+  buildBoundaryAdjustedSpans,
+  getSpanBoundaryState,
+  type SpanBoundarySide,
+  type SpanBoundaryState
+} from "../../utils/spanBoundaries";
 import type { SpanEditorDraft } from "../useRegionEditor.types";
+
+interface SpanBoundaryDragState {
+  index: number;
+  side: SpanBoundarySide;
+  initialEntities: OverlayEntitySpan[];
+}
 
 interface UseRegionEditorSpanEditingOptions {
   normalizedDraftEntities: OverlayEntitySpan[];
   anonymizationEntityLabels: readonly string[];
   spanEditor: SpanEditorDraft | null;
   dialogDraftText: string;
+  previewModel: RegionPreviewModel;
   commitActiveRegionEdits: (
     edits: { text?: string; entities?: OverlayEntitySpan[] },
     action?: string
@@ -20,11 +35,20 @@ interface UseRegionEditorSpanEditingOptions {
 }
 
 interface RegionEditorSpanEditingResult {
+  isSpanBoundaryDragActive: boolean;
+  activeBoundaryDrag: { index: number; side: SpanBoundarySide } | null;
+  spanEditorBoundaryState: SpanBoundaryState | null;
+  getSpanBoundaryStateByIndex: (index: number) => SpanBoundaryState | null;
   handleOpenSpanEditor: (index: number, anchorX: number, anchorY: number) => void;
   handleSpanEditorEntityChange: (nextEntity: string) => void;
   handleApplySpanEditor: (entityOverride?: string) => void;
   handleCancelSpanEditor: () => void;
   handleRemoveSpan: () => void;
+  handleStartBoundaryDrag: (index: number, side: SpanBoundarySide) => void;
+  handleUpdateBoundaryDrag: (nextBoundaryValue: number) => void;
+  handleEndBoundaryDragCommit: () => void;
+  handleCancelBoundaryDrag: () => void;
+  handleAdjustBoundaryStep: (index: number, side: SpanBoundarySide, delta: number) => void;
 }
 
 export function useRegionEditorSpanEditing({
@@ -32,6 +56,7 @@ export function useRegionEditorSpanEditing({
   anonymizationEntityLabels,
   spanEditor,
   dialogDraftText,
+  previewModel,
   commitActiveRegionEdits,
   setDialogDraftEntities,
   setPendingSelection,
@@ -39,6 +64,131 @@ export function useRegionEditorSpanEditing({
   setSpanEditor,
   setEntityWarning
 }: UseRegionEditorSpanEditingOptions): RegionEditorSpanEditingResult {
+  const [boundaryDrag, setBoundaryDrag] = useState<SpanBoundaryDragState | null>(null);
+  const textLength = dialogDraftText.length;
+
+  useEffect(() => {
+    if (boundaryDrag && !normalizedDraftEntities[boundaryDrag.index]) {
+      setBoundaryDrag(null);
+    }
+  }, [boundaryDrag, normalizedDraftEntities]);
+
+  const getSpanBoundaryStateByIndex = useCallback(
+    (index: number): SpanBoundaryState | null =>
+      getSpanBoundaryState(normalizedDraftEntities, index, textLength),
+    [normalizedDraftEntities, textLength]
+  );
+  const spanEditorBoundaryState = spanEditor ? getSpanBoundaryStateByIndex(spanEditor.index) : null;
+
+  const applyBoundary = useCallback(
+    (index: number, side: SpanBoundarySide, nextBoundaryValue: number): OverlayEntitySpan[] | null => {
+      const nextSpans = buildBoundaryAdjustedSpans(
+        normalizedDraftEntities,
+        index,
+        side,
+        nextBoundaryValue,
+        textLength
+      );
+      if (!nextSpans) {
+        setEntityWarning("This span no longer exists.");
+        return null;
+      }
+
+      const nextSpan = nextSpans[index];
+      if (!nextSpan) {
+        setEntityWarning("This span no longer exists.");
+        return null;
+      }
+
+      const selectionValidation = canApplySelectionToTablePreview(
+        previewModel,
+        nextSpan.start,
+        nextSpan.end
+      );
+      if (!selectionValidation.valid) {
+        setEntityWarning(selectionValidation.warning.message);
+        return null;
+      }
+
+      setDialogDraftEntities(nextSpans);
+      setEntityWarning(null);
+      return nextSpans;
+    },
+    [normalizedDraftEntities, previewModel, setDialogDraftEntities, setEntityWarning, textLength]
+  );
+
+  const commitBoundaryResize = useCallback(
+    (nextEntities: OverlayEntitySpan[]) => {
+      commitActiveRegionEdits({ text: dialogDraftText, entities: nextEntities }, "viewer-region-entity-resize");
+    },
+    [commitActiveRegionEdits, dialogDraftText]
+  );
+
+  const handleStartBoundaryDrag = useCallback(
+    (index: number, side: SpanBoundarySide) => {
+      if (!normalizedDraftEntities[index]) {
+        setEntityWarning("This span no longer exists.");
+        return;
+      }
+      setBoundaryDrag({
+        index,
+        side,
+        initialEntities: normalizedDraftEntities.map((span) => ({ ...span }))
+      });
+      setPendingSelection(null);
+      setPickerSelection(null);
+      setEntityWarning(null);
+    },
+    [normalizedDraftEntities, setEntityWarning, setPendingSelection, setPickerSelection]
+  );
+
+  const handleUpdateBoundaryDrag = useCallback(
+    (nextBoundaryValue: number) => {
+      if (!boundaryDrag) {
+        return;
+      }
+      applyBoundary(boundaryDrag.index, boundaryDrag.side, nextBoundaryValue);
+    },
+    [applyBoundary, boundaryDrag]
+  );
+
+  const handleEndBoundaryDragCommit = useCallback(() => {
+    if (!boundaryDrag) {
+      return;
+    }
+    const didChange = !areEntitySpansEqual(normalizedDraftEntities, boundaryDrag.initialEntities);
+    if (didChange) {
+      commitBoundaryResize(normalizedDraftEntities);
+    }
+    setBoundaryDrag(null);
+  }, [boundaryDrag, commitBoundaryResize, normalizedDraftEntities]);
+
+  const handleCancelBoundaryDrag = useCallback(() => {
+    if (!boundaryDrag) {
+      return;
+    }
+    setDialogDraftEntities(boundaryDrag.initialEntities);
+    setBoundaryDrag(null);
+    setEntityWarning(null);
+  }, [boundaryDrag, setDialogDraftEntities, setEntityWarning]);
+
+  const handleAdjustBoundaryStep = useCallback(
+    (index: number, side: SpanBoundarySide, delta: number) => {
+      const span = normalizedDraftEntities[index];
+      if (!span) {
+        setEntityWarning("This span no longer exists.");
+        return;
+      }
+      const nextBoundaryValue = side === "start" ? span.start + delta : span.end + delta;
+      const nextSpans = applyBoundary(index, side, nextBoundaryValue);
+      if (!nextSpans || areEntitySpansEqual(nextSpans, normalizedDraftEntities)) {
+        return;
+      }
+      commitBoundaryResize(nextSpans);
+    },
+    [applyBoundary, commitBoundaryResize, normalizedDraftEntities, setEntityWarning]
+  );
+
   const handleOpenSpanEditor = useCallback(
     (index: number, anchorX: number, anchorY: number) => {
       const span = normalizedDraftEntities[index];
@@ -79,11 +229,7 @@ export function useRegionEditorSpanEditing({
       const nextEntity = coerceEntityLabel(nextEntityInput);
       const nextSpans = normalizedDraftEntities.map((span, index) =>
         index === spanEditor.index
-          ? {
-              start: span.start,
-              end: span.end,
-              entity: nextEntity
-            }
+          ? { start: span.start, end: span.end, entity: nextEntity }
           : span
       );
       const sortedNextSpans = sortEntitySpans(nextSpans);
@@ -113,14 +259,7 @@ export function useRegionEditorSpanEditing({
 
   const handleSpanEditorEntityChange = useCallback(
     (nextEntity: string) => {
-      setSpanEditor((previous) =>
-        previous
-          ? {
-              ...previous,
-              entity: nextEntity
-            }
-          : previous
-      );
+      setSpanEditor((previous) => (previous ? { ...previous, entity: nextEntity } : previous));
       if (!spanEditor) {
         return;
       }
@@ -167,10 +306,19 @@ export function useRegionEditorSpanEditing({
   ]);
 
   return {
+    isSpanBoundaryDragActive: Boolean(boundaryDrag),
+    activeBoundaryDrag: boundaryDrag ? { index: boundaryDrag.index, side: boundaryDrag.side } : null,
+    spanEditorBoundaryState,
+    getSpanBoundaryStateByIndex,
     handleOpenSpanEditor,
     handleSpanEditorEntityChange,
     handleApplySpanEditor,
     handleCancelSpanEditor,
-    handleRemoveSpan
+    handleRemoveSpan,
+    handleStartBoundaryDrag,
+    handleUpdateBoundaryDrag,
+    handleEndBoundaryDragCommit,
+    handleCancelBoundaryDrag,
+    handleAdjustBoundaryStep
   };
 }

@@ -12,6 +12,7 @@ interface UseRegionEditorEntityHistorySyncOptions {
   dialogDraftBbox: OverlayRegion["bbox"] | null;
   isBboxStructuralEditingEnabled: boolean;
   isRawTextEditingEnabled: boolean;
+  isSpanBoundaryDragActive: boolean;
   setDialogDraftEntities: (nextEntities: OverlayEntitySpan[]) => void;
   setPendingSelection: (next: null) => void;
   setPickerSelection: (next: null) => void;
@@ -27,6 +28,7 @@ export function useRegionEditorEntityHistorySync({
   dialogDraftBbox,
   isBboxStructuralEditingEnabled,
   isRawTextEditingEnabled,
+  isSpanBoundaryDragActive,
   setDialogDraftEntities,
   setPendingSelection,
   setPickerSelection,
@@ -35,6 +37,9 @@ export function useRegionEditorEntityHistorySync({
 }: UseRegionEditorEntityHistorySyncOptions): void {
   useEffect(() => {
     if (!activeRegion) {
+      return;
+    }
+    if (isSpanBoundaryDragActive) {
       return;
     }
 
@@ -67,6 +72,7 @@ export function useRegionEditorEntityHistorySync({
     dialogDraftText,
     isBboxStructuralEditingEnabled,
     isRawTextEditingEnabled,
+    isSpanBoundaryDragActive,
     setDialogDraftEntities,
     setEntityWarning,
     setPendingSelection,

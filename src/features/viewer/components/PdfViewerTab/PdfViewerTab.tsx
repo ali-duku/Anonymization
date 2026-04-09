@@ -238,6 +238,7 @@ function PdfViewerTabComponent({
         pendingEntity={regionEditor.pendingEntity}
         pickerSelection={regionEditor.pickerSelection}
         spanEditor={regionEditor.spanEditor}
+        spanBoundaryControls={regionEditor.spanBoundaryControls}
         entityWarning={regionEditor.entityWarning}
         previewModel={regionEditor.previewModel}
         normalizedDraftEntities={regionEditor.normalizedDraftEntities}

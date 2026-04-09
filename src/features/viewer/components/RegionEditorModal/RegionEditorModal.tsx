@@ -30,6 +30,7 @@ function RegionEditorModalComponent({
   pendingEntity,
   pickerSelection,
   spanEditor,
+  spanBoundaryControls,
   entityWarning,
   previewModel,
   normalizedDraftEntities,
@@ -202,6 +203,7 @@ function RegionEditorModalComponent({
           pickerRef={pickerRef}
           buildEntityPalette={buildEntityPalette}
           coerceEntityLabel={coerceEntityLabel}
+          spanBoundaryControls={spanBoundaryControls}
           hasCopiedBbox={hasCopiedBbox}
           isRawTextEditingEnabled={isRawTextEditingEnabled}
           isTextCopyEnabled={isTextCopyEnabled}
@@ -229,9 +231,11 @@ function RegionEditorModalComponent({
       <SpanEditorPopover
         containerRef={spanEditorRef}
         spanEditor={spanEditor}
+        spanBoundaryState={spanBoundaryControls.spanEditorBoundaryState}
         entityLabels={anonymizationEntityLabels}
         coerceEntityLabel={coerceEntityLabel}
         onEntityChange={onSpanEditorEntityChange}
+        onAdjustBoundary={spanBoundaryControls.handleAdjustBoundaryStep}
         onRemove={onRemoveSpan}
         onCancel={onCancelSpanEditor}
       />

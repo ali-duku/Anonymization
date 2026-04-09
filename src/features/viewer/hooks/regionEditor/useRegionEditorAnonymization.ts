@@ -14,9 +14,9 @@ import {
   canApplySelectionToTablePreview,
   type RegionPreviewModel
 } from "../../utils/previewModel";
+import type { SpanBoundarySide, SpanBoundaryState } from "../../utils/spanBoundaries";
 import type { SpanEditorDraft } from "../useRegionEditor.types";
 import { useRegionEditorSpanEditing } from "./useRegionEditorSpanEditing";
-
 interface UseRegionEditorAnonymizationOptions {
   dialogTextareaRef: React.MutableRefObject<HTMLTextAreaElement | null>;
   dialogDraftText: string;
@@ -43,6 +43,10 @@ interface UseRegionEditorAnonymizationOptions {
 }
 
 interface RegionEditorAnonymizationResult {
+  isSpanBoundaryDragActive: boolean;
+  activeBoundaryDrag: { index: number; side: SpanBoundarySide } | null;
+  spanEditorBoundaryState: SpanBoundaryState | null;
+  getSpanBoundaryStateByIndex: (index: number) => SpanBoundaryState | null;
   refreshPendingSelection: () => void;
   handleEditorInput: ChangeEventHandler<HTMLTextAreaElement>;
   handleEditorKeyUp: () => void;
@@ -55,6 +59,11 @@ interface RegionEditorAnonymizationResult {
   handleApplySpanEditor: (entityOverride?: string) => void;
   handleCancelSpanEditor: () => void;
   handleRemoveSpan: () => void;
+  handleStartBoundaryDrag: (index: number, side: SpanBoundarySide) => void;
+  handleUpdateBoundaryDrag: (nextBoundaryValue: number) => void;
+  handleEndBoundaryDragCommit: () => void;
+  handleCancelBoundaryDrag: () => void;
+  handleAdjustBoundaryStep: (index: number, side: SpanBoundarySide, delta: number) => void;
 }
 
 export function useRegionEditorAnonymization({
@@ -129,9 +138,7 @@ export function useRegionEditorAnonymization({
     ]
   );
 
-  const handleEditorKeyUp = useCallback(() => {
-    refreshPendingSelection();
-  }, [refreshPendingSelection]);
+  const handleEditorKeyUp = useCallback(() => refreshPendingSelection(), [refreshPendingSelection]);
 
   const handleAnonymizeSelection = useCallback(() => {
     const textarea = dialogTextareaRef.current;
@@ -257,16 +264,26 @@ export function useRegionEditorAnonymization({
   }, [setEntityWarning, setPendingSelection, setPickerSelection]);
 
   const {
+    isSpanBoundaryDragActive,
+    activeBoundaryDrag,
+    spanEditorBoundaryState,
+    getSpanBoundaryStateByIndex,
     handleOpenSpanEditor,
     handleSpanEditorEntityChange,
     handleApplySpanEditor,
     handleCancelSpanEditor,
-    handleRemoveSpan
+    handleRemoveSpan,
+    handleStartBoundaryDrag,
+    handleUpdateBoundaryDrag,
+    handleEndBoundaryDragCommit,
+    handleCancelBoundaryDrag,
+    handleAdjustBoundaryStep
   } = useRegionEditorSpanEditing({
     normalizedDraftEntities,
     anonymizationEntityLabels,
     spanEditor,
     dialogDraftText,
+    previewModel,
     commitActiveRegionEdits,
     setDialogDraftEntities,
     setPendingSelection: (nextSelection) => {
@@ -280,6 +297,10 @@ export function useRegionEditorAnonymization({
   });
 
   return {
+    isSpanBoundaryDragActive,
+    activeBoundaryDrag,
+    spanEditorBoundaryState,
+    getSpanBoundaryStateByIndex,
     refreshPendingSelection,
     handleEditorInput,
     handleEditorKeyUp,
@@ -291,6 +312,11 @@ export function useRegionEditorAnonymization({
     handleSpanEditorEntityChange,
     handleApplySpanEditor,
     handleCancelSpanEditor,
-    handleRemoveSpan
+    handleRemoveSpan,
+    handleStartBoundaryDrag,
+    handleUpdateBoundaryDrag,
+    handleEndBoundaryDragCommit,
+    handleCancelBoundaryDrag,
+    handleAdjustBoundaryStep
   };
 }
