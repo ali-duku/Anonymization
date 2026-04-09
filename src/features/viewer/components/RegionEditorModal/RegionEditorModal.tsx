@@ -2,6 +2,7 @@ import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRegionDialogContainerBounds } from "../../hooks/useRegionDialogContainerBounds";
 import { useRegionDialogLayout } from "../../hooks/useRegionDialogLayout";
+import { useRegionDialogNavigationShortcuts } from "../../hooks/useRegionDialogNavigationShortcuts";
 import { useRegionDialogPaneMinimums } from "../../hooks/useRegionDialogPaneMinimums";
 import { useTopmostDialogDismissal } from "../../hooks/useTopmostDialogDismissal";
 import { SpanEditorPopover } from "../SpanEditorPopover/SpanEditorPopover";
@@ -128,6 +129,15 @@ function RegionEditorModalComponent({
     onDismissSpanEditor: onCancelSpanEditor,
     onDismissPicker: onCancelPicker,
     onDismissParent: onClose
+  });
+
+  useRegionDialogNavigationShortcuts({
+    isDialogOpen: Boolean(activeRegion),
+    isPopoverOpen: Boolean(spanEditor) || Boolean(pickerSelection),
+    onGoFirstRegion,
+    onGoLastRegion,
+    onGoPreviousRegion,
+    onGoNextRegion
   });
 
   if (!activeRegion) {

@@ -2,8 +2,17 @@ import type { AppMeta } from "./types/appMeta";
 
 export const APP_META: AppMeta = {
   name: "Anonymizer",
-  version: "0.8.0",
+  version: "0.8.1",
   releaseNotes: [
+    {
+      version: "0.8.1",
+      date: "2026-04-09",
+      highlights: [
+        "Added dialog-scoped keyboard region navigation in Edit Region: `ArrowLeft`/`ArrowRight` now map to `Previous`/`Next`, and `Ctrl+ArrowLeft`/`Ctrl+ArrowRight` map to `First`/`Last`.",
+        "Routed keyboard-triggered navigation through the same canonical current-page region handlers used by Region Context buttons, preserving existing boundary and unsaved-change behavior.",
+        "Added strict activation guards so region-navigation shortcuts do not fire while editing text fields or when span/entity popovers are open, preventing keyboard-interaction conflicts.",
+      ],
+    },
     {
       version: "0.8.0",
       date: "2026-04-09",

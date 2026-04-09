@@ -11,6 +11,11 @@ Every functional/UI update must include both:
 
 ## Latest Update
 
+- **v0.8.1 (2026-04-09)**
+  - Added dialog-scoped keyboard region navigation in Edit Region: `ArrowLeft`/`ArrowRight` now map to `Previous`/`Next`, and `Ctrl+ArrowLeft`/`Ctrl+ArrowRight` map to `First`/`Last`.
+  - Routed keyboard region switching through the same canonical current-page navigation handlers used by Region Context buttons.
+  - Added strict shortcut gating so region-navigation keys do not fire while editing text controls or while span/entity popovers are open.
+
 - **v0.8.0 (2026-04-09)**
   - Added canonical anonymized-span boundary resizing in Edit Region with both inline Preview start/end handles and span-popover start/end controls.
   - Integrated span-boundary resizing into canonical overlay history/save flows with deterministic clamping and undo/redo coherence.
@@ -119,6 +124,7 @@ Every functional/UI update must include both:
   - Draggable outer dialog pane separator with session-scoped width persistence and container-bound split clamp enforcement.
   - Fenced HTML table preview rendering in region dialog Preview (table-only).
   - Current-page bbox navigation while editing (`First`, `Previous`, direct region-number jump, `Next`, `Last`) with visible `current/total` context.
+  - Dialog-scoped keyboard region navigation mirrors Region Context buttons: `ArrowLeft`/`ArrowRight` for `Previous`/`Next`, `Ctrl+ArrowLeft`/`Ctrl+ArrowRight` for `First`/`Last` (blocked while typing or while span/entity popovers are open).
   - Region snippet zoom controls with right-click/drag-save prevention (default/reset at 75%).
   - Optional bbox diagnostics logs in development via `VITE_VIEWER_BBOX_DEBUG=1`.
 - Setup supports:
