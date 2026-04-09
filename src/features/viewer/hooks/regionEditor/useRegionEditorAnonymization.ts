@@ -1,70 +1,19 @@
-import { useCallback, type ChangeEventHandler, type Dispatch, type SetStateAction } from "react";
+import { useCallback, type ChangeEventHandler } from "react";
 import {
   coerceEntityLabel,
   hasEntityOverlap,
   sortEntitySpans
 } from "../../../../constants/anonymizationEntities";
-import type { OverlayEntitySpan } from "../../../../types/overlay";
 import {
   getTextareaSelectionOffsets,
-  remapEntitySpansAfterTextChange,
-  type PendingSelectionRange
+  remapEntitySpansAfterTextChange
 } from "../../utils/textEntities";
-import {
-  canApplySelectionToTablePreview,
-  type RegionPreviewModel
-} from "../../utils/previewModel";
-import type { SpanBoundarySide, SpanBoundaryState } from "../../utils/spanBoundaries";
-import type { SpanEditorDraft } from "../useRegionEditor.types";
+import { canApplySelectionToTablePreview } from "../../utils/previewModel";
 import { useRegionEditorSpanEditing } from "./useRegionEditorSpanEditing";
-interface UseRegionEditorAnonymizationOptions {
-  dialogTextareaRef: React.MutableRefObject<HTMLTextAreaElement | null>;
-  dialogDraftText: string;
-  dialogDraftEntities: OverlayEntitySpan[];
-  normalizedDraftEntities: OverlayEntitySpan[];
-  anonymizationEntityLabels: readonly string[];
-  previewModel: RegionPreviewModel;
-  pendingSelection: PendingSelectionRange | null;
-  pendingEntity: string;
-  pickerSelection: PendingSelectionRange | null;
-  spanEditor: SpanEditorDraft | null;
-  isRawTextEditingEnabled: boolean;
-  commitActiveRegionEdits: (
-    edits: { text?: string; entities?: OverlayEntitySpan[] },
-    action?: string
-  ) => boolean;
-  setDialogDraftText: (nextText: string) => void;
-  setDialogDraftEntities: (nextEntities: OverlayEntitySpan[]) => void;
-  setPendingSelection: (nextSelection: PendingSelectionRange | null) => void;
-  setPendingEntity: (nextEntity: string) => void;
-  setPickerSelection: (nextSelection: PendingSelectionRange | null) => void;
-  setSpanEditor: Dispatch<SetStateAction<SpanEditorDraft | null>>;
-  setEntityWarning: (nextWarning: string | null) => void;
-}
-
-interface RegionEditorAnonymizationResult {
-  isSpanBoundaryDragActive: boolean;
-  activeBoundaryDrag: { index: number; side: SpanBoundarySide } | null;
-  spanEditorBoundaryState: SpanBoundaryState | null;
-  getSpanBoundaryStateByIndex: (index: number) => SpanBoundaryState | null;
-  refreshPendingSelection: () => void;
-  handleEditorInput: ChangeEventHandler<HTMLTextAreaElement>;
-  handleEditorKeyUp: () => void;
-  handleAnonymizeSelection: () => void;
-  handlePendingEntityChange: (nextEntity: string) => void;
-  handleApplyPickerEntity: (entityOverride?: string) => void;
-  handleCancelPicker: () => void;
-  handleOpenSpanEditor: (index: number, anchorX: number, anchorY: number) => void;
-  handleSpanEditorEntityChange: (nextEntity: string) => void;
-  handleApplySpanEditor: (entityOverride?: string) => void;
-  handleCancelSpanEditor: () => void;
-  handleRemoveSpan: () => void;
-  handleStartBoundaryDrag: (index: number, side: SpanBoundarySide) => void;
-  handleUpdateBoundaryDrag: (nextBoundaryValue: number) => void;
-  handleEndBoundaryDragCommit: () => void;
-  handleCancelBoundaryDrag: () => void;
-  handleAdjustBoundaryStep: (index: number, side: SpanBoundarySide, delta: number) => void;
-}
+import type {
+  RegionEditorAnonymizationResult,
+  UseRegionEditorAnonymizationOptions
+} from "./useRegionEditorAnonymization.types";
 
 export function useRegionEditorAnonymization({
   dialogTextareaRef,
@@ -266,7 +215,6 @@ export function useRegionEditorAnonymization({
   const {
     isSpanBoundaryDragActive,
     activeBoundaryDrag,
-    spanEditorBoundaryState,
     getSpanBoundaryStateByIndex,
     handleOpenSpanEditor,
     handleSpanEditorEntityChange,
@@ -299,7 +247,6 @@ export function useRegionEditorAnonymization({
   return {
     isSpanBoundaryDragActive,
     activeBoundaryDrag,
-    spanEditorBoundaryState,
     getSpanBoundaryStateByIndex,
     refreshPendingSelection,
     handleEditorInput,

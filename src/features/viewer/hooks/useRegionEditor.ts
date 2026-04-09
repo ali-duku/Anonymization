@@ -11,10 +11,10 @@ import {
   normalizeEntitySpansForText
 } from "../../../constants/anonymizationEntities";
 import { buildRegionLabelOptions } from "../../../constants/regionLabelOptions";
-import type { OverlayDocument, OverlayRegion } from "../../../types/overlay";
 import { hasBboxChanged } from "../utils/overlayDocument";
 import { areEntitySpansEqual } from "../utils/textEntities";
 import { buildRegionPreviewModel, canApplySelectionToTablePreview } from "../utils/previewModel";
+import { resolveActiveRegion } from "./regionEditor/regionEditorActiveRegion";
 import { useRegionEditorDraftState } from "./useRegionEditorDraftState";
 import { useRegionEditorAnonymization } from "./regionEditor/useRegionEditorAnonymization";
 import { useRegionEditorDialogLifecycle } from "./regionEditor/useRegionEditorDialogLifecycle";
@@ -22,24 +22,6 @@ import { useRegionEditorDocumentMutations } from "./regionEditor/useRegionEditor
 import { useRegionEditorEntityHistorySync } from "./regionEditor/useRegionEditorEntityHistorySync";
 import type { UseRegionEditorOptions } from "./useRegionEditor.types";
 export type { SpanEditorDraft, TextDirection } from "./useRegionEditor.types";
-
-function resolveActiveRegion(
-  overlayDocument: OverlayDocument | null,
-  activeRegionId: string | null
-): OverlayRegion | null {
-  if (!activeRegionId || !overlayDocument) {
-    return null;
-  }
-
-  for (const page of overlayDocument.pages) {
-    const region = page.regions.find((item) => item.id === activeRegionId);
-    if (region) {
-      return region;
-    }
-  }
-
-  return null;
-}
 
 export function useRegionEditor({
   overlayDocument,
@@ -108,27 +90,17 @@ export function useRegionEditor({
     resetDraftState();
   }, [resetDraftState, setActiveRegionId]);
 
-  const activeRegion = useMemo(
-    () => resolveActiveRegion(overlayDocument, activeRegionId),
-    [activeRegionId, overlayDocument]
-  );
+  const activeRegion = useMemo(() => resolveActiveRegion(overlayDocument, activeRegionId), [activeRegionId, overlayDocument]);
+  const normalizedDraftEntities = useMemo(() => normalizeEntitySpansForText(dialogDraftEntities, dialogDraftText), [dialogDraftEntities, dialogDraftText]);
+  const previewModel = useMemo(() => buildRegionPreviewModel(dialogDraftText, normalizedDraftEntities), [dialogDraftText, normalizedDraftEntities]);
 
-  const normalizedDraftEntities = useMemo(
-    () => normalizeEntitySpansForText(dialogDraftEntities, dialogDraftText),
-    [dialogDraftEntities, dialogDraftText]
+  const previewWarningMessage = useMemo(
+    () =>
+      previewModel.kind === "html_table" && previewModel.warnings.length > 0
+        ? previewModel.warnings[0].message
+        : null,
+    [previewModel]
   );
-
-  const previewModel = useMemo(
-    () => buildRegionPreviewModel(dialogDraftText, normalizedDraftEntities),
-    [dialogDraftText, normalizedDraftEntities]
-  );
-
-  const previewWarningMessage = useMemo(() => {
-    if (previewModel.kind !== "html_table" || previewModel.warnings.length === 0) {
-      return null;
-    }
-    return previewModel.warnings[0].message;
-  }, [previewModel]);
 
   const hasDialogChanges = useMemo(() => {
     if (!activeRegion) {
@@ -305,7 +277,6 @@ export function useRegionEditor({
     handleRemoveSpan: anonymization.handleRemoveSpan,
     spanBoundaryControls: {
       activeBoundaryDrag: anonymization.activeBoundaryDrag,
-      spanEditorBoundaryState: anonymization.spanEditorBoundaryState,
       getSpanBoundaryStateByIndex: anonymization.getSpanBoundaryStateByIndex,
       handleStartBoundaryDrag: anonymization.handleStartBoundaryDrag,
       handleUpdateBoundaryDrag: anonymization.handleUpdateBoundaryDrag,

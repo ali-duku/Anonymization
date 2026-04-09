@@ -1,55 +1,18 @@
-import { useCallback, useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { coerceEntityLabel, sortEntitySpans } from "../../../../constants/anonymizationEntities";
 import type { OverlayEntitySpan } from "../../../../types/overlay";
-import { canApplySelectionToTablePreview, type RegionPreviewModel } from "../../utils/previewModel";
+import { canApplySelectionToTablePreview } from "../../utils/previewModel";
 import { areEntitySpansEqual } from "../../utils/textEntities";
 import {
   buildBoundaryAdjustedSpans,
   getSpanBoundaryState,
-  type SpanBoundarySide,
-  type SpanBoundaryState
+  type SpanBoundarySide
 } from "../../utils/spanBoundaries";
-import type { SpanEditorDraft } from "../useRegionEditor.types";
-
-interface SpanBoundaryDragState {
-  index: number;
-  side: SpanBoundarySide;
-  initialEntities: OverlayEntitySpan[];
-}
-
-interface UseRegionEditorSpanEditingOptions {
-  normalizedDraftEntities: OverlayEntitySpan[];
-  anonymizationEntityLabels: readonly string[];
-  spanEditor: SpanEditorDraft | null;
-  dialogDraftText: string;
-  previewModel: RegionPreviewModel;
-  commitActiveRegionEdits: (
-    edits: { text?: string; entities?: OverlayEntitySpan[] },
-    action?: string
-  ) => boolean;
-  setDialogDraftEntities: (nextEntities: OverlayEntitySpan[]) => void;
-  setPendingSelection: (nextSelection: null) => void;
-  setPickerSelection: (nextSelection: null) => void;
-  setSpanEditor: Dispatch<SetStateAction<SpanEditorDraft | null>>;
-  setEntityWarning: (nextWarning: string | null) => void;
-}
-
-interface RegionEditorSpanEditingResult {
-  isSpanBoundaryDragActive: boolean;
-  activeBoundaryDrag: { index: number; side: SpanBoundarySide } | null;
-  spanEditorBoundaryState: SpanBoundaryState | null;
-  getSpanBoundaryStateByIndex: (index: number) => SpanBoundaryState | null;
-  handleOpenSpanEditor: (index: number, anchorX: number, anchorY: number) => void;
-  handleSpanEditorEntityChange: (nextEntity: string) => void;
-  handleApplySpanEditor: (entityOverride?: string) => void;
-  handleCancelSpanEditor: () => void;
-  handleRemoveSpan: () => void;
-  handleStartBoundaryDrag: (index: number, side: SpanBoundarySide) => void;
-  handleUpdateBoundaryDrag: (nextBoundaryValue: number) => void;
-  handleEndBoundaryDragCommit: () => void;
-  handleCancelBoundaryDrag: () => void;
-  handleAdjustBoundaryStep: (index: number, side: SpanBoundarySide, delta: number) => void;
-}
+import type {
+  RegionEditorSpanEditingResult,
+  SpanBoundaryDragState,
+  UseRegionEditorSpanEditingOptions
+} from "./useRegionEditorSpanEditing.types";
 
 export function useRegionEditorSpanEditing({
   normalizedDraftEntities,
@@ -74,11 +37,9 @@ export function useRegionEditorSpanEditing({
   }, [boundaryDrag, normalizedDraftEntities]);
 
   const getSpanBoundaryStateByIndex = useCallback(
-    (index: number): SpanBoundaryState | null =>
-      getSpanBoundaryState(normalizedDraftEntities, index, textLength),
+    (index: number) => getSpanBoundaryState(normalizedDraftEntities, index, textLength),
     [normalizedDraftEntities, textLength]
   );
-  const spanEditorBoundaryState = spanEditor ? getSpanBoundaryStateByIndex(spanEditor.index) : null;
 
   const applyBoundary = useCallback(
     (index: number, side: SpanBoundarySide, nextBoundaryValue: number): OverlayEntitySpan[] | null => {
@@ -308,7 +269,6 @@ export function useRegionEditorSpanEditing({
   return {
     isSpanBoundaryDragActive: Boolean(boundaryDrag),
     activeBoundaryDrag: boundaryDrag ? { index: boundaryDrag.index, side: boundaryDrag.side } : null,
-    spanEditorBoundaryState,
     getSpanBoundaryStateByIndex,
     handleOpenSpanEditor,
     handleSpanEditorEntityChange,

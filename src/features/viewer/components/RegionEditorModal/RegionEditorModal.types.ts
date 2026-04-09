@@ -24,7 +24,6 @@ export interface RegionEditorModalProps {
   spanEditor: SpanEditorDraft | null;
   spanBoundaryControls: {
     activeBoundaryDrag: { index: number; side: SpanBoundarySide } | null;
-    spanEditorBoundaryState: SpanBoundaryState | null;
     getSpanBoundaryStateByIndex: (index: number) => SpanBoundaryState | null;
     handleStartBoundaryDrag: (index: number, side: SpanBoundarySide) => void;
     handleUpdateBoundaryDrag: (nextBoundaryValue: number) => void;

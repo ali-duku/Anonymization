@@ -40,30 +40,7 @@
   flex-wrap: wrap;
 }
 
-.boundarySection {
-  display: grid;
-  gap: 6px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: rgba(12, 21, 30, 0.86);
-  padding: 8px;
-}
-
-.boundarySummary {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--muted);
-  font-family: "IBM Plex Mono", monospace;
-}
-
-.boundaryActions {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
 .buttonPrimary,
-.buttonSecondary,
 .buttonDanger {
   font: inherit;
   border: 1px solid transparent;
@@ -79,12 +56,6 @@
   background: linear-gradient(135deg, var(--accent), #67f2df);
 }
 
-.buttonSecondary {
-  color: var(--text);
-  background: rgba(20, 32, 45, 0.92);
-  border-color: var(--line);
-}
-
 .buttonDanger {
   color: #fff6f6;
   background: linear-gradient(180deg, #d54a4e, #b61f25);
@@ -92,7 +63,6 @@
 }
 
 .buttonPrimary:hover,
-.buttonSecondary:hover,
 .buttonDanger:hover {
   transform: translateY(-1px);
   filter: brightness(1.03);

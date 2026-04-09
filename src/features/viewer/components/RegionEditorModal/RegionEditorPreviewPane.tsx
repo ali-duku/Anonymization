@@ -176,7 +176,8 @@ function RegionEditorPreviewPaneComponent({
   );
   const renderEntityFragment = useCallback(
     (
-      key: string,
+      structuralKey: string,
+      reactKey: string,
       entityIndex: number,
       entity: string,
       text: string,
@@ -184,12 +185,12 @@ function RegionEditorPreviewPaneComponent({
       end: number
     ) => {
       const palette = buildEntityPalette(entity);
-      const showStart = handleVisibility.start.has(key);
-      const showEnd = handleVisibility.end.has(key);
+      const showStart = handleVisibility.start.has(structuralKey);
+      const showEnd = handleVisibility.end.has(structuralKey);
       const boundaryState = spanBoundaryControls.getSpanBoundaryStateByIndex(entityIndex);
       return (
         <span
-          key={key}
+          key={reactKey}
           className={`${styles.entitySpan} ${handleStyles.entityToken}`}
           style={{ background: palette.background, color: palette.text, ["--entity-border-color" as string]: palette.border } as CSSProperties}
           title={`${entity} [${start}-${end}]`}
@@ -221,11 +222,11 @@ function RegionEditorPreviewPaneComponent({
     <div ref={dialogPreviewRef} className={styles.textPreview} dir={dialogTextDirection}>
       {previewModel.kind === "plain_text"
         ? previewModel.segments.map((segment, index) => {
-            const key = `plain-${index}`;
+            const structuralKey = `plain-${index}`;
             if (segment.entityIndex === null || !segment.entity) {
               return (
                 <span
-                  key={key}
+                  key={structuralKey}
                   className={styles.segment}
                   data-range-start={segment.start}
                   data-range-end={segment.end}
@@ -234,8 +235,10 @@ function RegionEditorPreviewPaneComponent({
                 </span>
               );
             }
+            const reactKey = `plain-entity-${segment.entityIndex}`;
             return renderEntityFragment(
-              key,
+              structuralKey,
+              reactKey,
               segment.entityIndex,
               segment.entity,
               segment.text,
@@ -274,6 +277,7 @@ function RegionEditorPreviewPaneComponent({
                               );
                             }
                             return renderEntityFragment(
+                              key,
                               key,
                               fragment.entityIndex,
                               fragment.entity,
