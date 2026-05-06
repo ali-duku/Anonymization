@@ -1,12 +1,11 @@
-import type { EntityProfileId } from "../types/anonymizationProfiles";
 import type { OverlayEntitySpan } from "../types/overlay";
 import {
   FALLBACK_CANONICAL_ENTITY_PALETTE,
   buildCanonicalEntityColorPalette
 } from "./entityColors";
 
-interface EntityProfileConfig {
-  id: EntityProfileId;
+interface EntityProfileCatalogEntry {
+  id: string;
   displayName: string;
   entityLabels: readonly string[];
 }
@@ -74,25 +73,65 @@ const HMC_ANONYMISATION_HANDOFF_ENTITY_LABELS = [
   "Phone Number"
 ] as const;
 
-export const ENTITY_PROFILES: Record<EntityProfileId, EntityProfileConfig> = {
-  "moj-shour_human-poc": {
+const DUE_DILIGENCE_ENTITY_LABELS = [
+  "Client Identity",
+  "Location/Address",
+  "Contact Information",
+  "Website Information",
+  "Entity Tax ID",
+  "Ticker",
+  "Individual Name",
+  "Mail Address",
+  "Email Address",
+  "Telephone Number",
+  "Govt/Personal ID"
+] as const;
+
+const ENTITY_PROFILE_CATALOG = [
+  {
     id: "moj-shour_human-poc",
     displayName: "MoJ Shour Human Review",
     entityLabels: MOJ_SHOUR_HUMAN_POC_ENTITY_LABELS
   },
-  "moj-shour_human-poc-original": {
+  {
     id: "moj-shour_human-poc-original",
     displayName: "MoJ Shour Human Review (Original)",
     entityLabels: MOJ_SHOUR_HUMAN_POC_ORIGINAL_ENTITY_LABELS
   },
-  HMC_anonymisation_handoff: {
+  {
     id: "HMC_anonymisation_handoff",
     displayName: "HMC Anonymisation Handoff",
     entityLabels: HMC_ANONYMISATION_HANDOFF_ENTITY_LABELS
+  },
+  {
+    id: "due-diligence",
+    displayName: "Due Diligence",
+    entityLabels: DUE_DILIGENCE_ENTITY_LABELS
   }
-};
+] as const satisfies readonly EntityProfileCatalogEntry[];
 
-export const ENTITY_PROFILE_OPTIONS = Object.values(ENTITY_PROFILES).map((profile) => ({
+export type EntityProfileId = (typeof ENTITY_PROFILE_CATALOG)[number]["id"];
+
+interface EntityProfileConfig {
+  id: EntityProfileId;
+  displayName: string;
+  entityLabels: readonly string[];
+}
+
+function buildEntityProfiles(
+  catalog: readonly (EntityProfileConfig & { readonly id: EntityProfileId })[]
+): Record<EntityProfileId, EntityProfileConfig> {
+  const profilesById = {} as Record<EntityProfileId, EntityProfileConfig>;
+  for (const profile of catalog) {
+    profilesById[profile.id] = profile;
+  }
+  return profilesById;
+}
+
+export const ENTITY_PROFILES: Record<EntityProfileId, EntityProfileConfig> =
+  buildEntityProfiles(ENTITY_PROFILE_CATALOG);
+
+export const ENTITY_PROFILE_OPTIONS = ENTITY_PROFILE_CATALOG.map((profile) => ({
   id: profile.id,
   displayName: profile.displayName
 }));
@@ -101,13 +140,19 @@ export const DEFAULT_ENTITY_PROFILE_ID: EntityProfileId = "moj-shour_human-poc";
 
 const FALLBACK_ENTITY_LABEL = "???";
 
-export const ALL_ANONYMIZATION_ENTITY_LABELS = [
+const LEGACY_COLOR_BASE_ENTITY_LABELS = [
   ...MOJ_SHOUR_HUMAN_POC_ENTITY_LABELS,
   ...MOJ_SHOUR_HUMAN_POC_ORIGINAL_ENTITY_LABELS,
   ...HMC_ANONYMISATION_HANDOFF_ENTITY_LABELS
 ] as const;
 
-export type AnonymizationEntityLabel = (typeof ALL_ANONYMIZATION_ENTITY_LABELS)[number] | typeof FALLBACK_ENTITY_LABEL;
+export const ALL_ANONYMIZATION_ENTITY_LABELS: readonly string[] = ENTITY_PROFILE_CATALOG.flatMap(
+  (profile) => profile.entityLabels
+);
+
+type CatalogEntityLabel = (typeof ENTITY_PROFILE_CATALOG)[number]["entityLabels"][number];
+
+export type AnonymizationEntityLabel = CatalogEntityLabel | typeof FALLBACK_ENTITY_LABEL;
 
 export const ANONYMIZATION_ENTITY_LABELS = ENTITY_PROFILES[DEFAULT_ENTITY_PROFILE_ID].entityLabels;
 
@@ -131,14 +176,35 @@ function compareCanonicalEntityKeys(left: string, right: string): number {
   return left < right ? -1 : 1;
 }
 
-function buildCanonicalEntityColorIndices(labels: readonly string[]): ReadonlyMap<string, number> {
-  const uniqueLabels = Array.from(new Set(labels.map((label) => label.trim()).filter(Boolean)));
-  uniqueLabels.sort(compareCanonicalEntityKeys);
+function buildCanonicalEntityColorIndices(
+  legacyBaseLabels: readonly string[],
+  allLabels: readonly string[]
+): ReadonlyMap<string, number> {
+  const colorIndexByLabel = new Map<string, number>();
+  const legacySortedUniqueLabels = Array.from(
+    new Set(legacyBaseLabels.map((label) => label.trim()).filter(Boolean))
+  );
+  legacySortedUniqueLabels.sort(compareCanonicalEntityKeys);
+  legacySortedUniqueLabels.forEach((label, index) => {
+    colorIndexByLabel.set(label, index);
+  });
 
-  return new Map(uniqueLabels.map((label, index) => [label, index] as const));
+  let nextIndex = legacySortedUniqueLabels.length;
+  for (const label of allLabels.map((value) => value.trim()).filter(Boolean)) {
+    if (colorIndexByLabel.has(label)) {
+      continue;
+    }
+    colorIndexByLabel.set(label, nextIndex);
+    nextIndex += 1;
+  }
+
+  return colorIndexByLabel;
 }
 
-const CANONICAL_ENTITY_COLOR_INDEX_BY_LABEL = buildCanonicalEntityColorIndices(ALL_ANONYMIZATION_ENTITY_LABELS);
+const CANONICAL_ENTITY_COLOR_INDEX_BY_LABEL = buildCanonicalEntityColorIndices(
+  LEGACY_COLOR_BASE_ENTITY_LABELS,
+  ALL_ANONYMIZATION_ENTITY_LABELS
+);
 
 function resolveCatalog(catalog?: readonly string[]): readonly string[] {
   if (!catalog || catalog.length === 0) {
