@@ -206,6 +206,45 @@ const CANONICAL_ENTITY_COLOR_INDEX_BY_LABEL = buildCanonicalEntityColorIndices(
   ALL_ANONYMIZATION_ENTITY_LABELS
 );
 
+function buildProfileLocalColorIndices(
+  profileLabels: readonly string[]
+): ReadonlyMap<string, number> {
+  const colorIndexByLabel = new Map<string, number>();
+  for (const label of profileLabels.map((value) => value.trim()).filter(Boolean)) {
+    if (colorIndexByLabel.has(label)) {
+      continue;
+    }
+    colorIndexByLabel.set(label, colorIndexByLabel.size);
+  }
+  return colorIndexByLabel;
+}
+
+const DUE_DILIGENCE_ENTITY_COLOR_INDEX_BY_LABEL = buildProfileLocalColorIndices(
+  DUE_DILIGENCE_ENTITY_LABELS
+);
+
+function isExactCatalogMatch(
+  catalog: readonly string[],
+  expectedCatalog: readonly string[]
+): boolean {
+  if (catalog.length !== expectedCatalog.length) {
+    return false;
+  }
+  for (let index = 0; index < expectedCatalog.length; index += 1) {
+    if (catalog[index] !== expectedCatalog[index]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function isDueDiligenceCatalog(catalog?: readonly string[]): boolean {
+  if (!catalog || catalog.length === 0) {
+    return false;
+  }
+  return isExactCatalogMatch(catalog, DUE_DILIGENCE_ENTITY_LABELS);
+}
+
 function resolveCatalog(catalog?: readonly string[]): readonly string[] {
   if (!catalog || catalog.length === 0) {
     return ALL_ANONYMIZATION_ENTITY_LABELS;
@@ -298,12 +337,14 @@ export function normalizeEntitySpansForText(
   return normalized;
 }
 
-export function buildEntityPalette(entity: string, _catalog?: readonly string[]): {
+export function buildEntityPalette(entity: string, catalog?: readonly string[]): {
   background: string;
   text: string;
   border: string;
 } {
-  const safeEntity = coerceEntityLabel(entity);
+  const safeEntity = isDueDiligenceCatalog(catalog)
+    ? coerceEntityLabel(entity, DUE_DILIGENCE_ENTITY_LABELS)
+    : coerceEntityLabel(entity);
   if (safeEntity === FALLBACK_ANONYMIZATION_ENTITY_LABEL) {
     return {
       background: FALLBACK_CANONICAL_ENTITY_PALETTE.chipBackground,
@@ -312,7 +353,9 @@ export function buildEntityPalette(entity: string, _catalog?: readonly string[])
     };
   }
 
-  const colorIndex = CANONICAL_ENTITY_COLOR_INDEX_BY_LABEL.get(safeEntity);
+  const colorIndex = isDueDiligenceCatalog(catalog)
+    ? DUE_DILIGENCE_ENTITY_COLOR_INDEX_BY_LABEL.get(safeEntity)
+    : CANONICAL_ENTITY_COLOR_INDEX_BY_LABEL.get(safeEntity);
   if (colorIndex === undefined) {
     return {
       background: FALLBACK_CANONICAL_ENTITY_PALETTE.chipBackground,
